@@ -3,80 +3,130 @@
 <head>
   <meta charset="UTF-8">
   <title>Hodowla Koni</title>
-  <link rel="stylesheet" href="style.css">
 
   <style>
     body {
       margin: 0;
       font-family: Arial;
-      background: #ddd;
+      background: #0f2f2f;
+      color: white;
     }
 
     .container {
       display: grid;
-      grid-template-columns: 250px 1fr;
-      grid-template-rows: 120px 1fr;
+      grid-template-columns: 220px 1fr 220px;
+      grid-template-rows: 80px 1fr;
       height: 100vh;
-      border: 4px solid black;
     }
 
+    /* SIDEBAR */
     .sidebar {
       grid-row: 1 / span 2;
-      background: #eee;
-      border-right: 4px solid black;
-      padding: 10px;
+      background: #133c3c;
+      padding: 15px;
     }
 
-    .topbar {
-      background: #eee;
-      border-bottom: 4px solid black;
-      padding: 10px;
-    }
-
-    .main {
-      padding: 20px;
-      background: #fff;
-      overflow-y: auto;
+    .sidebar h3 {
+      margin-top: 0;
     }
 
     .menu-item {
-      margin: 10px 0;
+      margin: 12px 0;
+      padding: 8px;
+      background: #1c5555;
+      border-radius: 8px;
       cursor: pointer;
+      transition: 0.2s;
     }
 
     .menu-item:hover {
-      font-weight: bold;
+      background: #2d7a7a;
     }
+
+    /* TOPBAR */
+    .topbar {
+      grid-column: 2 / span 2;
+      background: #1c5555;
+      display: flex;
+      align-items: center;
+      padding-left: 20px;
+      font-size: 20px;
+    }
+
+    /* MAIN */
+    .main {
+      padding: 20px;
+      background: #e8f5f5;
+      color: black;
+      overflow-y: auto;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      background: #2d7a7a;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #3fa3a3;
+    }
+
+    /* LEADERBOARD */
+    .leaderboard {
+      background: #133c3c;
+      padding: 15px;
+    }
+
+    .leaderboard h3 {
+      margin-top: 0;
+    }
+
+    .player {
+      background: #1c5555;
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 6px;
+    }
+
+    .expedition, .horse {
+      background: #ffffff;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 8px;
+    }
+
   </style>
 </head>
 <body>
 
 <div class="container">
 
-  <!-- LEWA STRONA -->
+  <!-- LEWY PANEL -->
   <div class="sidebar">
-    <b>NAZWA GRACZA</b><br>
-    LICZBA KONI<br>
-    MONETY
+    <h3>🐎 Gracz</h3>
+    Nazwa<br>
+    Konie: <span id="horseCount">0</span><br>
+    Monety: 0
 
     <hr>
 
-    <div class="menu-item" onclick="showSection('expedition')">Wyprawa</div>
-    <div class="menu-item">Sklep</div>
-    <div class="menu-item">Moja stajnia</div>
-    <div class="menu-item">Zawody</div>
-    <div class="menu-item">Rozmnażanie</div>
-    <div class="menu-item">Rynek</div>
+    <div class="menu-item" onclick="showSection('expedition')">🌍 Wyprawa</div>
+    <div class="menu-item" onclick="showSection('stable')">🐎 Stajnia</div>
+    <div class="menu-item">🏪 Sklep</div>
+    <div class="menu-item">🏆 Zawody</div>
+    <div class="menu-item">🧬 Rozmnażanie</div>
   </div>
 
   <!-- GÓRA -->
   <div class="topbar">
-    <b>🐎 HAPPY HORSES</b><br>
-    (tu możesz później dać profil, statystyki itd.)
+    🐎 HAPPY HORSES
   </div>
 
   <!-- GŁÓWNA SEKCJA -->
-  <div class="main" id="mainContent">
+  <div class="main">
 
     <!-- WYPRAWA -->
     <div id="expeditionSection">
@@ -98,6 +148,15 @@
 
   </div>
 
+  <!-- LEADERBOARD -->
+  <div class="leaderboard">
+    <h3>🏆 Ranking</h3>
+
+    <div class="player">Gracz1 - 10 koni</div>
+    <div class="player">Gracz2 - 8 koni</div>
+    <div class="player">Gracz3 - 6 koni</div>
+  </div>
+
 </div>
 
 <script>
@@ -107,6 +166,10 @@ function showSection(section) {
 
   if (section === "expedition") {
     document.getElementById("expeditionSection").style.display = "block";
+  }
+
+  if (section === "stable") {
+    document.getElementById("stableSection").style.display = "block";
   }
 }
 </script>
