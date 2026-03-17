@@ -4,47 +4,113 @@
   <meta charset="UTF-8">
   <title>Hodowla Koni</title>
   <link rel="stylesheet" href="style.css">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: #ddd;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      grid-template-rows: 120px 1fr;
+      height: 100vh;
+      border: 4px solid black;
+    }
+
+    .sidebar {
+      grid-row: 1 / span 2;
+      background: #eee;
+      border-right: 4px solid black;
+      padding: 10px;
+    }
+
+    .topbar {
+      background: #eee;
+      border-bottom: 4px solid black;
+      padding: 10px;
+    }
+
+    .main {
+      padding: 20px;
+      background: #fff;
+      overflow-y: auto;
+    }
+
+    .menu-item {
+      margin: 10px 0;
+      cursor: pointer;
+    }
+
+    .menu-item:hover {
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
 
-<!-- MENU -->
-<div id="menu">
-  <button onclick="showLogin()">Logowanie</button>
-  <button onclick="showRegister()">Rejestracja</button>
+<div class="container">
+
+  <!-- LEWA STRONA -->
+  <div class="sidebar">
+    <b>NAZWA GRACZA</b><br>
+    LICZBA KONI<br>
+    MONETY
+
+    <hr>
+
+    <div class="menu-item" onclick="showSection('expedition')">Wyprawa</div>
+    <div class="menu-item">Sklep</div>
+    <div class="menu-item">Moja stajnia</div>
+    <div class="menu-item">Zawody</div>
+    <div class="menu-item">Rozmnażanie</div>
+    <div class="menu-item">Rynek</div>
+  </div>
+
+  <!-- GÓRA -->
+  <div class="topbar">
+    <b>🐎 HAPPY HORSES</b><br>
+    (tu możesz później dać profil, statystyki itd.)
+  </div>
+
+  <!-- GŁÓWNA SEKCJA -->
+  <div class="main" id="mainContent">
+
+    <!-- WYPRAWA -->
+    <div id="expeditionSection">
+      <h2>🌍 Wyprawy</h2>
+
+      <button onclick="startExpedition()">Rozpocznij wyprawę</button>
+
+      <div id="log"></div>
+
+      <h3>Aktywne wyprawy:</h3>
+      <div id="expeditions"></div>
+    </div>
+
+    <!-- STAJNIA -->
+    <div id="stableSection" style="display:none;">
+      <h2>🐎 Twoje konie</h2>
+      <div id="horses"></div>
+    </div>
+
+  </div>
+
 </div>
 
-<!-- LOGOWANIE -->
-<div id="loginPage">
-  <h2>Logowanie</h2>
-  <input id="loginUser" placeholder="Login"><br>
-  <input id="loginPass" type="password" placeholder="Hasło"><br>
-  <button onclick="login()">Zaloguj</button>
-</div>
+<script>
+function showSection(section) {
+  document.getElementById("expeditionSection").style.display = "none";
+  document.getElementById("stableSection").style.display = "none";
 
-<!-- REJESTRACJA -->
-<div id="registerPage" style="display:none;">
-  <h2>Rejestracja</h2>
-  <input id="regUser" placeholder="Login"><br>
-  <input id="regPass" type="password" placeholder="Hasło"><br>
-  <button onclick="register()">Zarejestruj</button>
-</div>
+  if (section === "expedition") {
+    document.getElementById("expeditionSection").style.display = "block";
+  }
+}
+</script>
 
-<!-- GRA -->
-<div id="game" style="display:none;">
-  <h1>🐎 Hodowla Koni</h1>
-  <button onclick="logout()">Wyloguj</button><br>
-  <button onclick="startExpedition()">Wyprawa</button>
-
-  <div id="log"></div>
-
-  <h2>Wyprawy</h2>
-  <div id="expeditions"></div>
-
-  <h2>Konie</h2>
-  <div id="horses"></div>
-</div>
-
-<script src="js/auth.js"></script>
 <script src="js/horses.js"></script>
 <script src="js/expedition.js"></script>
 <script src="js/game.js"></script>
