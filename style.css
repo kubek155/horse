@@ -1,0 +1,20 @@
+body {
+  font-family: Arial;
+  background: #1e1e2f;
+  color: white;
+  text-align: center;
+}
+
+button {
+  padding: 10px;
+  margin: 5px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.horse, .expedition {
+  background: #2c2c44;
+  margin: 5px;
+  padding: 10px;
+  border-radius: 8px;
+}
