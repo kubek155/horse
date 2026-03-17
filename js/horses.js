@@ -7,18 +7,18 @@ function generateStats() {
 }
 
 function renderHorses() {
-  horsesDiv.innerHTML = "";
+  horses.innerHTML = "";
 
-  horses.forEach(h => {
+  playerHorses.forEach(h => {
     let d = document.createElement("div");
     d.className = "horse";
 
     d.innerHTML = `
       ${h.name}<br>
       ${h.rarity}<br>
-      ⚡ ${h.stats.speed}
+      ⚡ ${h.stats.speed} 💪 ${h.stats.strength} 🎯 ${h.stats.stamina}
     `;
 
-    horsesDiv.appendChild(d);
+    horses.appendChild(d);
   });
 }

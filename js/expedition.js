@@ -8,31 +8,22 @@ function getRandomRarity() {
 }
 
 function startExpedition() {
-  let key = currentUser + "_daily";
-  let count = parseInt(localStorage.getItem(key)) || 0;
-
-  if (count >= 4) {
-    log.innerText = "Limit!";
-    return;
-  }
-
   expeditions.push({
-    end: Date.now() + 6 * 60 * 60 * 1000,
+    end: Date.now() + 60000, // 1 minuta TESTOWO (zmień potem na 6h)
     done: false
   });
 
-  localStorage.setItem(key, count + 1);
   saveGame();
 }
 
 function finishExpedition(e) {
   let horse = {
-    name: "Koń " + (horses.length + 1),
+    name: "Koń " + (playerHorses.length + 1),
     rarity: getRandomRarity(),
     stats: generateStats()
   };
 
-  horses.push(horse);
+  playerHorses.push(horse);
   e.done = true;
   saveGame();
 }

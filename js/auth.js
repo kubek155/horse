@@ -1,16 +1,40 @@
 let currentUser = localStorage.getItem("currentUser");
 
+function showLogin() {
+  loginPage.style.display = "block";
+  registerPage.style.display = "none";
+}
+
+function showRegister() {
+  loginPage.style.display = "none";
+  registerPage.style.display = "block";
+}
+
+function isValidPassword(password) {
+  return (
+    password.length >= 6 &&
+    /[A-Z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[!@#$%^&*]/.test(password)
+  );
+}
+
 function register() {
   let u = regUser.value;
   let p = regPass.value;
 
+  if (!isValidPassword(p)) {
+    alert("Hasło musi mieć dużą literę, cyfrę i znak specjalny!");
+    return;
+  }
+
   if (localStorage.getItem("user_" + u)) {
-    alert("Istnieje!");
+    alert("Użytkownik istnieje!");
     return;
   }
 
   localStorage.setItem("user_" + u, p);
-  alert("OK");
+  alert("Konto utworzone!");
 }
 
 function login() {
@@ -22,7 +46,7 @@ function login() {
     localStorage.setItem("currentUser", u);
     startGame();
   } else {
-    alert("Błąd");
+    alert("Błędne dane!");
   }
 }
 
@@ -32,7 +56,9 @@ function logout() {
 }
 
 function startGame() {
-  auth.style.display = "none";
+  loginPage.style.display = "none";
+  registerPage.style.display = "none";
+  menu.style.display = "none";
   game.style.display = "block";
   loadUserData();
 }

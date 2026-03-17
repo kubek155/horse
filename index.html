@@ -7,18 +7,29 @@
 </head>
 <body>
 
-<div id="auth">
+<!-- MENU -->
+<div id="menu">
+  <button onclick="showLogin()">Logowanie</button>
+  <button onclick="showRegister()">Rejestracja</button>
+</div>
+
+<!-- LOGOWANIE -->
+<div id="loginPage">
   <h2>Logowanie</h2>
   <input id="loginUser" placeholder="Login"><br>
   <input id="loginPass" type="password" placeholder="Hasło"><br>
   <button onclick="login()">Zaloguj</button>
+</div>
 
+<!-- REJESTRACJA -->
+<div id="registerPage" style="display:none;">
   <h2>Rejestracja</h2>
   <input id="regUser" placeholder="Login"><br>
   <input id="regPass" type="password" placeholder="Hasło"><br>
   <button onclick="register()">Zarejestruj</button>
 </div>
 
+<!-- GRA -->
 <div id="game" style="display:none;">
   <h1>🐎 Hodowla Koni</h1>
   <button onclick="logout()">Wyloguj</button><br>
