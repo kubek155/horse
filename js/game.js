@@ -10,6 +10,19 @@ function saveGame() {
   localStorage.setItem("horses", JSON.stringify(playerHorses));
   localStorage.setItem("expeditions", JSON.stringify(expeditions));
 }
+ function addTestHorse() {
+  playerHorses.push({
+    name: "Dev koń",
+    stats: {
+      speed: Math.floor(Math.random() * 100),
+      strength: Math.floor(Math.random() * 100),
+      stamina: Math.floor(Math.random() * 100)
+    }
+  });
+
+  saveGame();
+  render();
+  }
 
 function render() {
   let expDiv = document.getElementById("expeditions");
@@ -43,17 +56,5 @@ function render() {
   });
 
   renderHorses();
-  function addTestHorse() {
-  playerHorses.push({
-    name: "Dev koń",
-    stats: {
-      speed: Math.floor(Math.random() * 100),
-      strength: Math.floor(Math.random() * 100),
-      stamina: Math.floor(Math.random() * 100)
-    }
-  });
-
-  saveGame();
-  render();
-  }
+  
 }
