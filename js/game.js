@@ -43,4 +43,17 @@ function render() {
   });
 
   renderHorses();
+  function addTestHorse() {
+  playerHorses.push({
+    name: "Dev koń",
+    stats: {
+      speed: Math.floor(Math.random() * 100),
+      strength: Math.floor(Math.random() * 100),
+      stamina: Math.floor(Math.random() * 100)
+    }
+  });
+
+  saveGame();
+  render();
+  }
 }
