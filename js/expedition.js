@@ -3,21 +3,20 @@ const LOCATIONS = [
   { name: "🏜️ Pustynia" },
   { name: "⛰️ Góry" },
   { name: "🌊 Wybrzeże" },
-  { name: "🌋 Wulkan" },
-  { name: "❄️ Tundra" },
-  { name: "🌌 Cienie" },
-  { name: "🏰 Ruiny" },
-  { name: "🌿 Dżungla" },
-  { name: "✨ Dolina" }
+  { name: "🌋 Wulkan" }
 ];
 
 function renderLocations() {
   let container = document.getElementById("locations");
+
+  if (!container) return; // 🔥 zabezpieczenie
+
   container.innerHTML = "";
 
   LOCATIONS.forEach((loc, index) => {
     let btn = document.createElement("button");
     btn.innerText = loc.name;
+
     btn.onclick = () => startExpedition(index);
 
     container.appendChild(btn);
@@ -47,11 +46,12 @@ function finishExpedition(e) {
 
   playerHorses.push(newHorse);
 
-  log("🎉 Zdobyto nowego konia!");
+  log("🎉 Zdobyto konia!");
   e.done = true;
   saveGame();
 }
 
 function log(text) {
-  document.getElementById("log").innerText = text;
+  let logDiv = document.getElementById("log");
+  if (logDiv) logDiv.innerText = text;
 }

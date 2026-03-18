@@ -1,4 +1,3 @@
-if (localStorage.getItem("currentUser")) {
-  startGame();
-}
+loadGame();
+renderLocations();
 setInterval(render, 1000);
