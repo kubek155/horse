@@ -19,120 +19,73 @@
       height: 100vh;
     }
 
-    /* SIDEBAR */
     .sidebar {
       grid-row: 1 / span 2;
       background: #133c3c;
       padding: 15px;
     }
 
-    .sidebar h3 {
-      margin-top: 0;
-    }
-
     .menu-item {
-      margin: 12px 0;
+      margin: 10px 0;
       padding: 8px;
       background: #1c5555;
       border-radius: 8px;
       cursor: pointer;
-      transition: 0.2s;
     }
 
-    .menu-item:hover {
-      background: #2d7a7a;
-    }
-
-    /* TOPBAR */
     .topbar {
       grid-column: 2 / span 2;
       background: #1c5555;
       display: flex;
       align-items: center;
       padding-left: 20px;
-      font-size: 20px;
     }
 
-    /* MAIN */
     .main {
       padding: 20px;
       background: #e8f5f5;
       color: black;
-      overflow-y: auto;
     }
 
-    button {
-      padding: 10px 15px;
-      border: none;
-      border-radius: 8px;
-      background: #2d7a7a;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #3fa3a3;
-    }
-
-    /* LEADERBOARD */
     .leaderboard {
       background: #133c3c;
       padding: 15px;
     }
 
-    .leaderboard h3 {
-      margin-top: 0;
-    }
-
-    .player {
-      background: #1c5555;
+    button {
+      margin: 5px;
       padding: 8px;
-      margin: 5px 0;
       border-radius: 6px;
+      cursor: pointer;
     }
-
-    .expedition, .horse {
-      background: #ffffff;
-      padding: 10px;
-      margin: 5px 0;
-      border-radius: 8px;
-    }
-
   </style>
 </head>
 <body>
 
 <div class="container">
 
-  <!-- LEWY PANEL -->
   <div class="sidebar">
     <h3>🐎 Gracz</h3>
-    Nazwa<br>
-    Konie: <span id="horseCount">0</span><br>
-    Monety: 0
+    Konie: <span id="horseCount">0</span>
 
     <hr>
 
     <div class="menu-item" onclick="showSection('expedition')">🌍 Wyprawa</div>
     <div class="menu-item" onclick="showSection('stable')">🐎 Stajnia</div>
-    <div class="menu-item">🏪 Sklep</div>
-    <div class="menu-item">🏆 Zawody</div>
-    <div class="menu-item">🧬 Rozmnażanie</div>
   </div>
 
-  <!-- GÓRA -->
   <div class="topbar">
     🐎 HAPPY HORSES
   </div>
 
-  <!-- GŁÓWNA SEKCJA -->
   <div class="main">
 
     <!-- WYPRAWA -->
     <div id="expeditionSection">
       <h2>🌍 Wyprawy</h2>
 
-      <button onclick="startExpedition()">Rozpocznij wyprawę</button>
+      <h3>Wybierz krainę:</h3>
+      <div id="locations"></div>
 
       <div id="log"></div>
 
@@ -148,13 +101,10 @@
 
   </div>
 
-  <!-- LEADERBOARD -->
   <div class="leaderboard">
     <h3>🏆 Ranking</h3>
-
-    <div class="player">Gracz1 - 10 koni</div>
-    <div class="player">Gracz2 - 8 koni</div>
-    <div class="player">Gracz3 - 6 koni</div>
+    <div>Gracz1</div>
+    <div>Gracz2</div>
   </div>
 
 </div>

@@ -15,15 +15,8 @@ function render() {
   let expDiv = document.getElementById("expeditions");
   expDiv.innerHTML = "";
 
-  let remaining = 4 - getDailyCount();
-
-  let info = document.createElement("div");
-  info.innerText = `Pozostało wypraw dziś: ${remaining}`;
-  expDiv.appendChild(info);
-
   expeditions.forEach(e => {
     let div = document.createElement("div");
-    div.className = "expedition";
 
     if (!e.done) {
       let t = e.end - Date.now();
@@ -32,7 +25,7 @@ function render() {
         finishExpedition(e);
       } else {
         let s = Math.floor(t / 1000);
-        div.innerText = `⏳ ${s}s`;
+        div.innerText = `${e.location.name} ⏳ ${s}s`;
       }
     }
 
