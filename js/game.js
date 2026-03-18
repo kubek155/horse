@@ -15,6 +15,12 @@ function render() {
   let expDiv = document.getElementById("expeditions");
   expDiv.innerHTML = "";
 
+  // 🔥 LIMIT INFO
+  let remaining = 4 - getDailyCount();
+  let info = document.createElement("div");
+  info.innerText = `Pozostało wypraw dziś: ${remaining}`;
+  expDiv.appendChild(info);
+
   expeditions.forEach(e => {
     let div = document.createElement("div");
     div.className = "expedition";
@@ -25,8 +31,11 @@ function render() {
       if (t <= 0) {
         finishExpedition(e);
       } else {
-        let s = Math.floor(t / 1000);
-        div.innerText = `${e.location.name} ⏳ ${s}s`;
+        let h = Math.floor(t / 3600000);
+        let m = Math.floor((t % 3600000) / 60000);
+        let s = Math.floor((t % 60000) / 1000);
+
+        div.innerText = `${e.location.name} ⏳ ${h}h ${m}m ${s}s`;
       }
     }
 

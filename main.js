@@ -2,7 +2,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadGame();
 
-  // 🔥 startowy koń
   if (playerHorses.length === 0) {
     playerHorses.push({
       name: "Startowy koń",

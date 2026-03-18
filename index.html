@@ -27,10 +27,14 @@
 
     .menu-item {
       margin: 10px 0;
-      padding: 8px;
+      padding: 10px;
       background: #1c5555;
       border-radius: 8px;
       cursor: pointer;
+    }
+
+    .menu-item:hover {
+      background: #2d7a7a;
     }
 
     .topbar {
@@ -39,12 +43,14 @@
       display: flex;
       align-items: center;
       padding-left: 20px;
+      font-size: 20px;
     }
 
     .main {
       padding: 20px;
       background: #e8f5f5;
       color: black;
+      overflow-y: auto;
     }
 
     .leaderboard {
@@ -54,9 +60,23 @@
 
     button {
       margin: 5px;
-      padding: 8px;
-      border-radius: 6px;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #2d7a7a;
+      color: white;
       cursor: pointer;
+    }
+
+    button:hover {
+      background: #3fa3a3;
+    }
+
+    .horse, .expedition {
+      background: white;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 8px;
     }
   </style>
 </head>
@@ -64,6 +84,7 @@
 
 <div class="container">
 
+  <!-- LEWY PANEL -->
   <div class="sidebar">
     <h3>🐎 Gracz</h3>
     Konie: <span id="horseCount">0</span>
@@ -72,12 +93,17 @@
 
     <div class="menu-item" onclick="showSection('expedition')">🌍 Wyprawa</div>
     <div class="menu-item" onclick="showSection('stable')">🐎 Stajnia</div>
+    <div class="menu-item" onclick="showSection('shop')">🏪 Sklep</div>
+    <div class="menu-item" onclick="showSection('arena')">🏆 Zawody</div>
+    <div class="menu-item" onclick="showSection('breed')">🧬 Rozmnażanie</div>
   </div>
 
+  <!-- GÓRA -->
   <div class="topbar">
     🐎 HAPPY HORSES
   </div>
 
+  <!-- ŚRODEK -->
   <div class="main">
 
     <!-- WYPRAWA -->
@@ -99,8 +125,27 @@
       <div id="horses"></div>
     </div>
 
+    <!-- SKLEP -->
+    <div id="shopSection" style="display:none;">
+      <h2>🏪 Sklep</h2>
+      <p>Tu będą przedmioty</p>
+    </div>
+
+    <!-- ZAWODY -->
+    <div id="arenaSection" style="display:none;">
+      <h2>🏆 Zawody</h2>
+      <p>Tu będą zawody</p>
+    </div>
+
+    <!-- ROZMNAŻANIE -->
+    <div id="breedSection" style="display:none;">
+      <h2>🧬 Rozmnażanie</h2>
+      <p>Tu będzie rozmnażanie</p>
+    </div>
+
   </div>
 
+  <!-- PRAWA STRONA -->
   <div class="leaderboard">
     <h3>🏆 Ranking</h3>
     <div>Gracz1</div>
@@ -113,14 +158,15 @@
 function showSection(section) {
   document.getElementById("expeditionSection").style.display = "none";
   document.getElementById("stableSection").style.display = "none";
+  document.getElementById("shopSection").style.display = "none";
+  document.getElementById("arenaSection").style.display = "none";
+  document.getElementById("breedSection").style.display = "none";
 
-  if (section === "expedition") {
-    document.getElementById("expeditionSection").style.display = "block";
-  }
-
-  if (section === "stable") {
-    document.getElementById("stableSection").style.display = "block";
-  }
+  if (section === "expedition") document.getElementById("expeditionSection").style.display = "block";
+  if (section === "stable") document.getElementById("stableSection").style.display = "block";
+  if (section === "shop") document.getElementById("shopSection").style.display = "block";
+  if (section === "arena") document.getElementById("arenaSection").style.display = "block";
+  if (section === "breed") document.getElementById("breedSection").style.display = "block";
 }
 </script>
 

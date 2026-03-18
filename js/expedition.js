@@ -8,8 +8,7 @@ const LOCATIONS = [
 
 function renderLocations() {
   let container = document.getElementById("locations");
-
-  if (!container) return; // 🔥 zabezpieczenie
+  if (!container) return;
 
   container.innerHTML = "";
 

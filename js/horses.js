@@ -12,6 +12,7 @@ function renderHorses() {
 
   playerHorses.forEach(h => {
     let div = document.createElement("div");
+    div.className = "horse";
 
     div.innerHTML = `
       🐎 ${h.name}<br>
