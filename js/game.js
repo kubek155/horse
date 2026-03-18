@@ -1,18 +1,25 @@
 let playerHorses = [];
 let expeditions = [];
 
-function loadUserData() {
-  playerHorses = JSON.parse(localStorage.getItem(currentUser + "_horses")) || [];
-  expeditions = JSON.parse(localStorage.getItem(currentUser + "_exp")) || [];
+function loadGame() {
+  playerHorses = JSON.parse(localStorage.getItem("horses")) || [];
+  expeditions = JSON.parse(localStorage.getItem("expeditions")) || [];
 }
 
 function saveGame() {
-  localStorage.setItem(currentUser + "_horses", JSON.stringify(playerHorses));
-  localStorage.setItem(currentUser + "_exp", JSON.stringify(expeditions));
+  localStorage.setItem("horses", JSON.stringify(playerHorses));
+  localStorage.setItem("expeditions", JSON.stringify(expeditions));
 }
 
 function render() {
-  expeditionsDiv.innerHTML = "";
+  let expDiv = document.getElementById("expeditions");
+  expDiv.innerHTML = "";
+
+  let remaining = 4 - getDailyCount();
+
+  let info = document.createElement("div");
+  info.innerText = `Pozostało wypraw dziś: ${remaining}`;
+  expDiv.appendChild(info);
 
   expeditions.forEach(e => {
     let div = document.createElement("div");
@@ -29,7 +36,7 @@ function render() {
       }
     }
 
-    expeditionsDiv.appendChild(div);
+    expDiv.appendChild(div);
   });
 
   renderHorses();
