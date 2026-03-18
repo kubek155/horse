@@ -17,6 +17,7 @@ function render() {
 
   expeditions.forEach(e => {
     let div = document.createElement("div");
+    div.className = "expedition";
 
     if (!e.done) {
       let t = e.end - Date.now();
