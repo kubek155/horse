@@ -2,28 +2,25 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Hodowla Koni</title>
+<title>Horse Game</title>
 
 <style>
-body { margin:0; font-family:Arial; background:#0f2f2f; color:white; }
+body {margin:0;font-family:Arial;background:#0f2f2f;color:white;}
 
-.container {
-  display:grid;
-  grid-template-columns:220px 1fr 220px;
-  grid-template-rows:80px 1fr;
-  height:100vh;
+.container{
+display:grid;
+grid-template-columns:220px 1fr 220px;
+grid-template-rows:80px 1fr;
+height:100vh;
 }
 
-.sidebar { background:#133c3c; padding:15px; }
-.menu-item { margin:10px 0; padding:10px; background:#1c5555; border-radius:8px; cursor:pointer; }
+.sidebar{background:#133c3c;padding:15px;}
+.menu-item{margin:10px 0;padding:10px;background:#1c5555;border-radius:8px;cursor:pointer;}
+.topbar{grid-column:2/4;background:#1c5555;display:flex;align-items:center;padding-left:20px;}
+.main{background:#e8f5f5;color:black;padding:20px;overflow:auto;}
 
-.topbar { grid-column:2/4; background:#1c5555; display:flex; align-items:center; padding-left:20px; }
-
-.main { background:#e8f5f5; color:black; padding:20px; overflow:auto; }
-
-button { padding:8px; margin:5px; }
-
-.horse, .expedition { background:white; padding:10px; margin:5px; border-radius:8px; }
+button{margin:5px;padding:8px;}
+.horse,.expedition{background:white;padding:10px;margin:5px;border-radius:8px;}
 </style>
 </head>
 
@@ -31,6 +28,7 @@ button { padding:8px; margin:5px; }
 
 <div class="container">
 
+<!-- LEWY PANEL -->
 <div class="sidebar">
 <h3>🐎 Gracz</h3>
 Konie: <span id="horseCount">0</span>
@@ -40,22 +38,31 @@ Konie: <span id="horseCount">0</span>
 <div class="menu-item" onclick="showSection('inventory')">🎒 Ekwipunek</div>
 </div>
 
+<!-- GÓRA -->
 <div class="topbar">🐎 HORSE GAME</div>
 
+<!-- ŚRODEK -->
 <div class="main">
 
+<!-- WYPRAWY -->
 <div id="expeditionSection">
 <h2>Wyprawy</h2>
+
 <div id="locations"></div>
+
 <div id="log"></div>
-<div id="expeditions"></div>
+
+<!-- 🔥 WAŻNE ID -->
+<div id="expeditionsDiv"></div>
 </div>
 
+<!-- STAJNIA -->
 <div id="stableSection" style="display:none;">
 <h2>Konie</h2>
 <div id="horses"></div>
 </div>
 
+<!-- INVENTORY -->
 <div id="inventorySection" style="display:none;">
 <h2>Ekwipunek</h2>
 <div id="inventory"></div>
@@ -63,20 +70,28 @@ Konie: <span id="horseCount">0</span>
 
 </div>
 
+<!-- PRAWY PANEL -->
+<div class="sidebar">
+<h3>🏆 Ranking</h3>
+<div>NPC 1</div>
+<div>NPC 2</div>
+</div>
+
 </div>
 
 <script>
 function showSection(s){
-  expeditionSection.style.display="none";
-  stableSection.style.display="none";
-  inventorySection.style.display="none";
+document.getElementById("expeditionSection").style.display="none";
+document.getElementById("stableSection").style.display="none";
+document.getElementById("inventorySection").style.display="none";
 
-  if(s==="expedition") expeditionSection.style.display="block";
-  if(s==="stable") stableSection.style.display="block";
-  if(s==="inventory") inventorySection.style.display="block";
+if(s==="expedition") document.getElementById("expeditionSection").style.display="block";
+if(s==="stable") document.getElementById("stableSection").style.display="block";
+if(s==="inventory") document.getElementById("inventorySection").style.display="block";
 }
 </script>
 
+<!-- KOLEJNOŚĆ MA ZNACZENIE -->
 <script src="js/database.js"></script>
 <script src="js/horses.js"></script>
 <script src="js/items.js"></script>
