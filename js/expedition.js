@@ -1,89 +1,59 @@
-const LOCATIONS = [
-  { name: "🌲 Las" },
-  { name: "🏜️ Pustynia" },
-  { name: "⛰️ Góry" },
-  { name: "🌊 Wybrzeże" },
-  { name: "🌋 Wulkan" }
-];
+const EXPEDITION_TIME=60000; // test
+const DAILY_LIMIT=4;
 
-const EXPEDITION_TIME = 6 * 60 * 60 * 1000; // 6 godzin
-const DAILY_LIMIT = 4;
+const LOCATIONS=[{name:"Las"},{name:"Góry"}];
 
-function getTodayKey() {
-  let d = new Date();
-  return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate();
+function getTodayKey(){
+  let d=new Date();
+  return d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate();
 }
 
-function getDailyCount() {
-  return parseInt(localStorage.getItem("daily_" + getTodayKey())) || 0;
+function getDailyCount(){
+  return parseInt(localStorage.getItem("d_"+getTodayKey()))||0;
 }
 
-function addDailyCount() {
-  localStorage.setItem("daily_" + getTodayKey(), getDailyCount() + 1);
+function addDaily(){
+  localStorage.setItem("d_"+getTodayKey(),getDailyCount()+1);
 }
 
-function renderLocations() {
-  let container = document.getElementById("locations");
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  LOCATIONS.forEach((loc, index) => {
-    let btn = document.createElement("button");
-    btn.innerText = loc.name;
-
-    btn.onclick = () => startExpedition(index);
-
-    container.appendChild(btn);
+function renderLocations(){
+  locations.innerHTML="";
+  LOCATIONS.forEach((l,i)=>{
+    let b=document.createElement("button");
+    b.innerText=l.name;
+    b.onclick=()=>startExpedition(i);
+    locations.appendChild(b);
   });
 }
 
-function startExpedition(index) {
-  if (playerHorses.length === 0) {
-    log("❌ Nie masz konia!");
-    return;
-  }
-
-  if (getDailyCount() >= DAILY_LIMIT) {
-    log("❌ Wykorzystałeś limit wypraw na dziś!");
-    return;
-  }
+function startExpedition(i){
+  if(getDailyCount()>=DAILY_LIMIT){log("limit");return;}
 
   expeditions.push({
-    end: Date.now() + EXPEDITION_TIME,
-    location: LOCATIONS[index],
-    done: false
+    end:Date.now()+EXPEDITION_TIME,
+    location:LOCATIONS[i],
+    done:false
   });
 
-  addDailyCount();
+  addDaily();
   saveGame();
 }
 
-function finishExpedition(e) {
+function finishExpedition(e){
+  let r=Math.random()*100;
 
-  // 🎲 LOSOWY DROP
-  let roll = Math.random() * 100;
-
-  if (roll < 20) {
-    // 🐎 tylko 20% szans na konia
-    let newHorse = {
-      name: "Koń " + (playerHorses.length + 1),
-      stats: generateStats()
-    };
-
-    playerHorses.push(newHorse);
-    log("🐎 Zdobyto nowego konia!");
-  } else if (roll < 70) {
-    log("🎁 Znaleziono przedmiot!");
-  } else {
-    log("😐 Nic nie znaleziono...");
+  if(r<20){
+    playerHorses.push(generateHorse());
+    log("Nowy koń!");
+  }else if(r<40){
+    addItem("Eliksir");
+    log("Item!");
+  }else{
+    log("Nic");
   }
 
-  e.done = true;
+  e.done=true;
   saveGame();
 }
 
-function log(text) {
-  let logDiv = document.getElementById("log");
-  if (logDiv) logDiv.innerText = text;
-}
+function log(t){logDiv.innerText=t;}

@@ -1,60 +1,34 @@
-let playerHorses = [];
-let expeditions = [];
+let playerHorses=[];
+let expeditions=[];
 
-function loadGame() {
-  playerHorses = JSON.parse(localStorage.getItem("horses")) || [];
-  expeditions = JSON.parse(localStorage.getItem("expeditions")) || [];
+function loadGame(){
+playerHorses=JSON.parse(localStorage.getItem("horses"))||[];
+expeditions=JSON.parse(localStorage.getItem("expeditions"))||[];
 }
 
-function saveGame() {
-  localStorage.setItem("horses", JSON.stringify(playerHorses));
-  localStorage.setItem("expeditions", JSON.stringify(expeditions));
+function saveGame(){
+localStorage.setItem("horses",JSON.stringify(playerHorses));
+localStorage.setItem("expeditions",JSON.stringify(expeditions));
 }
- function addTestHorse() {
-  playerHorses.push({
-    name: "Dev koń",
-    stats: {
-      speed: Math.floor(Math.random() * 100),
-      strength: Math.floor(Math.random() * 100),
-      stamina: Math.floor(Math.random() * 100)
-    }
-  });
 
-  saveGame();
-  render();
-  }
+function render(){
+expeditionsDiv.innerHTML="";
 
-function render() {
-  let expDiv = document.getElementById("expeditions");
-  expDiv.innerHTML = "";
+let info=document.createElement("div");
+info.innerText="Pozostało: "+(4-getDailyCount());
+expeditionsDiv.appendChild(info);
 
-  // 🔥 LIMIT INFO
-  let remaining = 4 - getDailyCount();
-  let info = document.createElement("div");
-  info.innerText = `Pozostało wypraw dziś: ${remaining}`;
-  expDiv.appendChild(info);
+expeditions.forEach(e=>{
+let d=document.createElement("div");
 
-  expeditions.forEach(e => {
-    let div = document.createElement("div");
-    div.className = "expedition";
+if(!e.done){
+let t=e.end-Date.now();
+if(t<=0)finishExpedition(e);
+else d.innerText=e.location.name+" "+Math.floor(t/1000)+"s";
+}
 
-    if (!e.done) {
-      let t = e.end - Date.now();
+expeditionsDiv.appendChild(d);
+});
 
-      if (t <= 0) {
-        finishExpedition(e);
-      } else {
-        let h = Math.floor(t / 3600000);
-        let m = Math.floor((t % 3600000) / 60000);
-        let s = Math.floor((t % 60000) / 1000);
-
-        div.innerText = `${e.location.name} ⏳ ${h}h ${m}m ${s}s`;
-      }
-    }
-
-    expDiv.appendChild(div);
-  });
-
-  renderHorses();
-  
+renderHorses();
 }

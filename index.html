@@ -1,176 +1,85 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <title>Hodowla Koni</title>
+<meta charset="UTF-8">
+<title>Hodowla Koni</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: #0f2f2f;
-      color: white;
-    }
+<style>
+body { margin:0; font-family:Arial; background:#0f2f2f; color:white; }
 
-    .container {
-      display: grid;
-      grid-template-columns: 220px 1fr 220px;
-      grid-template-rows: 80px 1fr;
-      height: 100vh;
-    }
+.container {
+  display:grid;
+  grid-template-columns:220px 1fr 220px;
+  grid-template-rows:80px 1fr;
+  height:100vh;
+}
 
-    .sidebar {
-      grid-row: 1 / span 2;
-      background: #133c3c;
-      padding: 15px;
-    }
+.sidebar { background:#133c3c; padding:15px; }
+.menu-item { margin:10px 0; padding:10px; background:#1c5555; border-radius:8px; cursor:pointer; }
 
-    .menu-item {
-      margin: 10px 0;
-      padding: 10px;
-      background: #1c5555;
-      border-radius: 8px;
-      cursor: pointer;
-    }
+.topbar { grid-column:2/4; background:#1c5555; display:flex; align-items:center; padding-left:20px; }
 
-    .menu-item:hover {
-      background: #2d7a7a;
-    }
+.main { background:#e8f5f5; color:black; padding:20px; overflow:auto; }
 
-    .topbar {
-      grid-column: 2 / span 2;
-      background: #1c5555;
-      display: flex;
-      align-items: center;
-      padding-left: 20px;
-      font-size: 20px;
-    }
+button { padding:8px; margin:5px; }
 
-    .main {
-      padding: 20px;
-      background: #e8f5f5;
-      color: black;
-      overflow-y: auto;
-    }
-
-    .leaderboard {
-      background: #133c3c;
-      padding: 15px;
-    }
-
-    button {
-      margin: 5px;
-      padding: 10px;
-      border: none;
-      border-radius: 8px;
-      background: #2d7a7a;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #3fa3a3;
-    }
-
-    .horse, .expedition {
-      background: white;
-      margin: 5px 0;
-      padding: 10px;
-      border-radius: 8px;
-    }
-  </style>
+.horse, .expedition { background:white; padding:10px; margin:5px; border-radius:8px; }
+</style>
 </head>
+
 <body>
 
 <div class="container">
 
-  <!-- LEWY PANEL -->
-  <div class="sidebar">
-    <h3>🐎 Gracz</h3>
-    Konie: <span id="horseCount">0</span>
+<div class="sidebar">
+<h3>🐎 Gracz</h3>
+Konie: <span id="horseCount">0</span>
 
-    <hr>
+<div class="menu-item" onclick="showSection('expedition')">🌍 Wyprawa</div>
+<div class="menu-item" onclick="showSection('stable')">🐎 Stajnia</div>
+<div class="menu-item" onclick="showSection('inventory')">🎒 Ekwipunek</div>
+</div>
 
-    <div class="menu-item" onclick="showSection('expedition')">🌍 Wyprawa</div>
-    <div class="menu-item" onclick="showSection('stable')">🐎 Stajnia</div>
-    <div class="menu-item" onclick="showSection('shop')">🏪 Sklep</div>
-    <div class="menu-item" onclick="showSection('arena')">🏆 Zawody</div>
-    <div class="menu-item" onclick="showSection('breed')">🧬 Rozmnażanie</div>
-  </div>
+<div class="topbar">🐎 HORSE GAME</div>
 
-  <!-- GÓRA -->
-  <div class="topbar">
-    🐎 HAPPY HORSES
-  </div>
+<div class="main">
 
-  <!-- ŚRODEK -->
-  <div class="main">
+<div id="expeditionSection">
+<h2>Wyprawy</h2>
+<div id="locations"></div>
+<div id="log"></div>
+<div id="expeditions"></div>
+</div>
 
-    <!-- WYPRAWA -->
-    <div id="expeditionSection">
-      <h2>🌍 Wyprawy</h2>
+<div id="stableSection" style="display:none;">
+<h2>Konie</h2>
+<div id="horses"></div>
+</div>
 
-      <h3>Wybierz krainę:</h3>
-      <div id="locations"></div>
+<div id="inventorySection" style="display:none;">
+<h2>Ekwipunek</h2>
+<div id="inventory"></div>
+</div>
 
-      <div id="log"></div>
-
-      <h3>Aktywne wyprawy:</h3>
-      <div id="expeditions"></div>
-    </div>
-
-    <!-- STAJNIA -->
-    <div id="stableSection" style="display:none;">
-      <h2>🐎 Twoje konie</h2>
-      <div id="horses"></div>
-    </div>
-
-    <!-- SKLEP -->
-    <div id="shopSection" style="display:none;">
-      <h2>🏪 Sklep</h2>
-      <p>Tu będą przedmioty</p>
-    </div>
-
-    <!-- ZAWODY -->
-    <div id="arenaSection" style="display:none;">
-      <h2>🏆 Zawody</h2>
-      <p>Tu będą zawody</p>
-    </div>
-
-    <!-- ROZMNAŻANIE -->
-    <div id="breedSection" style="display:none;">
-      <h2>🧬 Rozmnażanie</h2>
-      <p>Tu będzie rozmnażanie</p>
-    </div>
-
-  </div>
-
-  <!-- PRAWA STRONA -->
-  <div class="leaderboard">
-    <h3>🏆 Ranking</h3>
-    <div>Gracz1</div>
-    <div>Gracz2</div>
-  </div>
+</div>
 
 </div>
 
 <script>
-function showSection(section) {
-  document.getElementById("expeditionSection").style.display = "none";
-  document.getElementById("stableSection").style.display = "none";
-  document.getElementById("shopSection").style.display = "none";
-  document.getElementById("arenaSection").style.display = "none";
-  document.getElementById("breedSection").style.display = "none";
+function showSection(s){
+  expeditionSection.style.display="none";
+  stableSection.style.display="none";
+  inventorySection.style.display="none";
 
-  if (section === "expedition") document.getElementById("expeditionSection").style.display = "block";
-  if (section === "stable") document.getElementById("stableSection").style.display = "block";
-  if (section === "shop") document.getElementById("shopSection").style.display = "block";
-  if (section === "arena") document.getElementById("arenaSection").style.display = "block";
-  if (section === "breed") document.getElementById("breedSection").style.display = "block";
+  if(s==="expedition") expeditionSection.style.display="block";
+  if(s==="stable") stableSection.style.display="block";
+  if(s==="inventory") inventorySection.style.display="block";
 }
 </script>
 
+<script src="js/database.js"></script>
 <script src="js/horses.js"></script>
+<script src="js/items.js"></script>
 <script src="js/expedition.js"></script>
 <script src="js/game.js"></script>
 <script src="main.js"></script>
