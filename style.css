@@ -502,3 +502,58 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   text-align: left;
 }
 .breed-horse-btn:hover { border-color: var(--accent2); }
+
+/* ===================== ENCYCLOPEDIA ===================== */
+.ency-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.ency-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  transition: border-color 0.15s, transform 0.1s;
+}
+.ency-card:hover { transform: translateY(-2px); }
+
+.ency-tag {
+  font-size: 10px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 7px;
+  color: var(--text2);
+}
+
+.ency-stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+.ency-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.ency-filters button       { font-size: 11px; padding: 4px 10px; }
+.ency-filters button.active{ background: rgba(74,140,63,0.3); border-color: var(--accent2); color: var(--accent2); }
+
+#encyclopediaSearch {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Crimson Text', serif;
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 12px;
+}
+#encyclopediaSearch:focus { border-color: var(--accent); }

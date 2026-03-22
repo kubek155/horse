@@ -29,6 +29,7 @@
     <div class="menu-item"        id="menu-shop"       onclick="showSection('shop')">🛒 Sklep</div>
     <div class="menu-item"        id="menu-market"     onclick="showSection('market')">🏪 Rynek</div>
     <div class="menu-item"        id="menu-quests"     onclick="showSection('quests')">🎯 Questy</div>
+    <div class="menu-item"        id="menu-encyclopedia" onclick="showSection('encyclopedia')">📖 Encyklopedia</div>
   </div>
 
   <!-- MAIN -->
@@ -171,6 +172,57 @@
       <div id="questsList"></div>
     </div>
 
+
+    <!-- ENCYKLOPEDIA -->
+    <div id="encyclopediaSection" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+        <div class="section-title" style="margin:0;border:none;padding:0">📖 Encyklopedia Koni</div>
+        <div id="encyclopediaCount" style="font-size:13px;color:var(--text2);font-family:'Cinzel',serif"></div>
+      </div>
+
+      <input id="encyclopediaSearch" type="text" placeholder="🔍 Szukaj rasy lub kraju..." oninput="encyFilter.search=this.value;renderEncyclopedia()">
+
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px">
+
+        <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:1px;margin-bottom:8px">RZADKOŚĆ</div>
+        <div class="ency-filters" style="margin-bottom:12px">
+          <button data-ency="rarity" data-val="all"       class="active" onclick="setEncyFilter('rarity','all')">Wszystkie</button>
+          <button data-ency="rarity" data-val="mythic"    style="color:#c94a6a;border-color:#c94a6a"   onclick="setEncyFilter('rarity','mythic')">Pradawny</button>
+          <button data-ency="rarity" data-val="legendary" style="color:#c9a84c;border-color:#c9a84c"   onclick="setEncyFilter('rarity','legendary')">Mityczny</button>
+          <button data-ency="rarity" data-val="epic"      style="color:#7b5ea7;border-color:#7b5ea7"   onclick="setEncyFilter('rarity','epic')">Legendarny</button>
+          <button data-ency="rarity" data-val="rare"      style="color:#4a7ec8;border-color:#4a7ec8"   onclick="setEncyFilter('rarity','rare')">Rzadki</button>
+          <button data-ency="rarity" data-val="uncommon"  style="color:#4a9e6a;border-color:#4a9e6a"   onclick="setEncyFilter('rarity','uncommon')">Piękny</button>
+          <button data-ency="rarity" data-val="common"    style="color:#8aab84;border-color:#8aab84"   onclick="setEncyFilter('rarity','common')">Pospolity</button>
+        </div>
+
+        <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:1px;margin-bottom:8px">KREW</div>
+        <div class="ency-filters" style="margin-bottom:12px">
+          <button data-ency="bloodline" data-val="all"      class="active" onclick="setEncyFilter('bloodline','all')">Wszystkie</button>
+          <button data-ency="bloodline" data-val="hotblood"  onclick="setEncyFilter('bloodline','hotblood')">🔴 Gorącokrwisty</button>
+          <button data-ency="bloodline" data-val="coldblood" onclick="setEncyFilter('bloodline','coldblood')">🔵 Zimnokrwisty</button>
+          <button data-ency="bloodline" data-val="warmblood" onclick="setEncyFilter('bloodline','warmblood')">🟡 Ciepłokrwisty</button>
+          <button data-ency="bloodline" data-val="oriental"  onclick="setEncyFilter('bloodline','oriental')">🟠 Orientalny</button>
+          <button data-ency="bloodline" data-val="gaited"    onclick="setEncyFilter('bloodline','gaited')">🟢 Chodzący</button>
+        </div>
+
+        <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:1px;margin-bottom:8px">TYP</div>
+        <div class="ency-filters">
+          <button data-ency="type" data-val="all"           class="active" onclick="setEncyFilter('type','all')">Wszystkie</button>
+          <button data-ency="type" data-val="Wyścigowy"     onclick="setEncyFilter('type','Wyścigowy')">🏇 Wyścigowy</button>
+          <button data-ency="type" data-val="Sportowy"      onclick="setEncyFilter('type','Sportowy')">🏅 Sportowy</button>
+          <button data-ency="type" data-val="Barokowy"      onclick="setEncyFilter('type','Barokowy')">🎠 Barokowy</button>
+          <button data-ency="type" data-val="Pociągowy"     onclick="setEncyFilter('type','Pociągowy')">🐎 Pociągowy</button>
+          <button data-ency="type" data-val="Chód"          onclick="setEncyFilter('type','Chód')">🟢 Chód</button>
+          <button data-ency="type" data-val="Kucyk"         onclick="setEncyFilter('type','Kucyk')">🐴 Kucyk</button>
+          <button data-ency="type" data-val="Prymitywny"    onclick="setEncyFilter('type','Prymitywny')">🪨 Prymitywny</button>
+          <button data-ency="type" data-val="Mityczny"      onclick="setEncyFilter('type','Mityczny')">✨ Mityczny</button>
+          <button data-ency="type" data-val="Bojowy"        onclick="setEncyFilter('type','Bojowy')">⚔️ Bojowy</button>
+        </div>
+      </div>
+
+      <div id="encyclopediaGrid" class="ency-grid"></div>
+    </div>
+
     <!-- RYNEK -->
     <div id="marketSection" style="display:none">
       <div class="section-title">🏪 Rynek Graczy</div>
@@ -278,6 +330,7 @@
 <script src="js/shop.js"></script>
 <script src="js/market.js"></script>
 <script src="js/quests.js"></script>
+<script src="js/encyclopedia.js"></script>
 <script src="main.js"></script>
 
 

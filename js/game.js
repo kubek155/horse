@@ -45,6 +45,7 @@ function renderAll() {
   renderShop();
   renderMarket();
   renderQuests();
+  renderEncyclopedia();
   buildRanking();
   saveGame();
 }
@@ -53,7 +54,7 @@ function renderAll() {
 // UI NAVIGATION
 // =====================
 function showSection(s) {
-  ["expedition","stable","inventory","shop","market","quests"].forEach(sec => {
+  ["expedition","stable","inventory","shop","market","quests","encyclopedia"].forEach(sec => {
     document.getElementById(sec + "Section").style.display = "none";
     document.getElementById("menu-" + sec).classList.remove("active");
   });

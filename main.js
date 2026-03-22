@@ -2,11 +2,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadGame();
 
-  // Startowy koń — konkretna rasa, nie losowy loot
   if (playerHorses.length === 0) {
-    let starter = {
-      id:           Date.now() + Math.random(),
+    playerHorses.push({
+      id:           Date.now(),
       name:         "Zefir",
+      breedKey:     "Konik Polski",
+      flag:         "🇵🇱",
+      country:      "Polska",
+      type:         "Prymitywny",
+      bloodline:    "coldblood",
       group:        "common",
       rarity:       "common",
       stars:        0,
@@ -14,18 +18,13 @@ document.addEventListener("DOMContentLoaded", () => {
       lastFed:      Date.now(),
       bonusApplied: null,
       isStarter:    true,
-      stats: {
-        speed:    38,
-        strength: 32,
-        stamina:  35,
-        luck:     8
-      }
-    };
-    playerHorses.push(starter);
+      stats:        { speed:38, strength:32, stamina:35, luck:8 }
+    });
     saveGame();
   }
 
   renderLocations();
+  renderEncyclopedia();
   renderAll();
 
   setInterval(() => {
