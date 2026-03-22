@@ -10,10 +10,17 @@ function openHorsePicker(itemIdx) {
   // Skrzynka nie wymaga wyboru konia
   if (item.name === "Skrzynka z Łupem") { openLootBox(itemIdx); return; }
 
-  // Przedmioty do slotów — otwórz picker slotu jeśli koń ma slot
+  // Przedmioty do slotów
   let itemData = ITEMS_DATABASE[item.name] || {};
   if (itemData.isSlotItem) {
     openSlotPickerForItem(itemIdx);
+    return;
+  }
+
+  // Przepustki — pokaż info gdzie można użyć
+  if (itemData.isPass) {
+    log(`🎫 ${item.name} — użyj przy wyborze krainy "${itemData.location}" na Wyprawach.`);
+    showSection("expedition");
     return;
   }
 
@@ -156,7 +163,9 @@ function _doOpenLootBox(itemIdx) {
     log(`📦 Skrzynka: Eliksir Odmłodzenia! 🧪`);
     lootResult = { icon:"🧪", name:"Eliksir Odmłodzenia", desc:"Odmładza konia o 30–120 dni", color:"#c9a84c" };
   } else {
-    if (Math.random() < 0.5) {
+    let roll3 = Math.random();
+    if (roll3 < 0.35) {
+      // Eliksir statystyki
       let statItems = ["Eliksir Szybkości", "Eliksir Siły", "Eliksir Wytrzymałości", "Eliksir Szczęścia"];
       let picked    = statItems[Math.floor(Math.random() * statItems.length)];
       inventory.push({ name: picked, obtained: Date.now() });
@@ -164,7 +173,8 @@ function _doOpenLootBox(itemIdx) {
       log(`📦 Skrzynka: ${d.icon} ${picked}!`);
       let cols = { speed:"#4a7ec8", strength:"#c97c2a", stamina:"#c94a4a", luck:"#4a9e6a" };
       lootResult = { icon: d.icon, name: picked, desc: d.desc, color: cols[d.stat]||"#7b5ea7" };
-    } else {
+    } else if (roll3 < 0.70) {
+      // Slot item
       let slotItems = ["Piorun","Kowadło","Koniczyna","Serce"];
       let picked    = slotItems[Math.floor(Math.random() * slotItems.length)];
       let generated = generateSlotItem(picked);
@@ -173,6 +183,14 @@ function _doOpenLootBox(itemIdx) {
       log(`📦 Skrzynka: ${d.icon} ${picked} (+${generated.bonus})!`);
       let cols = { speed:"#4a7ec8", strength:"#c97c2a", stamina:"#c94a4a", luck:"#4a9e6a" };
       lootResult = { icon: d.icon, name: `${picked} +${generated.bonus}`, desc: d.desc, color: cols[d.stat]||"#c9a84c" };
+    } else {
+      // Przepustka (rzadka!)
+      let passes = ["Leśna Przepustka","Pustynna Przepustka","Górska Przepustka"];
+      let picked  = passes[Math.floor(Math.random() * passes.length)];
+      inventory.push({ name: picked, obtained: Date.now() });
+      let d = ITEMS_DATABASE[picked]||{icon:"🎫",desc:""};
+      log(`📦 Skrzynka: ${d.icon} ${picked}!`);
+      lootResult = { icon: d.icon, name: picked, desc: d.desc, color: "#4a9e6a" };
     }
   }
 
@@ -208,7 +226,8 @@ function renderInventory() {
       : "";
 
     // Przycisk akcji
-    let useLabel = isFood ? "🍎 Karm" : isSlot ? "✨ Slot" : "Użyj";
+    let isPass  = !!data.isPass;
+    let useLabel = isFood ? "🍎 Karm" : isSlot ? "✨ Slot" : isPass ? "🎫 Info" : "Użyj";
 
     let div = document.createElement("div");
     div.className = "inv-item";

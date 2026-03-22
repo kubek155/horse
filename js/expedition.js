@@ -142,10 +142,17 @@ function finishExpedition(e) {
   }
 
   let perks    = getActivePerkBonus();
-  let baseGold = 50 + Math.floor(Math.random() * 151) + Math.floor(luck * 0.5);
+  let locGold  = loc.gold || { min:50, max:200 };
+  let baseGold = locGold.min + Math.floor(Math.random() * (locGold.max - locGold.min + 1)) + Math.floor(luck * 0.5);
   let goldGain = Math.round(baseGold * perks.goldBonus);
   gold += goldGain;
   log(`💰 +${goldGain} złota z wyprawy!`);
+
+  // Drop przepustki
+  if (loc.rewardPass && Math.random() < (loc.passChance||0.05)) {
+    inventory.push({ name: loc.rewardPass, obtained: Date.now() });
+    log(`🎫 Znaleziono: ${loc.rewardPass}!`);
+  }
 
   e.done = true;
   saveGame();
@@ -171,15 +178,156 @@ function renderLimitBar() {
   }
 }
 
+// Generuje tło SVG dla lokacji
+function locationBgSVG(bg, w, h) {
+  const skies = {
+    forest:   ["#0a1a0a","#0f2f0f"],
+    desert:   ["#1a1000","#3a2000"],
+    mountain: ["#0a0a1a","#1a1a3a"],
+    tundra:   ["#0a0f1a","#0f1a2f"],
+    shadow:   ["#050508","#0a0510"],
+  };
+  const grounds = {
+    forest:   ["#0a2a0a","#0f3a0f","#1a5a1a"],
+    desert:   ["#3a2000","#5a3000","#7a5010"],
+    mountain: ["#1a1a2a","#2a2a3a","#6a6a7a"],
+    tundra:   ["#0a1a2a","#1a2a3a","#c8e8f0"],
+    shadow:   ["#050508","#0a050a","#1a051a"],
+  };
+  let sk = skies[bg]||skies.forest;
+  let gr = grounds[bg]||grounds.forest;
+
+  // Elementy tematyczne
+  const extras = {
+    forest:   `<circle cx="70%" cy="25%" r="8" fill="#f0d080" opacity="0.6"/>
+               <ellipse cx="20%" cy="55%" rx="8" ry="20" fill="${gr[1]}" opacity="0.8"/>
+               <ellipse cx="75%" cy="50%" rx="6" ry="18" fill="${gr[1]}" opacity="0.7"/>`,
+    desert:   `<circle cx="75%" cy="20%" r="12" fill="#f0a000" opacity="0.9"/>
+               <polygon points="15%,${h},20%,${h*0.55},25%,${h}" fill="${gr[1]}" opacity="0.7"/>
+               <polygon points="70%,${h},76%,${h*0.5},82%,${h}" fill="${gr[1]}" opacity="0.6"/>`,
+    mountain: `<circle cx="20%" cy="30%" r="6" fill="#f0f0ff" opacity="0.8"/>
+               <polygon points="10%,${h},28%,${h*0.25},46%,${h}" fill="#3a3a5a" opacity="0.8"/>
+               <polygon points="50%,${h},65%,${h*0.3},80%,${h}" fill="#4a4a6a" opacity="0.7"/>`,
+    tundra:   `<circle cx="30%" cy="25%" r="7" fill="#c0e0ff" opacity="0.7"/>
+               <ellipse cx="50%" cy="60%" rx="40%" ry="8" fill="white" opacity="0.15"/>
+               <ellipse cx="20%" cy="70%" rx="15%" ry="4" fill="white" opacity="0.2"/>`,
+    shadow:   `<circle cx="50%" cy="20%" r="10" fill="#300020" opacity="0.9"/>
+               <circle cx="50%" cy="20%" r="8" fill="#100010" opacity="0.95"/>
+               <line x1="0" y1="${h*0.4}" x2="100%" y2="${h*0.4}" stroke="#3a003a" stroke-width="1" opacity="0.3"/>`,
+  };
+
+  return `<svg width="100%" height="${h}" viewBox="0 0 300 ${h}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0">
+    <defs><linearGradient id="sky_${bg}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${sk[0]}"/>
+      <stop offset="100%" stop-color="${sk[1]}"/>
+    </linearGradient></defs>
+    <rect width="300" height="${h}" fill="url(#sky_${bg})"/>
+    ${extras[bg]||""}
+    <rect y="${h*0.62}" width="300" height="${h*0.38}" fill="${gr[0]}"/>
+    <rect y="${h*0.72}" width="300" height="${h*0.28}" fill="${gr[1]}"/>
+    <rect y="${h*0.82}" width="300" height="${h*0.18}" fill="${gr[2]}"/>
+  </svg>`;
+}
+
+function checkLocationRequirement(loc, horse) {
+  if (!loc.requires) return { ok: true };
+  if (loc.requires.pass) {
+    let hasPass = inventory.some(i => i.name === loc.requires.pass);
+    return { ok: hasPass, label: loc.requires.label, isPass: true };
+  }
+  if (loc.requires.stat) {
+    let val = horse ? (horse.stats[loc.requires.stat]||0) : 0;
+    return { ok: val >= loc.requires.value, label: loc.requires.label, isPass: false, val, need: loc.requires.value };
+  }
+  return { ok: true };
+}
+
 function renderLocations() {
   let el = document.getElementById("locations");
   el.innerHTML = "";
+
+  // Najlepszy koń gracza (do sprawdzania wymagań)
+  let bestHorse = playerHorses.length > 0
+    ? playerHorses.reduce((best, h) => {
+        let s = h.stats.speed+h.stats.strength+h.stats.stamina+h.stats.luck;
+        let b = best.stats.speed+best.stats.strength+best.stats.stamina+best.stats.luck;
+        return s > b ? h : best;
+      }, playerHorses[0])
+    : null;
+
   LOCATIONS.forEach((l, i) => {
-    let b = document.createElement("div");
-    b.className = "location-btn";
-    b.innerHTML = `<span class="loc-icon">${l.icon}</span><span class="loc-name">${l.name}</span><span class="loc-desc">${l.desc}</span>`;
-    b.onclick = () => openExpeditionHorsePicker(i);
-    el.appendChild(b);
+    let req   = checkLocationRequirement(l, bestHorse);
+    let locked = !req.ok;
+    let rc    = { common:"#8aab84", uncommon:"#4a9e6a", rare:"#4a7ec8", epic:"#7b5ea7", legendary:"#c9a84c", mythic:"#c94a6a" }[l.reward] || "#8aab84";
+    if (l.bg === "shadow") rc = "#c94a6a";
+
+    let card = document.createElement("div");
+    card.className = "location-card" + (locked ? " location-locked" : "");
+    card.style.borderColor = locked ? "#333" : rc + "66";
+
+    // Tło SVG
+    let bgDiv = document.createElement("div");
+    bgDiv.style.cssText = "position:relative;height:80px;overflow:hidden;border-radius:8px;margin-bottom:10px";
+    bgDiv.innerHTML = locationBgSVG(l.bg, 300, 80);
+
+    // Overlay tekstu na tle
+    let overlay = document.createElement("div");
+    overlay.style.cssText = "position:absolute;inset:0;display:flex;align-items:flex-end;padding:6px 8px;background:linear-gradient(transparent 30%,rgba(0,0,0,0.7))";
+    overlay.innerHTML = `
+      <div style="flex:1">
+        <div style="font-family:'Cinzel',serif;font-size:13px;color:${locked?"#555":rc}">${l.icon} ${l.name}</div>
+        <div style="font-size:10px;color:${locked?"#444":"#aaa"};margin-top:1px">${l.lore}</div>
+      </div>
+      ${locked ? `<span style="font-size:18px;opacity:0.6">🔒</span>` : ""}
+    `;
+    bgDiv.appendChild(overlay);
+
+    // Ambiance emoji (tle atmosferyczne)
+    if (!locked && l.ambiance) {
+      l.ambiance.forEach((em, j) => {
+        let span = document.createElement("span");
+        span.style.cssText = `position:absolute;font-size:${10+j%3*2}px;opacity:${0.3+j*0.1};
+          left:${8+j*18}%;top:${10+j%3*15}%;animation:expTwinkle ${1.5+j*0.3}s infinite alternate ${j*0.2}s`;
+        span.textContent = em;
+        bgDiv.appendChild(span);
+      });
+    }
+
+    card.appendChild(bgDiv);
+
+    // Info pod tłem
+    let info = document.createElement("div");
+    info.innerHTML = `
+      <div style="font-size:11px;color:${locked?"#555":"var(--text2)"};margin-bottom:6px;line-height:1.4">${l.desc}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
+        <div style="font-size:10px;color:${locked?"#444":"var(--text2)"}">
+          💰 ${l.gold.min}–${l.gold.max} &nbsp;
+          📦 Nagroda: <span style="color:${rc}">${l.reward}</span>
+        </div>
+        ${l.rewardPass ? `<div style="font-size:10px;color:#4a9e6a">🎫 ${l.rewardPass}</div>` : ""}
+      </div>
+      ${locked ? `<div style="margin-top:6px;padding:5px 8px;background:rgba(201,74,74,0.08);border:1px solid #c94a4a44;border-radius:6px;font-size:11px;color:#c94a4a">
+        🔒 ${req.label}${req.val !== undefined ? ` (masz: ${req.val})` : ""}
+      </div>` : ""}
+    `;
+    card.appendChild(info);
+
+    if (!locked) {
+      let btn = document.createElement("button");
+      btn.style.cssText = `width:100%;margin-top:8px;border-color:${rc};color:${rc};background:${rc}15;font-size:12px`;
+      btn.textContent = "🌍 Wyślij na wyprawę";
+      btn.onclick = () => {
+        if (l.requires?.pass) {
+          // Zużyj przepustkę
+          let passIdx = inventory.findIndex(it => it.name === l.requires.pass);
+          if (passIdx >= 0) { inventory.splice(passIdx, 1); saveGame(); }
+        }
+        openExpeditionHorsePicker(i);
+      };
+      card.appendChild(btn);
+    }
+
+    el.appendChild(card);
   });
 }
 
