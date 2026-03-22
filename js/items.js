@@ -90,8 +90,11 @@ function applyItemToHorse(itemIdx, horseIdx) {
     feedHorse(horseIdx, item.name);
   } else if (item.name === "Eliksir Odmłodzenia") {
     let age    = getHorseAgeDays(h);
-    let reduce = Math.min(120, Math.floor(age / 3) + 20);
+    let reduce = Math.min(age - 1, Math.min(120, Math.floor(age / 3) + 20)); // nie cofaj poniżej 1 dnia
+    if (reduce <= 0) { log(`⚠️ ${h.name} jest za młody na odmłodzenie!`); return; }
     h.born    += reduce * 86400000;
+    // Zabezpieczenie — born nie może być w przyszłości
+    if (h.born > Date.now() - 86400000) h.born = Date.now() - 86400000;
     log(`🧪 Odmłodzono ${h.name} o ${reduce} dni!`);
   } else if (item.name === "Eliksir Szybkości") {
     h.stats.speed    += 5;
@@ -129,33 +132,49 @@ function openLootBox(itemIdx) {
 
 function _doOpenLootBox(itemIdx) {
   let r = Math.random() * 100;
+  let lootResult = { icon:"✨", name:"Nagroda!", desc:"", color:"#c9a84c" };
+
   if (r < 66) {
     if (playerHorses.length >= STABLE_LIMIT) {
       log(`📦 Skrzynka: Znaleziono konia, ale stajnia pełna!`);
+      lootResult = { icon:"🐴", name:"Stajnia pełna!", desc:"Zwolnij miejsce na konia", color:"#c97c2a" };
     } else {
       let h = generateHorse();
       playerHorses.push(h);
+      let rc = RARITY_COLORS[h.rarity]||"#8aab84";
       log(`📦 Skrzynka: Nowy koń — ${h.name}!`);
+      lootResult = { icon: h.flag||"🐴", name: h.name, desc: RARITY_LABELS[h.rarity]||h.rarity, color: rc };
+      // Efekt rzadkości
+      if (typeof showRareHorseEffect === "function") {
+        setTimeout(() => showRareHorseEffect(h.name, h.rarity, h.flag), 2400);
+      }
     }
   } else if (r < 80) {
     inventory.push({ name: "Eliksir Odmłodzenia", obtained: Date.now() });
     log(`📦 Skrzynka: Eliksir Odmłodzenia! 🧪`);
+    lootResult = { icon:"🧪", name:"Eliksir Odmłodzenia", desc:"Odmładza konia o 30–120 dni", color:"#c9a84c" };
   } else {
-    // 50% eliksir, 50% przedmiot do slotu
     if (Math.random() < 0.5) {
       let statItems = ["Eliksir Szybkości", "Eliksir Siły", "Eliksir Wytrzymałości", "Eliksir Szczęścia"];
       let picked    = statItems[Math.floor(Math.random() * statItems.length)];
       inventory.push({ name: picked, obtained: Date.now() });
-      log(`📦 Skrzynka: ${ITEMS_DATABASE[picked].icon} ${picked}!`);
+      let d = ITEMS_DATABASE[picked]||{icon:"⚡",desc:""};
+      log(`📦 Skrzynka: ${d.icon} ${picked}!`);
+      let cols = { speed:"#4a7ec8", strength:"#c97c2a", stamina:"#c94a4a", luck:"#4a9e6a" };
+      lootResult = { icon: d.icon, name: picked, desc: d.desc, color: cols[d.stat]||"#7b5ea7" };
     } else {
       let slotItems = ["Piorun","Kowadło","Koniczyna","Serce"];
       let picked    = slotItems[Math.floor(Math.random() * slotItems.length)];
       let generated = generateSlotItem(picked);
       inventory.push(generated);
-      let d = ITEMS_DATABASE[picked]||{icon:"📦"};
+      let d = ITEMS_DATABASE[picked]||{icon:"📦",desc:""};
       log(`📦 Skrzynka: ${d.icon} ${picked} (+${generated.bonus})!`);
+      let cols = { speed:"#4a7ec8", strength:"#c97c2a", stamina:"#c94a4a", luck:"#4a9e6a" };
+      lootResult = { icon: d.icon, name: `${picked} +${generated.bonus}`, desc: d.desc, color: cols[d.stat]||"#c9a84c" };
     }
   }
+
+  window._lastLootResult = lootResult;
   inventory.splice(itemIdx, 1);
   trackQuest("lootbox");
   saveGame();

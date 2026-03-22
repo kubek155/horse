@@ -54,14 +54,14 @@ function stopHorseAnimation(svgEl) {
   svgEl.querySelectorAll("rect, path").forEach(el => { el.style.animation = ""; });
 }
 
-// Hook do renderHorses — wywołaj po wyrenderowaniu kart
+// Hook do renderHorses — stała animacja dla każdej karty
 function hookHorseCardAnimations() {
   document.querySelectorAll(".horse-card").forEach((card, i) => {
-    let svgEl = card.querySelector("svg");
+    let svgEl  = card.querySelector("svg");
     if (!svgEl) return;
     let rarity = card.dataset.rarity || "common";
-    card.addEventListener("mouseenter", () => animateHorseCard(svgEl, rarity));
-    card.addEventListener("mouseleave", () => stopHorseAnimation(svgEl));
+    // Stała animacja — opóźnienie staggered żeby nie wszystkie sync
+    setTimeout(() => animateHorseCard(svgEl, rarity), i * 80);
   });
 }
 
@@ -323,10 +323,11 @@ function showRareHorseEffect(horseName, rarity, flag) {
 }
 
 // ── 4. ANIMACJA SKRZYNKI Z ŁUPEM ─────────────────────────────────────────────
+// Wywołaj z wynikiem żeby pokazać co wypadło
 function showLootBoxAnimation(callback) {
   let overlay = document.createElement("div");
   overlay.style.cssText = `
-    position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.85);
+    position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.88);
     display:flex;flex-direction:column;align-items:center;justify-content:center;
     font-family:'Crimson Text',serif;cursor:pointer;
   `;
@@ -334,12 +335,17 @@ function showLootBoxAnimation(callback) {
   overlay.innerHTML = `
     <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:var(--text2);margin-bottom:20px">SKRZYNKA Z ŁUPEM</div>
     <div id="lootBox" style="
-      font-size:72px;line-height:1;
+      font-size:80px;line-height:1;
       animation:boxFloat 1s ease-in-out infinite alternate;
-      filter:drop-shadow(0 0 20px rgba(201,168,76,0.6));
+      filter:drop-shadow(0 0 24px rgba(201,168,76,0.7));
       cursor:pointer;user-select:none;
     ">📦</div>
-    <div style="margin-top:20px;font-size:13px;color:var(--text2);animation:pulse 1s infinite alternate">Kliknij aby otworzyć</div>
+    <div id="lootClickHint" style="margin-top:20px;font-size:13px;color:var(--text2);animation:pulse 1s infinite alternate">Kliknij aby otworzyć</div>
+    <div id="lootResult" style="display:none;flex-direction:column;align-items:center;gap:10px;animation:rareCardPop 0.5s cubic-bezier(0.175,0.885,0.32,1.275) forwards">
+      <div id="lootResultIcon" style="font-size:64px;line-height:1"></div>
+      <div id="lootResultName" style="font-family:'Cinzel',serif;font-size:16px"></div>
+      <div id="lootResultDesc" style="font-size:12px;color:var(--text2)"></div>
+    </div>
     <div id="lootParticles" style="position:absolute;inset:0;pointer-events:none"></div>
   `;
 
@@ -350,38 +356,75 @@ function showLootBoxAnimation(callback) {
     if (opened) return;
     opened = true;
 
-    // Faza 1: skrzynka drży
-    let box = document.getElementById("lootBox");
+    let box  = document.getElementById("lootBox");
+    let hint = document.getElementById("lootClickHint");
+    hint.style.display = "none";
+
+    // Faza 1: drżenie
     box.style.animation = "boxShake 0.4s ease-in-out";
 
     setTimeout(() => {
-      // Faza 2: eksplozja cząsteczek
+      // Faza 2: eksplozja — wywołaj callback żeby poznać wynik
       box.style.animation = "boxExplode 0.3s ease-out forwards";
-      box.textContent = "✨";
 
-      let particles = document.getElementById("lootParticles");
-      for(let i=0;i<30;i++){
-        let p = document.createElement("div");
-        let angle = Math.random()*360, dist=100+Math.random()*200;
-        let tx = Math.cos(angle*Math.PI/180)*dist, ty = Math.sin(angle*Math.PI/180)*dist;
-        let colors = ["#c9a84c","#f0d080","#7b5ea7","#4a7ec8","#fff"];
-        p.style.cssText=`
-          position:absolute;width:${4+Math.random()*8}px;height:${4+Math.random()*8}px;
-          border-radius:50%;background:${colors[Math.floor(Math.random()*colors.length)]};
-          top:50%;left:50%;
-          animation:particleFly ${0.5+Math.random()*0.5}s ease-out forwards;
-          --tx:${tx}px;--ty:${ty}px;
-        `;
-        particles.appendChild(p);
-      }
-
-      // Faza 3: wynik
+      // Wykonaj callback który losuje wynik — przechwytujemy ostatni log
+      let prevLog = window._lastLootResult;
+      if(callback) callback();
+      // Daj chwilę żeby renderAll zaktualizował stan
       setTimeout(() => {
-        overlay.style.animation = "sceneFadeOut 0.4s ease forwards";
-        setTimeout(() => { overlay.remove(); if(callback) callback(); }, 400);
-      }, 800);
+        // Ustal wynik z ostatniego logu skrzynki
+        let result = window._lastLootResult || {};
+        let col    = result.color || "#c9a84c";
+        let icon   = result.icon  || "✨";
+        let name   = result.name  || "Nagroda!";
+        let desc   = result.desc  || "";
+
+        // Eksplozja cząsteczek w kolorze nagrody
+        let particles = document.getElementById("lootParticles");
+        let colors = [col, lighten3(col,40), "#ffffff", col];
+        for(let i=0;i<40;i++){
+          let p = document.createElement("div");
+          let angle = Math.random()*360, dist=80+Math.random()*220;
+          let tx = Math.cos(angle*Math.PI/180)*dist, ty = Math.sin(angle*Math.PI/180)*dist;
+          p.style.cssText=`
+            position:absolute;width:${3+Math.random()*9}px;height:${3+Math.random()*9}px;
+            border-radius:${Math.random()>0.5?"50%":"3px"};
+            background:${colors[Math.floor(Math.random()*colors.length)]};
+            top:50%;left:50%;
+            animation:particleFly ${0.5+Math.random()*0.7}s ease-out forwards;
+            --tx:${tx}px;--ty:${ty}px;
+          `;
+          particles.appendChild(p);
+        }
+
+        // Świecenie tła w kolorze nagrody
+        overlay.style.background = `radial-gradient(circle at 50% 50%, ${col}22 0%, rgba(0,0,0,0.9) 60%)`;
+
+        // Pokaż wynik
+        setTimeout(() => {
+          let resultEl = document.getElementById("lootResult");
+          document.getElementById("lootResultIcon").textContent = icon;
+          document.getElementById("lootResultName").style.color = col;
+          document.getElementById("lootResultName").textContent = name;
+          document.getElementById("lootResultDesc").textContent = desc;
+          resultEl.style.display = "flex";
+        }, 200);
+
+        // Zamknij po chwili
+        setTimeout(() => {
+          overlay.style.animation = "sceneFadeOut 0.5s ease forwards";
+          setTimeout(() => overlay.remove(), 500);
+        }, 2200);
+      }, 100);
     }, 400);
   };
+}
+
+function lighten3(hex, pct) {
+  if (!hex||hex.length<7) return "#c9a84c";
+  let r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  if(isNaN(r)) return "#c9a84c";
+  return "#"+[Math.min(255,r+pct),Math.min(255,g+pct),Math.min(255,b+pct)].map(v=>v.toString(16).padStart(2,"0")).join("");
 }
 
 // Pomocnicze
