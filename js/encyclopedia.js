@@ -81,12 +81,17 @@ function renderEncyclopedia() {
         <span class="ency-tag">${bl}</span>
         <span class="ency-tag">${breed.type}</span>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;font-size:11px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;font-size:11px;margin-bottom:6px">
         <div class="ency-stat"><span style="color:var(--text2)">⚡ Szybkość</span><span style="color:var(--text)">${breed.base.speed}</span></div>
         <div class="ency-stat"><span style="color:var(--text2)">💪 Siła</span><span style="color:var(--text)">${breed.base.strength}</span></div>
         <div class="ency-stat"><span style="color:var(--text2)">❤️ Wytrzymałość</span><span style="color:var(--text)">${breed.base.stamina}</span></div>
         <div class="ency-stat"><span style="color:var(--text2)">🍀 Szczęście</span><span style="color:var(--text)">${breed.base.luck}</span></div>
       </div>
+      ${(()=>{
+        let rr = RARITY_STAT_RANGE[breed.rarity]||{lo:0,hi:30};
+        let racingNote = breed.type === "Wyścigowy" ? `<div style="font-size:10px;color:#c9a84c;margin-top:4px">🏇 Bonus wyścigowy: +0–20 szybkości (losowy)</div>` : "";
+        return `<div style="font-size:10px;color:var(--text2);padding:4px 6px;background:var(--panel2);border-radius:4px">📊 Zakres statystyk: ${rr.lo}–${rr.hi}</div>${racingNote}`;
+      })()}
     `;
     el.appendChild(card);
   });

@@ -1,10 +1,39 @@
 // =====================
 // GENEROWANIE KONIA
 // =====================
-function rollStatVariance(base) {
-  // ±15% wariancji od bazy, capped 0-100
-  let variance = (Math.random() - 0.5) * 30;
-  return Math.max(0, Math.min(100, Math.round(base + variance)));
+
+// Zakresy statystyk wg rzadkości
+const RARITY_STAT_RANGE = {
+  common:    { lo:0,   hi:30  },
+  uncommon:  { lo:0,   hi:35  },
+  rare:      { lo:0,   hi:45  },
+  epic:      { lo:45,  hi:70  },
+  legendary: { lo:70,  hi:100 },
+  mythic:    { lo:80,  hi:110 },
+};
+
+// Losuj wartość w zakresie rzadkości zachowując proporcje z bazy
+// base = wartość 0-110 (ze znormalizowanych danych encyklopedii)
+// Dodaje ±10% losowości wewnątrz zakresu
+function rollStatInRange(base, rarity) {
+  let range = RARITY_STAT_RANGE[rarity] || RARITY_STAT_RANGE.common;
+  let lo = range.lo, hi = range.hi;
+  let span = hi - lo;
+  // Proporcja bazy w zakresie + małe odchylenie ±10% spana
+  let normalized = (base / 110) * span + lo;
+  let jitter     = (Math.random() - 0.5) * span * 0.2;
+  return Math.max(lo, Math.min(hi, Math.round(normalized + jitter)));
+}
+
+// Bonus wyścigowy (tylko type===Wyścigowy, dotyczy szybkości)
+// 0-5: 78% | 5-8: 12% | 8-12: 7% | 12-16: 2.8% | 20: 0.2%
+function rollRacingBonus() {
+  let r = Math.random() * 100;
+  if (r < 78)   return Math.round(Math.random() * 5);           // 0-5
+  if (r < 90)   return 5 + Math.round(Math.random() * 3);      // 5-8
+  if (r < 97)   return 8 + Math.round(Math.random() * 4);      // 8-12
+  if (r < 99.8) return 12 + Math.round(Math.random() * 4);     // 12-16
+  return 20;                                                      // 20
 }
 
 function rollStars() {
@@ -18,10 +47,8 @@ function rollStars() {
 
 function rollRarity(override) {
   if (override && RARITY_WEIGHTS[override] !== undefined) return override;
-  // mapowanie starych kluczy
-  const legacyMap = { common:"common", rare:"rare", epic:"epic", legendary:"legendary" };
+  const legacyMap = { common:common, rare:rare, epic:epic, legendary:legendary };
   if (override && legacyMap[override]) override = legacyMap[override];
-
   let total = Object.values(RARITY_WEIGHTS).reduce((a,b)=>a+b,0);
   let r = Math.random() * total;
   for (let [key, w] of Object.entries(RARITY_WEIGHTS)) {
@@ -33,21 +60,36 @@ function rollRarity(override) {
 function generateHorse(rarityHint) {
   let rarity = rollRarity(rarityHint);
 
-  // Losuj rasę z tej rzadkości
   let pool = BREEDS.filter(b => b.rarity === rarity);
   if (!pool.length) pool = BREEDS.filter(b => b.rarity === "common");
   let breed = pool[Math.floor(Math.random() * pool.length)];
 
   let stars     = rollStars();
-  let starBonus = stars * 8;
+  let starBonus = stars * 4; // mniejszy bonus gwiazdek bo zakresy są węższe
   let bl        = BLOODLINE_BONUS[breed.bloodline] || {};
 
+  // Każdy stat losowany z zakresu rzadkości + proporcje z bazy rasy
   let stats = {
-    speed:    Math.min(100, rollStatVariance(breed.base.speed)    + (bl.speed||0)    + starBonus),
-    strength: Math.min(100, rollStatVariance(breed.base.strength) + (bl.strength||0) + starBonus),
-    stamina:  Math.min(100, rollStatVariance(breed.base.stamina)  + (bl.stamina||0)  + starBonus),
-    luck:     Math.min(100, rollStatVariance(breed.base.luck)     + (bl.luck||0)     + Math.round(starBonus*0.5)),
+    speed:    rollStatInRange(breed.base.speed,    rarity) + (bl.speed||0),
+    strength: rollStatInRange(breed.base.strength, rarity) + (bl.strength||0),
+    stamina:  rollStatInRange(breed.base.stamina,  rarity) + (bl.stamina||0),
+    luck:     rollStatInRange(breed.base.luck,     rarity) + (bl.luck||0),
   };
+
+  // Bonus wyścigowy dla koni wyścigowych
+  if (breed.type === "Wyścigowy") {
+    stats.speed += rollRacingBonus();
+  }
+
+  // Gwiazdki dodają bonus do wszystkich statów
+  stats.speed    += starBonus;
+  stats.strength += starBonus;
+  stats.stamina  += starBonus;
+  stats.luck     += Math.round(starBonus * 0.5);
+
+  // Cap — mityczne mogą przekroczyć 100
+  let cap = rarity === "mythic" ? 110 : 100;
+  Object.keys(stats).forEach(k => { stats[k] = Math.max(0, Math.min(cap, stats[k])); });
 
   // Losuj perk dla mitycznych i pradawnych
   let perk = null;
@@ -56,8 +98,9 @@ function generateHorse(rarityHint) {
     perk = perkPool[Math.floor(Math.random() * perkPool.length)];
     // Aplikuj natychmiastowe perki do statystyk
     if (perk.id === 'war_born') {
-      stats.strength = Math.min(100, stats.strength + 20);
-      stats.stamina  = Math.min(100, stats.stamina  + 20);
+      let cap = rarity === 'mythic' ? 110 : 100;
+      stats.strength = Math.min(cap, stats.strength + 20);
+      stats.stamina  = Math.min(cap, stats.stamina  + 20);
     }
   }
 
@@ -159,10 +202,13 @@ function breedHorses(idxA, idxB) {
   let starBonus = stars*8;
   let bl = BLOODLINE_BONUS[childBloodline]||{};
 
-  function inherit(sA,sB,base) {
-    let v = sA*0.4+sB*0.4+base*0.2+(Math.random()-0.5)*10;
-    if (Math.random()<0.05) v*=1.1; // super gen
-    return Math.min(100, Math.max(0, Math.round(v)));
+  // Dziedziczenie respektuje zakres rzadkości potomka
+  let cRange = RARITY_STAT_RANGE[childRarity] || RARITY_STAT_RANGE.common;
+  function inherit(sA, sB, base) {
+    let v = sA*0.4 + sB*0.4 + base*0.2 + (Math.random()-0.5)*8;
+    if (Math.random() < 0.05) v *= 1.1; // super gen
+    // Clamp do zakresu rzadkości
+    return Math.max(cRange.lo, Math.min(cRange.hi, Math.round(v)));
   }
 
   let child = {
@@ -180,12 +226,15 @@ function breedHorses(idxA, idxB) {
     lastFed:      Date.now(),
     bonusApplied: null,
     parents:      [a.name, b.name],
-    stats: {
-      speed:    Math.min(100,inherit(a.stats.speed,    b.stats.speed,    breed.base.speed)    +(bl.speed||0)   +starBonus),
-      strength: Math.min(100,inherit(a.stats.strength, b.stats.strength, breed.base.strength) +(bl.strength||0)+starBonus),
-      stamina:  Math.min(100,inherit(a.stats.stamina,  b.stats.stamina,  breed.base.stamina)  +(bl.stamina||0) +starBonus),
-      luck:     Math.min(100,inherit(a.stats.luck,     b.stats.luck,     breed.base.luck)     +(bl.luck||0)    +Math.round(starBonus*0.5)),
-    }
+    stats: (()=>{
+      let cap = childRarity === "mythic" ? 110 : 100;
+      return {
+        speed:    Math.max(cRange.lo, Math.min(cap, inherit(a.stats.speed,    b.stats.speed,    breed.base.speed)    +(bl.speed||0)   +starBonus)),
+        strength: Math.max(cRange.lo, Math.min(cap, inherit(a.stats.strength, b.stats.strength, breed.base.strength) +(bl.strength||0)+starBonus)),
+        stamina:  Math.max(cRange.lo, Math.min(cap, inherit(a.stats.stamina,  b.stats.stamina,  breed.base.stamina)  +(bl.stamina||0) +starBonus)),
+        luck:     Math.max(cRange.lo, Math.min(cap, inherit(a.stats.luck,     b.stats.luck,     breed.base.luck)     +(bl.luck||0)    +Math.round(starBonus*0.5))),
+      };
+    })()
   };
 
   playerHorses.push(child);
@@ -310,13 +359,13 @@ function renderHorses() {
       </div>`:""}
       <div class="horse-stats">
         <div class="stat-row"><span>⚡ Szybkość</span><span>${h.stats.speed}</span></div>
-        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${h.stats.speed}%"></div></div>
+        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(100,(h.stats.speed/110)*100).toFixed(1)}%"></div></div>
         <div class="stat-row"><span>💪 Siła</span><span>${h.stats.strength}</span></div>
-        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${h.stats.strength}%;background:var(--gold)"></div></div>
+        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(100,(h.stats.strength/110)*100).toFixed(1)}%;background:var(--gold)"></div></div>
         <div class="stat-row"><span>❤️ Wytrzymałość</span><span>${h.stats.stamina}</span></div>
-        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${h.stats.stamina}%;background:var(--rare)"></div></div>
+        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(100,(h.stats.stamina/110)*100).toFixed(1)}%;background:var(--rare)"></div></div>
         <div class="stat-row"><span>🍀 Szczęście</span><span>${h.stats.luck}</span></div>
-        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${h.stats.luck}%;background:#4ab870"></div></div>
+        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(100,(h.stats.luck/110)*100).toFixed(1)}%;background:#4ab870"></div></div>
       </div>
       <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">
         <div class="stat-row" style="margin-bottom:3px"><span style="color:${hCol}">🍽️ Głód</span><span style="color:${hCol}">${hunger}% — ${hLbl}</span></div>
