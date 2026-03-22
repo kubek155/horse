@@ -44,6 +44,20 @@ function startExpedition(i, horseIdx) {
   closeExpeditionHorsePicker();
   saveGame();
   log(`🌍 ${h?.flag||"🐴"} ${h?.name||"Koń"} wyruszył na wyprawę do ${LOCATIONS[i].name}!`);
+
+  // Animacja ekranu wyprawy
+  let loc = LOCATIONS[i];
+  if (typeof showExpeditionScene === "function" && h) {
+    showExpeditionScene(
+      h.name,
+      h.breedKey || h.name,
+      h.rarity,
+      loc.name,
+      loc.icon,
+      Math.min(EXPEDITION_TIME, 8000),
+      null
+    );
+  }
 }
 
 // =====================

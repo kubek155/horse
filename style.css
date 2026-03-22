@@ -653,3 +653,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* Fade out scen */
 @keyframes sceneFadeOut { from{opacity:1} to{opacity:0} }
+
+/* Overlay animacji — zawsze na wierzchu */
+#expScene, #lootBoxOverlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9000 !important;
+}

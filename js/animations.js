@@ -79,10 +79,11 @@ function showExpeditionScene(horseName, breedKey, rarity, locationName, location
   let overlay = document.createElement("div");
   overlay.id  = "expScene";
   overlay.style.cssText = `
-    position:fixed;inset:0;z-index:500;
+    position:fixed;inset:0;z-index:9000;
     background:#0a0e0a;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
     font-family:'Crimson Text',serif;
+    pointer-events:all;
   `;
 
   overlay.innerHTML = `
@@ -261,7 +262,7 @@ function showRareHorseEffect(horseName, rarity, flag) {
 
   let overlay = document.createElement("div");
   overlay.style.cssText = `
-    position:fixed;inset:0;z-index:600;
+    position:fixed;inset:0;z-index:9001;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
     pointer-events:none;
   `;
@@ -325,7 +326,7 @@ function showRareHorseEffect(horseName, rarity, flag) {
 function showLootBoxAnimation(callback) {
   let overlay = document.createElement("div");
   overlay.style.cssText = `
-    position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.85);
+    position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.85);
     display:flex;flex-direction:column;align-items:center;justify-content:center;
     font-family:'Crimson Text',serif;cursor:pointer;
   `;
