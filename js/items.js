@@ -80,6 +80,10 @@ function applyItemToHorse(itemIdx, horseIdx) {
   } else if (item.name === "Eliksir Wytrzymałości") {
     h.stats.stamina  += 5;
     log(`❤️ ${h.name}: +5 wytrzymałości!`);
+  } else if (item.name === "Eliksir Szczęścia") {
+    if (!h.stats.luck) h.stats.luck = 5;
+    h.stats.luck += 5;
+    log(`🍀 ${h.name}: +5 szczęścia!`);
   } else {
     log(`✨ Użyto ${item.name} na ${h.name}!`);
   }
@@ -96,7 +100,7 @@ function openLootBox(itemIdx) {
   let r = Math.random() * 100;
   if (r < 66) {
     if (playerHorses.length >= STABLE_LIMIT) {
-      log(`📦 Skrzynka: Znaleziono konia, ale stajnia pełna! (${STABLE_LIMIT}/${STABLE_LIMIT})`);
+      log(`📦 Skrzynka: Znaleziono konia, ale stajnia pełna!`);
     } else {
       let h = generateHorse();
       playerHorses.push(h);
@@ -106,12 +110,13 @@ function openLootBox(itemIdx) {
     inventory.push({ name: "Eliksir Odmłodzenia", obtained: Date.now() });
     log(`📦 Skrzynka: Eliksir Odmłodzenia! 🧪`);
   } else {
-    let statItems = ["Eliksir Szybkości", "Eliksir Siły", "Eliksir Wytrzymałości"];
+    let statItems = ["Eliksir Szybkości", "Eliksir Siły", "Eliksir Wytrzymałości", "Eliksir Szczęścia"];
     let picked    = statItems[Math.floor(Math.random() * statItems.length)];
     inventory.push({ name: picked, obtained: Date.now() });
     log(`📦 Skrzynka: ${ITEMS_DATABASE[picked].icon} ${picked}!`);
   }
   inventory.splice(itemIdx, 1);
+  trackQuest("lootbox");
   saveGame();
   renderAll();
 }

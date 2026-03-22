@@ -5,7 +5,8 @@ let playerHorses = [];
 let expeditions  = [];
 let inventory    = [];
 let gold         = 0;
-let market       = []; // oferty na rynku: { id, sellerId, sellerName, type, item/horse, price, listedAt }
+let market       = [];
+let quests       = [];   // aktywne dzienne questy
 
 const STABLE_LIMIT = 8;
 
@@ -18,6 +19,7 @@ function saveGame() {
   localStorage.setItem("hh_inventory",   JSON.stringify(inventory));
   localStorage.setItem("hh_gold",        gold);
   localStorage.setItem("hh_market",      JSON.stringify(market));
+  localStorage.setItem("hh_quests",      JSON.stringify(quests));
 }
 
 function loadGame() {
@@ -26,9 +28,10 @@ function loadGame() {
   inventory    = JSON.parse(localStorage.getItem("hh_inventory"))   || [];
   gold         = parseInt(localStorage.getItem("hh_gold"))          || 0;
   market       = JSON.parse(localStorage.getItem("hh_market"))      || [];
+  quests       = JSON.parse(localStorage.getItem("hh_quests"))      || [];
 
-  // Jeśli rynek pusty — wygeneruj oferty NPC na start
   if (market.length === 0) seedMarket();
+  refreshDailyQuests();
 }
 
 // =====================
@@ -41,6 +44,7 @@ function renderAll() {
   renderInventory();
   renderShop();
   renderMarket();
+  renderQuests();
   buildRanking();
   saveGame();
 }
@@ -49,7 +53,7 @@ function renderAll() {
 // UI NAVIGATION
 // =====================
 function showSection(s) {
-  ["expedition", "stable", "inventory", "shop", "market"].forEach(sec => {
+  ["expedition","stable","inventory","shop","market","quests"].forEach(sec => {
     document.getElementById(sec + "Section").style.display = "none";
     document.getElementById("menu-" + sec).classList.remove("active");
   });
@@ -66,5 +70,5 @@ function log(t) {
   el.textContent = t;
   el.style.display = "block";
   clearTimeout(logTimer);
-  logTimer = setTimeout(() => { el.style.display = "none"; }, 3000);
+  logTimer = setTimeout(() => { el.style.display = "none"; }, 3500);
 }

@@ -115,6 +115,7 @@ function confirmListing() {
   }
 
   closeListModal();
+  trackQuest("market");
   saveGame();
   renderAll();
 }
