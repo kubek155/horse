@@ -228,20 +228,42 @@ const LOCATIONS = [
 ];
 
 const ITEMS_DATABASE = {
-  "Eliksir Odmłodzenia":   { icon:"🧪", desc:"Odmładza konia o 30–120 dni",       rarity:"rare"     },
-  "Jabłko":                { icon:"🍎", desc:"Nakarm konia — uzupełnia 50% głodu", rarity:"common",   isFood:true },
-  "Słoma":                 { icon:"🌾", desc:"Nakarm konia — uzupełnia 25% głodu", rarity:"common",   isFood:true },
-  "Skrzynka z Łupem":      { icon:"📦", desc:"Zawiera losowy przedmiot",           rarity:"rare"     },
-  "Eliksir Szybkości":     { icon:"⚡", desc:"+5 do szybkości konia",              rarity:"uncommon" },
-  "Eliksir Siły":          { icon:"💪", desc:"+5 do siły konia",                   rarity:"uncommon" },
-  "Eliksir Wytrzymałości": { icon:"❤️", desc:"+5 do wytrzymałości konia",          rarity:"uncommon" },
-  "Eliksir Szczęścia":     { icon:"🍀", desc:"+5 do szczęścia konia",              rarity:"uncommon" },
+  // Jedzenie
+  "Jabłko":                { icon:"🍎", desc:"Nakarm konia — uzupełnia 50% głodu",  rarity:"common",   isFood:true },
+  "Słoma":                 { icon:"🌾", desc:"Nakarm konia — uzupełnia 25% głodu",  rarity:"common",   isFood:true },
+  // Specjalne
+  "Eliksir Odmłodzenia":   { icon:"🧪", desc:"Odmładza konia o 30–120 dni",         rarity:"rare"     },
+  "Skrzynka z Łupem":      { icon:"📦", desc:"Zawiera losowy przedmiot",             rarity:"rare"     },
+  // Eliksiry (stałe +5)
+  "Eliksir Szybkości":     { icon:"⚡", desc:"+5 do szybkości konia (jednorazowy)", rarity:"uncommon", isElixir:true, stat:"speed"    },
+  "Eliksir Siły":          { icon:"💪", desc:"+5 do siły konia (jednorazowy)",       rarity:"uncommon", isElixir:true, stat:"strength" },
+  "Eliksir Wytrzymałości": { icon:"❤️", desc:"+5 do wytrzymałości konia (jednorazowy)", rarity:"uncommon", isElixir:true, stat:"stamina" },
+  "Eliksir Szczęścia":     { icon:"🍀", desc:"+5 do szczęścia konia (jednorazowy)", rarity:"uncommon", isElixir:true, stat:"luck"     },
+  // Przedmioty do slotów — generowane z losowym bonusem 0-10
+  "Piorun":                { icon:"⚡️", desc:"Slot: +0–10 do szybkości",            rarity:"uncommon", isSlotItem:true, stat:"speed"    },
+  "Kowadło":               { icon:"🔨", desc:"Slot: +0–10 do siły",                  rarity:"uncommon", isSlotItem:true, stat:"strength" },
+  "Koniczyna":             { icon:"🍀", desc:"Slot: +0–10 do szczęścia",             rarity:"uncommon", isSlotItem:true, stat:"luck"     },
+  "Serce":                 { icon:"❤️‍🔥", desc:"Slot: +0–10 do wytrzymałości",       rarity:"uncommon", isSlotItem:true, stat:"stamina"  },
 };
 
+// Generuje przedmiot do slotu z losowym bonusem 0-10
+function generateSlotItem(name) {
+  let bonus = Math.floor(Math.random() * 11); // 0-10
+  return { name, bonus, obtained: Date.now() };
+}
+
 const SHOP_ITEMS = [
-  { name:"Słoma",               price:30,  icon:"🌾", desc:"Nakarm konia — 25% głodu",       alwaysAvailable:true  },
-  { name:"Jabłko",              price:60,  icon:"🍎", desc:"Nakarm konia — 50% głodu",       alwaysAvailable:true  },
-  { name:"Eliksir Odmłodzenia", price:800, icon:"🧪", desc:"Odmładza konia — globalny limit 5 szt., 10% szans pojawienia", rare:true, globalLimit:5 },
+  { name:"Słoma",               price:30,  icon:"🌾",  desc:"Nakarm konia — 25% głodu",                     alwaysAvailable:true },
+  { name:"Jabłko",              price:60,  icon:"🍎",  desc:"Nakarm konia — 50% głodu",                     alwaysAvailable:true },
+  { name:"Eliksir Szybkości",   price:150, icon:"⚡",  desc:"+5 szybkości konia (jednorazowy)",             alwaysAvailable:true },
+  { name:"Eliksir Siły",        price:150, icon:"💪",  desc:"+5 siły konia (jednorazowy)",                  alwaysAvailable:true },
+  { name:"Eliksir Wytrzymałości",price:150,icon:"❤️",  desc:"+5 wytrzymałości konia (jednorazowy)",         alwaysAvailable:true },
+  { name:"Eliksir Szczęścia",   price:150, icon:"🍀",  desc:"+5 szczęścia konia (jednorazowy)",             alwaysAvailable:true },
+  { name:"Piorun",              price:220, icon:"⚡️", desc:"Slot: +0–10 szybkości (losowy bonus)",         alwaysAvailable:true, isSlotShop:true },
+  { name:"Kowadło",             price:220, icon:"🔨",  desc:"Slot: +0–10 siły (losowy bonus)",              alwaysAvailable:true, isSlotShop:true },
+  { name:"Koniczyna",           price:220, icon:"🍀",  desc:"Slot: +0–10 szczęścia (losowy bonus)",         alwaysAvailable:true, isSlotShop:true },
+  { name:"Serce",               price:220, icon:"❤️‍🔥", desc:"Slot: +0–10 wytrzymałości (losowy bonus)",   alwaysAvailable:true, isSlotShop:true },
+  { name:"Eliksir Odmłodzenia", price:800, icon:"🧪",  desc:"Odmładza konia — globalny limit 5 szt.",       rare:true, globalLimit:5 },
 ];
 
 const QUEST_TEMPLATES = [

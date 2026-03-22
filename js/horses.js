@@ -1,8 +1,6 @@
 // =====================
-// GENEROWANIE KONIA
+// ZAKRESY STATYSTYK
 // =====================
-
-// Zakresy statystyk wg rzadkości
 const RARITY_STAT_RANGE = {
   common:    { lo:0,   hi:30  },
   uncommon:  { lo:0,   hi:35  },
@@ -12,28 +10,78 @@ const RARITY_STAT_RANGE = {
   mythic:    { lo:80,  hi:110 },
 };
 
-// Losuj wartość w zakresie rzadkości zachowując proporcje z bazy
-// base = wartość 0-110 (ze znormalizowanych danych encyklopedii)
-// Dodaje ±10% losowości wewnątrz zakresu
+// =====================
+// BONUS TYPOWY — który stat dostaje bonus wg typu konia
+// =====================
+const TYPE_BONUS_STAT = {
+  "Wyścigowy":   "speed",
+  "Sportowy":    "speed",
+  "Pociągowy":   null,        // siła + wytrzymałość — obsługiwane osobno
+  "Kucyk":       null,        // brak bonusu
+  "Chód":        "stamina",
+  "Mityczny":    "all",       // wszystkie
+  "Bojowy":      "strength",
+  "Prymitywny":  "luck",
+  // reszta — brak bonusu typowego
+};
+
+// Bonus szybkości (dla wszystkich koni, jako "naturalny" bonus)
+// 0-5: 78% | 5-8: 12% | 8-12: 7% | 12-16: 2.8% | 20: 0.2%
+function rollTypeBonus() {
+  let r = Math.random() * 100;
+  if (r < 78)   return Math.round(Math.random() * 5);
+  if (r < 90)   return 5  + Math.round(Math.random() * 3);
+  if (r < 97)   return 8  + Math.round(Math.random() * 4);
+  if (r < 99.8) return 12 + Math.round(Math.random() * 4);
+  return 20;
+}
+
+// Zwraca obiekt z bonusami do statystyk wg typu konia
+function calcTypeBonuses(type) {
+  let bonuses = { speed:0, strength:0, stamina:0, luck:0 };
+  let stat = TYPE_BONUS_STAT[type];
+  let roll = rollTypeBonus();
+
+  if (type === "Pociągowy") {
+    // Połowa bonusu na siłę, połowa na wytrzymałość
+    bonuses.strength = Math.floor(roll / 2);
+    bonuses.stamina  = roll - bonuses.strength;
+  } else if (type === "Kucyk" || stat === null) {
+    // Brak bonusu
+  } else if (stat === "all") {
+    // Mityczny — bonus do wszystkich
+    bonuses.speed    = roll;
+    bonuses.strength = roll;
+    bonuses.stamina  = roll;
+    bonuses.luck     = roll;
+  } else if (stat) {
+    bonuses[stat] = roll;
+  }
+
+  return { bonuses, roll };
+}
+
+// =====================
+// SLOTY NA ITEM
+// =====================
+// legendary: 50% szans na 1 slot
+// mythic:    zawsze 2 sloty
+function rollItemSlots(rarity) {
+  if (rarity === "mythic")    return 2;
+  if (rarity === "legendary") return Math.random() < 0.5 ? 1 : 0;
+  return 0;
+}
+
+// =====================
+// GENEROWANIE KONIA
+// =====================
 function rollStatInRange(base, rarity) {
   let range = RARITY_STAT_RANGE[rarity] || RARITY_STAT_RANGE.common;
   let lo = range.lo, hi = range.hi;
   let span = hi - lo;
-  // Proporcja bazy w zakresie + małe odchylenie ±10% spana
   let normalized = (base / 110) * span + lo;
   let jitter     = (Math.random() - 0.5) * span * 0.2;
   return Math.max(lo, Math.min(hi, Math.round(normalized + jitter)));
-}
-
-// Bonus wyścigowy (tylko type===Wyścigowy, dotyczy szybkości)
-// 0-5: 78% | 5-8: 12% | 8-12: 7% | 12-16: 2.8% | 20: 0.2%
-function rollRacingBonus() {
-  let r = Math.random() * 100;
-  if (r < 78)   return Math.round(Math.random() * 5);           // 0-5
-  if (r < 90)   return 5 + Math.round(Math.random() * 3);      // 5-8
-  if (r < 97)   return 8 + Math.round(Math.random() * 4);      // 8-12
-  if (r < 99.8) return 12 + Math.round(Math.random() * 4);     // 12-16
-  return 20;                                                      // 20
 }
 
 function rollStars() {
@@ -47,7 +95,7 @@ function rollStars() {
 
 function rollRarity(override) {
   if (override && RARITY_WEIGHTS[override] !== undefined) return override;
-  const legacyMap = { common:common, rare:rare, epic:epic, legendary:legendary };
+  const legacyMap = { common:"common", rare:"rare", epic:"epic", legendary:"legendary" };
   if (override && legacyMap[override]) override = legacyMap[override];
   let total = Object.values(RARITY_WEIGHTS).reduce((a,b)=>a+b,0);
   let r = Math.random() * total;
@@ -65,10 +113,10 @@ function generateHorse(rarityHint) {
   let breed = pool[Math.floor(Math.random() * pool.length)];
 
   let stars     = rollStars();
-  let starBonus = stars * 4; // mniejszy bonus gwiazdek bo zakresy są węższe
+  let starBonus = stars * 4;
   let bl        = BLOODLINE_BONUS[breed.bloodline] || {};
 
-  // Każdy stat losowany z zakresu rzadkości + proporcje z bazy rasy
+  // Baza statystyk — zakres rzadkości + proporcje rasy + krew
   let stats = {
     speed:    rollStatInRange(breed.base.speed,    rarity) + (bl.speed||0),
     strength: rollStatInRange(breed.base.strength, rarity) + (bl.strength||0),
@@ -76,33 +124,37 @@ function generateHorse(rarityHint) {
     luck:     rollStatInRange(breed.base.luck,     rarity) + (bl.luck||0),
   };
 
-  // Bonus wyścigowy dla koni wyścigowych
-  if (breed.type === "Wyścigowy") {
-    stats.speed += rollRacingBonus();
-  }
+  // Bonus typowy (zależy od typu konia)
+  let { bonuses, roll: typeBonusRoll } = calcTypeBonuses(breed.type);
+  stats.speed    += bonuses.speed;
+  stats.strength += bonuses.strength;
+  stats.stamina  += bonuses.stamina;
+  stats.luck     += bonuses.luck;
 
-  // Gwiazdki dodają bonus do wszystkich statów
+  // Gwiazdki
   stats.speed    += starBonus;
   stats.strength += starBonus;
   stats.stamina  += starBonus;
   stats.luck     += Math.round(starBonus * 0.5);
 
-  // Cap — mityczne mogą przekroczyć 100
+  // Cap
   let cap = rarity === "mythic" ? 110 : 100;
   Object.keys(stats).forEach(k => { stats[k] = Math.max(0, Math.min(cap, stats[k])); });
 
-  // Losuj perk dla mitycznych i pradawnych
+  // Perk
   let perk = null;
   let perkPool = RARITY_PERKS[rarity];
   if (perkPool && perkPool.length) {
     perk = perkPool[Math.floor(Math.random() * perkPool.length)];
-    // Aplikuj natychmiastowe perki do statystyk
-    if (perk.id === 'war_born') {
-      let cap = rarity === 'mythic' ? 110 : 100;
+    if (perk.id === "war_born") {
       stats.strength = Math.min(cap, stats.strength + 20);
       stats.stamina  = Math.min(cap, stats.stamina  + 20);
     }
   }
+
+  // Sloty na item
+  let itemSlots     = rollItemSlots(rarity);
+  let equippedItems = Array(itemSlots).fill(null); // null = pusty slot
 
   return {
     id:           Date.now() + Math.random(),
@@ -119,6 +171,9 @@ function generateHorse(rarityHint) {
     lastFed:      Date.now(),
     bonusApplied: null,
     perk,
+    typeBonus:    { stat: TYPE_BONUS_STAT[breed.type] || null, value: typeBonusRoll, bonuses },
+    itemSlots,
+    equippedItems,
     stats,
   };
 }
@@ -137,11 +192,12 @@ function getHorseAgeDays(h) {
 function applyGrowth(h) {
   if (h.bonusApplied) return;
   if (getHorseAgeDays(h) > 7) {
+    let cap = h.rarity === "mythic" ? 110 : 100;
     let r = Math.random();
-    if      (r < 0.30) { h.stats.speed    = Math.min(100, h.stats.speed+3);    h.bonusApplied="+szybkość"; }
-    else if (r < 0.55) { h.stats.strength = Math.min(100, h.stats.strength+3); h.bonusApplied="+siła"; }
-    else if (r < 0.75) { h.stats.stamina  = Math.min(100, h.stats.stamina+3);  h.bonusApplied="+wytrzymałość"; }
-    else if (r < 0.90) { h.stats.luck     = Math.min(100, h.stats.luck+3);     h.bonusApplied="+szczęście"; }
+    if      (r < 0.30) { h.stats.speed    = Math.min(cap, h.stats.speed+3);    h.bonusApplied="+szybkość"; }
+    else if (r < 0.55) { h.stats.strength = Math.min(cap, h.stats.strength+3); h.bonusApplied="+siła"; }
+    else if (r < 0.75) { h.stats.stamina  = Math.min(cap, h.stats.stamina+3);  h.bonusApplied="+wytrzymałość"; }
+    else if (r < 0.90) { h.stats.luck     = Math.min(cap, h.stats.luck+3);     h.bonusApplied="+szczęście"; }
     else               h.bonusApplied="brak";
   }
 }
@@ -169,47 +225,135 @@ function feedHorse(horseIdx, foodName) {
 // =====================
 function getPartyLuck() {
   if (!playerHorses.length) return 0;
-  return playerHorses.reduce((s,h)=>s+(h.stats.luck||0),0)/playerHorses.length;
+  // Perk golden_luck podwaja szczęście konia
+  let total = playerHorses.reduce((s,h) => {
+    let lk = h.stats.luck || 0;
+    if (h.perk?.id === "golden_luck") lk *= 2;
+    return s + lk;
+  }, 0);
+  return total / playerHorses.length;
+}
+
+// =====================
+// SLOTY — użyj itemu w slocie konia
+// =====================
+function equipItemToSlot(horseIdx, slotIdx, inventoryIdx) {
+  let h    = playerHorses[horseIdx];
+  let item = inventory[inventoryIdx];
+  if (!h || !item) return;
+  if (!h.equippedItems || slotIdx >= h.itemSlots) { log("⚠️ Brak slotu!"); return; }
+
+  // Zwróć stary item do ekwipunku jeśli był
+  if (h.equippedItems[slotIdx]) {
+    inventory.push(h.equippedItems[slotIdx]);
+  }
+
+  // Aplicuj bonus do statystyk (tylko elixiry statystyk)
+  let bonusApplied = applySlotItemBonus(h, item, true);
+  h.equippedItems[slotIdx] = { ...item, slotBonusApplied: bonusApplied };
+  inventory.splice(inventoryIdx, 1);
+
+  saveGame();
+  renderAll();
+  log(`✨ ${item.name} wyposażony w slot konia ${h.name}!`);
+}
+
+function unequipSlot(horseIdx, slotIdx) {
+  let h = playerHorses[horseIdx];
+  if (!h || !h.equippedItems?.[slotIdx]) return;
+  let item = h.equippedItems[slotIdx];
+  // Cofnij bonus
+  applySlotItemBonus(h, item, false);
+  inventory.push({ name: item.name, obtained: Date.now() });
+  h.equippedItems[slotIdx] = null;
+  saveGame();
+  renderAll();
+  log(`↩️ ${item.name} zdjęty z konia ${h.name}.`);
+}
+
+function applySlotItemBonus(h, item, apply) {
+  let cap  = h.rarity === "mythic" ? 110 : 100;
+  let mult = apply ? 1 : -1;
+  let applied = null;
+  let d    = ITEMS_DATABASE[item.name] || {};
+
+  // Eliksiry — stały bonus +5
+  if (d.isElixir && d.stat) {
+    let val = 5 * mult;
+    h.stats[d.stat] = Math.max(0, Math.min(cap, h.stats[d.stat] + val));
+    applied = d.stat;
+  }
+
+  // Przedmioty do slotów — bonus z item.bonus (0-10)
+  if (d.isSlotItem && d.stat) {
+    let val = (item.bonus || 0) * mult;
+    h.stats[d.stat] = Math.max(0, Math.min(cap, h.stats[d.stat] + val));
+    applied = d.stat;
+  }
+
+  // Legacy — stare nazwy eliksirów
+  if (!applied) {
+    if (item.name === "Eliksir Szybkości")     { h.stats.speed    = Math.max(0,Math.min(cap, h.stats.speed    + 5*mult)); applied="speed"; }
+    if (item.name === "Eliksir Siły")          { h.stats.strength = Math.max(0,Math.min(cap, h.stats.strength + 5*mult)); applied="strength"; }
+    if (item.name === "Eliksir Wytrzymałości") { h.stats.stamina  = Math.max(0,Math.min(cap, h.stats.stamina  + 5*mult)); applied="stamina"; }
+    if (item.name === "Eliksir Szczęścia")     { h.stats.luck     = Math.max(0,Math.min(cap, h.stats.luck     + 5*mult)); applied="luck"; }
+  }
+
+  return applied;
+}
+
+// Pomocnicze — label bonusu typowego
+function typeBonusLabel(h) {
+  if (!h.typeBonus || !h.typeBonus.value) return null;
+  let val = h.typeBonus.value;
+  let type = h.type;
+  if (type === "Pociągowy")      return `+${val} 💪❤️`;
+  if (type === "Kucyk")          return null;
+  if (type === "Mityczny")       return `+${val} wszystkim`;
+  if (type === "Bojowy")         return `+${val} 💪`;
+  if (type === "Prymitywny")     return `+${val} 🍀`;
+  let stat = h.typeBonus.stat;
+  if (stat === "speed")   return `+${val} ⚡`;
+  if (stat === "stamina") return `+${val} ❤️`;
+  return null;
 }
 
 // =====================
 // GENETYKA / ROZMNAŻANIE
 // =====================
 function breedHorses(idxA, idxB) {
-  if (idxA===idxB)                          { log("⚠️ Wybierz dwa różne konie!"); return; }
-  if (playerHorses.length>=STABLE_LIMIT)    { log(`⚠️ Stajnia pełna!`); return; }
+  if (idxA===idxB)                       { log("⚠️ Wybierz dwa różne konie!"); return; }
+  if (playerHorses.length>=STABLE_LIMIT) { log("⚠️ Stajnia pełna!"); return; }
 
   let a = playerHorses[idxA], b = playerHorses[idxB];
   const rarityTier = { common:0, uncommon:1, rare:2, epic:3, legendary:4, mythic:5 };
-  const tierRarity = Object.keys(rarityTier);
-
+  const tierRarity = ["common","uncommon","rare","epic","legendary","mythic"];
   let tierA = rarityTier[a.rarity]||0, tierB = rarityTier[b.rarity]||0;
+
   let childRarity;
   let roll = Math.random();
   if      (roll < 0.45) childRarity = a.rarity;
   else if (roll < 0.90) childRarity = b.rarity;
   else    childRarity = tierRarity[Math.min(Math.max(tierA,tierB)+1, 5)];
 
-  // Dziedziczenie bloodline — dominacja wyższego tier
   let childBloodline = tierA >= tierB ? a.bloodline : b.bloodline;
-
-  // Pula ras dla tej rzadkości
-  let pool = BREEDS.filter(b2 => b2.rarity===childRarity);
+  let pool = BREEDS.filter(b2=>b2.rarity===childRarity);
   if (!pool.length) pool = BREEDS.filter(b2=>b2.rarity==="common");
   let breed = pool[Math.floor(Math.random()*pool.length)];
 
-  let stars = rollStars();
-  let starBonus = stars*8;
-  let bl = BLOODLINE_BONUS[childBloodline]||{};
+  let stars     = rollStars();
+  let starBonus = stars * 4;
+  let bl        = BLOODLINE_BONUS[childBloodline] || {};
+  let cRange    = RARITY_STAT_RANGE[childRarity]  || RARITY_STAT_RANGE.common;
+  let cap       = childRarity === "mythic" ? 110 : 100;
 
-  // Dziedziczenie respektuje zakres rzadkości potomka
-  let cRange = RARITY_STAT_RANGE[childRarity] || RARITY_STAT_RANGE.common;
   function inherit(sA, sB, base) {
     let v = sA*0.4 + sB*0.4 + base*0.2 + (Math.random()-0.5)*8;
-    if (Math.random() < 0.05) v *= 1.1; // super gen
-    // Clamp do zakresu rzadkości
-    return Math.max(cRange.lo, Math.min(cRange.hi, Math.round(v)));
+    if (Math.random() < 0.05) v *= 1.1;
+    return Math.max(cRange.lo, Math.min(cap, Math.round(v)));
   }
+
+  let { bonuses: childBonuses, roll: cbRoll } = calcTypeBonuses(breed.type);
 
   let child = {
     id:           Date.now()+Math.random(),
@@ -226,16 +370,24 @@ function breedHorses(idxA, idxB) {
     lastFed:      Date.now(),
     bonusApplied: null,
     parents:      [a.name, b.name],
+    typeBonus:    { stat: TYPE_BONUS_STAT[breed.type]||null, value: cbRoll, bonuses: childBonuses },
+    itemSlots:    rollItemSlots(childRarity),
+    equippedItems: Array(rollItemSlots(childRarity)).fill(null),
+    perk:         null,
     stats: (()=>{
-      let cap = childRarity === "mythic" ? 110 : 100;
-      return {
-        speed:    Math.max(cRange.lo, Math.min(cap, inherit(a.stats.speed,    b.stats.speed,    breed.base.speed)    +(bl.speed||0)   +starBonus)),
-        strength: Math.max(cRange.lo, Math.min(cap, inherit(a.stats.strength, b.stats.strength, breed.base.strength) +(bl.strength||0)+starBonus)),
-        stamina:  Math.max(cRange.lo, Math.min(cap, inherit(a.stats.stamina,  b.stats.stamina,  breed.base.stamina)  +(bl.stamina||0) +starBonus)),
-        luck:     Math.max(cRange.lo, Math.min(cap, inherit(a.stats.luck,     b.stats.luck,     breed.base.luck)     +(bl.luck||0)    +Math.round(starBonus*0.5))),
+      let s = {
+        speed:    Math.max(cRange.lo,Math.min(cap, inherit(a.stats.speed,    b.stats.speed,    breed.base.speed)    +(bl.speed||0)   +starBonus+childBonuses.speed)),
+        strength: Math.max(cRange.lo,Math.min(cap, inherit(a.stats.strength, b.stats.strength, breed.base.strength) +(bl.strength||0)+starBonus+childBonuses.strength)),
+        stamina:  Math.max(cRange.lo,Math.min(cap, inherit(a.stats.stamina,  b.stats.stamina,  breed.base.stamina)  +(bl.stamina||0) +starBonus+childBonuses.stamina)),
+        luck:     Math.max(cRange.lo,Math.min(cap, inherit(a.stats.luck,     b.stats.luck,     breed.base.luck)     +(bl.luck||0)    +Math.round(starBonus*0.5)+childBonuses.luck)),
       };
-    })()
+      return s;
+    })(),
   };
+
+  // Perk dla dziecka jeśli odpowiednia rzadkość
+  let pp = RARITY_PERKS[childRarity];
+  if (pp) child.perk = pp[Math.floor(Math.random()*pp.length)];
 
   playerHorses.push(child);
   trackQuest("breed");
@@ -249,8 +401,8 @@ function breedHorses(idxA, idxB) {
 let breedFirstIdx = null;
 
 function openBreedModal() {
-  if (playerHorses.length<2)              { log("⚠️ Potrzebujesz co najmniej 2 koni!"); return; }
-  if (playerHorses.length>=STABLE_LIMIT)  { log("⚠️ Stajnia pełna — brak miejsca na źrebię!"); return; }
+  if (playerHorses.length<2)             { log("⚠️ Potrzebujesz co najmniej 2 koni!"); return; }
+  if (playerHorses.length>=STABLE_LIMIT) { log("⚠️ Stajnia pełna!"); return; }
   breedFirstIdx=null;
   renderBreedModal();
   document.getElementById("breedModal").style.display="flex";
@@ -310,17 +462,17 @@ function selectBreedHorse(idx) {
 // RENDER STAJNI
 // =====================
 function renderHorses() {
-  playerHorses=playerHorses.filter(h=>{ let maxAge = h.perk?.id==="immortal" ? 730 : 365; return getHorseAgeDays(h)<maxAge; });
+  playerHorses=playerHorses.filter(h=>{ let maxAge=h.perk?.id==="immortal"?730:365; return getHorseAgeDays(h)<maxAge; });
   let el=document.getElementById("horsesGrid");
   let count=playerHorses.length;
 
   let countEl=document.getElementById("stableCountDisplay");
-  if (countEl) { countEl.textContent=`${count} / ${STABLE_LIMIT}`; countEl.style.color=count>=STABLE_LIMIT?"#c94a4a":"var(--gold2)"; }
+  if(countEl){ countEl.textContent=`${count} / ${STABLE_LIMIT}`; countEl.style.color=count>=STABLE_LIMIT?"#c94a4a":"var(--gold2)"; }
 
   let breedBtn=document.getElementById("breedBtn");
-  if (breedBtn) breedBtn.disabled=count<2||count>=STABLE_LIMIT;
+  if(breedBtn) breedBtn.disabled=count<2||count>=STABLE_LIMIT;
 
-  if (!count) {
+  if(!count){
     el.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🐴</div>Brak koni — idź na wyprawę!</div>`;
     document.getElementById("horseCount").textContent=0;
     return;
@@ -329,7 +481,11 @@ function renderHorses() {
   el.innerHTML="";
   playerHorses.forEach((h,idx)=>{
     applyGrowth(h);
-    if (!h.stats.luck) h.stats.luck=10;
+    if(!h.stats.luck) h.stats.luck=5;
+    // Migracja starych koni — dodaj brakujące pola
+    if(!h.itemSlots)     h.itemSlots=0;
+    if(!h.equippedItems) h.equippedItems=[];
+
     let age=getHorseAgeDays(h);
     let ageClass=age>300?"ancient":age>200?"old":"";
     let rarCol=RARITY_COLORS[h.rarity]||"#8aab84";
@@ -338,21 +494,53 @@ function renderHorses() {
     let hCol=hunger>70?"#c94a4a":hunger>40?"#c97c2a":"#7ec870";
     let hLbl=hunger>70?"Głodny!":hunger>40?"Lekko głodny":"Najedzony";
     let bl=BLOODLINE_LABELS[h.bloodline]||"";
+    let tbLabel=typeBonusLabel(h);
+
+    // Sloty na item HTML
+    let slotsHtml="";
+    if(h.itemSlots>0){
+      slotsHtml=`<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">
+        <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--text2);letter-spacing:1px;margin-bottom:6px">
+          ✨ SLOTY PRZEDMIOTÓW (${h.itemSlots})
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">`;
+      for(let s=0;s<h.itemSlots;s++){
+        let equipped=h.equippedItems?.[s];
+        if(equipped){
+          let d=ITEMS_DATABASE[equipped.name]||{icon:"📦"};
+          let bonusTxt = equipped.bonus !== undefined
+            ? `<span style="font-size:9px;color:var(--gold2)">+${equipped.bonus}</span>`
+            : `<span style="font-size:9px;color:var(--gold2)">+5</span>`;
+          slotsHtml+=`<div class="item-slot item-slot-filled" title="${equipped.name}: ${d.desc}" onclick="unequipSlot(${idx},${s})">
+            <span style="font-size:18px">${d.icon}</span>
+            ${bonusTxt}
+            <span style="font-size:8px;color:#c94a4a">✕ zdejmij</span>
+          </div>`;
+        } else {
+          slotsHtml+=`<div class="item-slot item-slot-empty" onclick="openSlotPicker(${idx},${s})">
+            <span style="font-size:16px;opacity:0.4">＋</span>
+          </div>`;
+        }
+      }
+      slotsHtml+="</div></div>";
+    }
 
     let card=document.createElement("div");
     card.className=`horse-card ${starsClass}`;
-    card.style.setProperty("--card-rarity-color", rarCol);
     card.innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-        <div>
-          <span style="font-size:18px">${h.flag||"🐴"}</span>
-          <span class="horse-name" style="color:${rarCol};margin-left:4px">${h.name}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:20px">${h.flag||"🐴"}</span>
+          <span class="horse-name" style="color:${rarCol}">${h.name}</span>
         </div>
-        <span style="font-size:10px;background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:6px;color:${rarCol}">${RARITY_LABELS[h.rarity]||h.rarity}</span>
+        <span style="font-size:10px;background:${rarCol}22;padding:2px 7px;border-radius:6px;color:${rarCol};border:1px solid ${rarCol}55">${RARITY_LABELS[h.rarity]||h.rarity}</span>
       </div>
       <div class="horse-breed">${h.type||""} · ${bl}</div>
       ${h.stars>0?`<div class="horse-stars">${"⭐".repeat(h.stars)}</div>`:""}
       ${h.parents?`<div style="font-size:10px;color:var(--text2);margin-bottom:4px">🧬 ${h.parents[0]} × ${h.parents[1]}</div>`:""}
+      ${tbLabel?`<div style="font-size:11px;color:var(--gold2);margin-bottom:6px;padding:3px 8px;background:rgba(201,168,76,0.1);border-radius:5px;border:1px solid rgba(201,168,76,0.2)">
+        🎯 Bonus typowy: ${tbLabel}
+      </div>`:""}
       ${h.perk?`<div style="margin-bottom:6px;padding:5px 8px;background:rgba(201,74,106,0.1);border:1px solid rgba(201,74,106,0.3);border-radius:6px;font-size:11px">
         <span style="color:#e08070">${h.perk.icon} <strong>${h.perk.name}</strong></span>
         <span style="color:var(--text2)"> — ${h.perk.desc}</span>
@@ -371,6 +559,7 @@ function renderHorses() {
         <div class="stat-row" style="margin-bottom:3px"><span style="color:${hCol}">🍽️ Głód</span><span style="color:${hCol}">${hunger}% — ${hLbl}</span></div>
         <div class="stat-bar-wrap"><div class="stat-bar" style="width:${hunger}%;background:${hCol};transition:width 0.5s"></div></div>
       </div>
+      ${slotsHtml}
       <div class="horse-age ${ageClass}">🎂 ${age} dni${h.bonusApplied?` · ${h.bonusApplied}`:""}</div>
       <button class="btn-market" onclick="openListHorse(${idx})">🏪 Wystaw na rynek</button>
     `;

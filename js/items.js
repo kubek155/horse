@@ -7,9 +7,13 @@ function openHorsePicker(itemIdx) {
   let item = inventory[itemIdx];
   if (!item) return;
 
-  // Skrzynka nie wymaga wyboru konia — otwiera się od razu
-  if (item.name === "Skrzynka z Łupem") {
-    openLootBox(itemIdx);
+  // Skrzynka nie wymaga wyboru konia
+  if (item.name === "Skrzynka z Łupem") { openLootBox(itemIdx); return; }
+
+  // Przedmioty do slotów — otwórz picker slotu jeśli koń ma slot
+  let itemData = ITEMS_DATABASE[item.name] || {};
+  if (itemData.isSlotItem) {
+    openSlotPickerForItem(itemIdx);
     return;
   }
 
@@ -82,7 +86,7 @@ function applyItemToHorse(itemIdx, horseIdx) {
     log(`❤️ ${h.name}: +5 wytrzymałości!`);
   } else if (item.name === "Eliksir Szczęścia") {
     if (!h.stats.luck) h.stats.luck = 5;
-    h.stats.luck += 5;
+    h.stats.luck = Math.min(110, h.stats.luck + 5);
     log(`🍀 ${h.name}: +5 szczęścia!`);
   } else {
     log(`✨ Użyto ${item.name} na ${h.name}!`);
@@ -110,10 +114,20 @@ function openLootBox(itemIdx) {
     inventory.push({ name: "Eliksir Odmłodzenia", obtained: Date.now() });
     log(`📦 Skrzynka: Eliksir Odmłodzenia! 🧪`);
   } else {
-    let statItems = ["Eliksir Szybkości", "Eliksir Siły", "Eliksir Wytrzymałości", "Eliksir Szczęścia"];
-    let picked    = statItems[Math.floor(Math.random() * statItems.length)];
-    inventory.push({ name: picked, obtained: Date.now() });
-    log(`📦 Skrzynka: ${ITEMS_DATABASE[picked].icon} ${picked}!`);
+    // 50% eliksir, 50% przedmiot do slotu
+    if (Math.random() < 0.5) {
+      let statItems = ["Eliksir Szybkości", "Eliksir Siły", "Eliksir Wytrzymałości", "Eliksir Szczęścia"];
+      let picked    = statItems[Math.floor(Math.random() * statItems.length)];
+      inventory.push({ name: picked, obtained: Date.now() });
+      log(`📦 Skrzynka: ${ITEMS_DATABASE[picked].icon} ${picked}!`);
+    } else {
+      let slotItems = ["Piorun","Kowadło","Koniczyna","Serce"];
+      let picked    = slotItems[Math.floor(Math.random() * slotItems.length)];
+      let generated = generateSlotItem(picked);
+      inventory.push(generated);
+      let d = ITEMS_DATABASE[picked]||{icon:"📦"};
+      log(`📦 Skrzynka: ${d.icon} ${picked} (+${generated.bonus})!`);
+    }
   }
   inventory.splice(itemIdx, 1);
   trackQuest("lootbox");
@@ -135,14 +149,19 @@ function renderInventory() {
 
   el.innerHTML = "";
   inventory.forEach((item, idx) => {
-    let data = ITEMS_DATABASE[item.name] || { icon: "📦", desc: "" };
+    let data     = ITEMS_DATABASE[item.name] || { icon: "📦", desc: "" };
+    let isSlot   = !!data.isSlotItem;
+    let bonusTag = (isSlot && item.bonus !== undefined)
+      ? `<div style="font-size:12px;color:var(--gold2);font-family:'Cinzel',serif">+${item.bonus} ${item.name==="Piorun"?"⚡":item.name==="Kowadło"?"💪":item.name==="Koniczyna"?"🍀":"❤️"}</div>`
+      : "";
     let div  = document.createElement("div");
     div.className = "inv-item";
     div.innerHTML = `
       <span class="inv-icon">${data.icon}</span>
       <span class="inv-name">${item.name}</span>
+      ${bonusTag}
       <div style="display:flex;gap:4px;margin-top:6px">
-        <button style="flex:1;font-size:11px;padding:4px 6px" onclick="openHorsePicker(${idx})">Użyj</button>
+        <button style="flex:1;font-size:11px;padding:4px 6px" onclick="openHorsePicker(${idx})">${isSlot?"✨ Slot":"Użyj"}</button>
         <button style="flex:1;font-size:11px;padding:4px 6px;border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1)" onclick="openListItem(${idx})">🏪</button>
       </div>
     `;
@@ -152,3 +171,103 @@ function renderInventory() {
 
 // alias
 function useItem(idx) { openHorsePicker(idx); }
+
+// =====================
+// SLOT PICKER
+// =====================
+const SLOT_ITEMS = ["Eliksir Szybkości","Eliksir Siły","Eliksir Wytrzymałości","Eliksir Szczęścia","Piorun","Kowadło","Koniczyna","Serce"];
+
+let pendingSlot = null; // { horseIdx, slotIdx }
+
+// Otwiera picker wyboru konia dla itemu (przedmiot inicjuje wybór konia)
+function openSlotPickerForItem(itemIdx) {
+  if (playerHorses.length === 0) { log("⚠️ Brak koni z wolnymi slotami!"); return; }
+  let horsesWithSlots = playerHorses
+    .map((h,i)=>({h,i}))
+    .filter(({h}) => h.itemSlots > 0 && (h.equippedItems||[]).some(s=>s===null));
+
+  if (!horsesWithSlots.length) { log("⚠️ Żaden koń nie ma wolnego slotu!"); return; }
+
+  // Jeśli tylko jeden koń z wolnym slotem — od razu wybierz
+  if (horsesWithSlots.length === 1) {
+    let {h, i} = horsesWithSlots[0];
+    let slotIdx = (h.equippedItems||[]).findIndex(s=>s===null);
+    equipItemToSlot(i, slotIdx, itemIdx);
+    return;
+  }
+
+  // Picker konia
+  pendingItemIdx = itemIdx;
+  document.getElementById("modalTitle").textContent    = "✨ Wybierz konia do slotu";
+  document.getElementById("modalSubtitle").textContent = "Który koń ma otrzymać przedmiot?";
+  let list = document.getElementById("modalHorseList");
+  list.innerHTML = "";
+  horsesWithSlots.forEach(({h, i}) => {
+    let col = RARITY_COLORS[h.rarity]||"#8aab84";
+    let freeSlots = (h.equippedItems||[]).filter(s=>s===null).length;
+    let btn = document.createElement("button");
+    btn.className = "modal-horse-btn";
+    btn.innerHTML = `
+      <span style="font-size:20px">${h.flag||"🐴"}</span>
+      <div style="flex:1">
+        <div class="mh-name" style="color:${col}">${h.name}</div>
+        <div class="mh-stats">✨ Wolnych slotów: ${freeSlots}/${h.itemSlots}</div>
+      </div>`;
+    btn.onclick = () => {
+      let slotIdx = (h.equippedItems||[]).findIndex(s=>s===null);
+      equipItemToSlot(i, slotIdx, pendingItemIdx);
+      closeModal();
+    };
+    list.appendChild(btn);
+  });
+  document.getElementById("horsePickerModal").style.display = "flex";
+}
+
+function openSlotPicker(horseIdx, slotIdx) {
+  let h = playerHorses[horseIdx];
+  if (!h) return;
+  pendingSlot = { horseIdx, slotIdx };
+
+  let rarCol = RARITY_COLORS[h.rarity] || "#8aab84";
+  document.getElementById("slotPickerSubtitle").innerHTML =
+    `<span style="color:${rarCol}">${h.flag||"🐴"} ${h.name}</span> — Slot ${slotIdx+1}/${h.itemSlots}`;
+
+  // Tylko elixiry statystyk z ekwipunku
+  let eligible = inventory
+    .map((item,i) => ({item,i}))
+    .filter(({item}) => {
+      let d = ITEMS_DATABASE[item.name]||{};
+      return d.isSlotItem || d.isElixir || SLOT_ITEMS.includes(item.name);
+    });
+
+  let list = document.getElementById("slotPickerList");
+  list.innerHTML = "";
+
+  if (!eligible.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">🧪</div>Brak eliksirów statystyk w ekwipunku</div>`;
+  } else {
+    eligible.forEach(({item, i}) => {
+      let data = ITEMS_DATABASE[item.name] || { icon:"📦" };
+      let btn  = document.createElement("button");
+      btn.className = "modal-horse-btn";
+      let bonusStr = item.bonus !== undefined ? ` <span style="color:var(--gold2);font-size:11px">(+${item.bonus})</span>` : "";
+      btn.innerHTML = `
+        <span style="font-size:22px">${data.icon}</span>
+        <div style="flex:1">
+          <div class="mh-name">${item.name}${bonusStr}</div>
+          <div class="mh-stats" style="color:var(--text2)">${data.desc}</div>
+        </div>
+        <span style="font-size:11px;color:var(--gold2)">Wyposażaj</span>
+      `;
+      btn.onclick = () => { equipItemToSlot(horseIdx, slotIdx, i); closeSlotPicker(); };
+      list.appendChild(btn);
+    });
+  }
+
+  document.getElementById("slotPickerModal").style.display = "flex";
+}
+
+function closeSlotPicker() {
+  document.getElementById("slotPickerModal").style.display = "none";
+  pendingSlot = null;
+}
