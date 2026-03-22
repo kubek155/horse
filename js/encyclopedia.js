@@ -62,7 +62,6 @@ function renderEncyclopedia() {
     // Sprawdź czy gracz ma tego konia
     let owned = playerHorses.some(h => (h.breedKey||h.name) === breed.name);
 
-    let encySVG = drawHorseSVG(breed.name, breed.rarity, 0);
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <div style="display:flex;align-items:center;gap:6px">
@@ -76,10 +75,16 @@ function renderEncyclopedia() {
           <span style="font-size:10px;background:${rc}22;color:${rc};padding:2px 6px;border-radius:6px;border:1px solid ${rc}55">${RARITY_LABELS[breed.rarity]}</span>
           ${owned ? `<span style="font-size:10px;color:var(--accent2)">✔ W stajni</span>` : ""}
         </div>
-      </div>
-      <div style="background:var(--panel2);border-radius:8px;overflow:hidden;margin-bottom:8px;border:1px solid ${rc}33">
-        ${encySVG}
-      </div>
+      </div>`;
+
+    // SVG — oddzielny div żeby przeglądarka poprawnie wyrenderowała
+    let svgWrap = document.createElement("div");
+    svgWrap.style.cssText = `background:var(--panel2);border-radius:8px;overflow:hidden;margin-bottom:8px;border:1px solid ${rc}33`;
+    svgWrap.innerHTML = drawHorseSVG(breed.name, breed.rarity, 0);
+    card.appendChild(svgWrap);
+
+    let restDiv = document.createElement("div");
+    restDiv.innerHTML = `
       <div style="font-size:11px;color:var(--text2);margin-bottom:8px;font-style:italic">${breed.desc}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
         <span class="ency-tag">${bl}</span>
@@ -97,6 +102,7 @@ function renderEncyclopedia() {
         return `<div style="font-size:10px;color:var(--text2);padding:4px 6px;background:var(--panel2);border-radius:4px">📊 Zakres statystyk: ${rr.lo}–${rr.hi}</div>${racingNote}`;
       })()}
     `;
+    card.appendChild(restDiv);
     el.appendChild(card);
   });
 }

@@ -121,7 +121,12 @@ const BREED_VISUALS = {
 
 // Fallback dla ras bez definicji
 function getBreedVisual(name) {
-  if (BREED_VISUALS[name]) return BREED_VISUALS[name];
+  let vis = BREED_VISUALS[name];
+  if (vis) {
+    // Upewnij się że extras jest zawsze tablicą
+    if (!Array.isArray(vis.extras)) vis.extras = [];
+    return vis;
+  }
   // Heurystyki z nazwy
   let coat = "#8B6914", mane = "#4a2e00", build = "light", extras = [];
   if (name.includes("Draft")||name.includes("Heavy")||name.includes("Clydes"))
@@ -306,14 +311,16 @@ function drawHorseSVG(horseName, rarity, stars) {
 
 // Pomocnicze — przyciemnianie / rozjaśnianie koloru hex
 function darken(hex, pct) {
+  if (!hex || hex.length < 7 || hex[0] !== "#") return "#4a3520";
   let r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
-  if(isNaN(r)||isNaN(g)||isNaN(b)) return hex;
+  if(isNaN(r)||isNaN(g)||isNaN(b)) return "#4a3520";
   r=Math.max(0,r-pct); g=Math.max(0,g-pct); b=Math.max(0,b-pct);
   return "#"+[r,g,b].map(v=>v.toString(16).padStart(2,"0")).join("");
 }
 function lighten(hex, pct) {
+  if (!hex || hex.length < 7 || hex[0] !== "#") return "#8B6914";
   let r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
-  if(isNaN(r)||isNaN(g)||isNaN(b)) return hex;
+  if(isNaN(r)||isNaN(g)||isNaN(b)) return "#8B6914";
   r=Math.min(255,r+pct); g=Math.min(255,g+pct); b=Math.min(255,b+pct);
   return "#"+[r,g,b].map(v=>v.toString(16).padStart(2,"0")).join("");
 }

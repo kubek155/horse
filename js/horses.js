@@ -628,14 +628,20 @@ function renderHorses() {
 
     let card=document.createElement("div");
     card.className=`horse-card ${starsClass}`;
-    let horseSVG = drawHorseSVGMutated(h.breedKey||h.name, h.rarity, h.stars, h.mutation||null);
-    card.innerHTML=`
+
+    // SVG musi być wstawiony przez parser, nie innerHTML — używamy oddzielnego kontenera
+    let svgWrap = document.createElement("div");
+    svgWrap.style.cssText = `background:var(--panel2);border-radius:8px;overflow:hidden;margin-bottom:8px;border:1px solid ${rarCol}33`;
+    let svgStr = drawHorseSVGMutated(h.breedKey||h.name, h.rarity, h.stars, h.mutation||null);
+    svgWrap.innerHTML = svgStr;  // SVG wstawione bezpośrednio w div — działa
+    card.appendChild(svgWrap);
+
+    // Reszta karty — przez innerHTML (bez SVG)
+    let restDiv = document.createElement("div");
+    restDiv.innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
         <span style="font-size:20px">${h.flag||"🐴"}</span>
         <span style="font-size:10px;background:${rarCol}22;padding:2px 7px;border-radius:6px;color:${rarCol};border:1px solid ${rarCol}55">${RARITY_LABELS[h.rarity]||h.rarity}</span>
-      </div>
-      <div style="background:var(--panel2);border-radius:8px;overflow:hidden;margin-bottom:8px;border:1px solid ${rarCol}33">
-        ${horseSVG}
       </div>
       <div class="horse-name" style="color:${rarCol}">${h.name}</div>
       <div class="horse-breed">${h.type||""} · ${bl}</div>
@@ -671,6 +677,7 @@ function renderHorses() {
       <button class="btn-market" onclick="openListHorse(${idx})">🏪 Wystaw na rynek</button>
       <button onclick="confirmReleaseHorse(${idx})" style="margin-top:4px;width:100%;font-size:11px;border-color:#666;color:#888;background:rgba(100,100,100,0.1)">🌿 Wypuść na wolność</button>
     `;
+    card.appendChild(restDiv);
     el.appendChild(card);
   });
   document.getElementById("horseCount").textContent=count;
