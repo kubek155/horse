@@ -35,8 +35,8 @@ const BLOODLINE_LABELS = {
 };
 
 const RARITY_COLORS = {
-  common:    "#8aab84",
-  uncommon:  "#4a9e6a",
+  common:    "#909090",
+  uncommon:  "#8aab84",
   rare:      "#4a7ec8",
   epic:      "#7b5ea7",
   legendary: "#c9a84c",
@@ -44,22 +44,40 @@ const RARITY_COLORS = {
 };
 
 const RARITY_LABELS = {
-  common:    "Pospolity",
-  uncommon:  "Piękny",
+  common:    "Zwykły",
+  uncommon:  "Pospolity",
   rare:      "Rzadki",
   epic:      "Legendarny",
   legendary: "Mityczny",
   mythic:    "Pradawny",
 };
 
-// Wagi losowania rzadkości
+// Wagi losowania rzadkości (mniejsze dla rzadkich)
 const RARITY_WEIGHTS = {
-  common:    55,
-  uncommon:  25,
-  rare:      12,
-  epic:      5,
-  legendary: 2.5,
+  common:    58,
+  uncommon:  24,
+  rare:      11,
+  epic:      4.5,
+  legendary: 2,
   mythic:    0.5,
+};
+
+// =====================
+// PERKI SPECJALNE (mityczny i pradawny)
+// =====================
+const RARITY_PERKS = {
+  legendary: [
+    { id:"swift_blood",   name:"Szybka Krew",      icon:"💨", desc:"+15% złota z wypraw" },
+    { id:"star_born",     name:"Dziecko Gwiazd",   icon:"⭐", desc:"Szansa na 2 nagrody z wyprawy" },
+    { id:"ancient_wisdom",name:"Dawna Mądrość",    icon:"📜", desc:"+10 do wszystkich statystyk potomków" },
+  ],
+  mythic: [
+    { id:"divine_aura",   name:"Boska Aura",       icon:"✨", desc:"+25% złota z wypraw, +5% drop rate" },
+    { id:"immortal",      name:"Nieśmiertelny",    icon:"♾️", desc:"Żyje 2× dłużej (730 dni zamiast 365)" },
+    { id:"legend_breed",  name:"Legendarny Ród",   icon:"🧬", desc:"Potomki mają +1 do minimalnej rzadkości" },
+    { id:"golden_luck",   name:"Złote Szczęście",  icon:"🍀", desc:"Szczęście liczy się podwójnie dla stajni" },
+    { id:"war_born",      name:"Zrodzony z Bitwy",icon:"⚔️", desc:"+20 siły, +20 wytrzymałości" },
+  ],
 };
 
 // =====================

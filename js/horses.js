@@ -49,10 +49,22 @@ function generateHorse(rarityHint) {
     luck:     Math.min(100, rollStatVariance(breed.base.luck)     + (bl.luck||0)     + Math.round(starBonus*0.5)),
   };
 
+  // Losuj perk dla mitycznych i pradawnych
+  let perk = null;
+  let perkPool = RARITY_PERKS[rarity];
+  if (perkPool && perkPool.length) {
+    perk = perkPool[Math.floor(Math.random() * perkPool.length)];
+    // Aplikuj natychmiastowe perki do statystyk
+    if (perk.id === 'war_born') {
+      stats.strength = Math.min(100, stats.strength + 20);
+      stats.stamina  = Math.min(100, stats.stamina  + 20);
+    }
+  }
+
   return {
     id:           Date.now() + Math.random(),
     name:         breed.name,
-    breedKey:     breed.name,   // referencja do BREEDS
+    breedKey:     breed.name,
     flag:         breed.flag,
     country:      breed.country,
     type:         breed.type,
@@ -63,6 +75,7 @@ function generateHorse(rarityHint) {
     born:         Date.now(),
     lastFed:      Date.now(),
     bonusApplied: null,
+    perk,
     stats,
   };
 }
@@ -248,7 +261,7 @@ function selectBreedHorse(idx) {
 // RENDER STAJNI
 // =====================
 function renderHorses() {
-  playerHorses=playerHorses.filter(h=>getHorseAgeDays(h)<365);
+  playerHorses=playerHorses.filter(h=>{ let maxAge = h.perk?.id==="immortal" ? 730 : 365; return getHorseAgeDays(h)<maxAge; });
   let el=document.getElementById("horsesGrid");
   let count=playerHorses.length;
 
@@ -291,6 +304,10 @@ function renderHorses() {
       <div class="horse-breed">${h.type||""} · ${bl}</div>
       ${h.stars>0?`<div class="horse-stars">${"⭐".repeat(h.stars)}</div>`:""}
       ${h.parents?`<div style="font-size:10px;color:var(--text2);margin-bottom:4px">🧬 ${h.parents[0]} × ${h.parents[1]}</div>`:""}
+      ${h.perk?`<div style="margin-bottom:6px;padding:5px 8px;background:rgba(201,74,106,0.1);border:1px solid rgba(201,74,106,0.3);border-radius:6px;font-size:11px">
+        <span style="color:#e08070">${h.perk.icon} <strong>${h.perk.name}</strong></span>
+        <span style="color:var(--text2)"> — ${h.perk.desc}</span>
+      </div>`:""}
       <div class="horse-stats">
         <div class="stat-row"><span>⚡ Szybkość</span><span>${h.stats.speed}</span></div>
         <div class="stat-bar-wrap"><div class="stat-bar" style="width:${h.stats.speed}%"></div></div>

@@ -14,14 +14,81 @@ function addDaily() {
   localStorage.setItem(getTodayKey(), getDailyCount() + 1);
 }
 
-function startExpedition(i) {
+// =====================
+// PERKI AKTYWNE W STAJNI
+// =====================
+function getActivePerkBonus() {
+  let goldBonus    = 1.0;  // mnożnik złota
+  let dropBonus    = 0;    // flat % do dropu
+  let doubleReward = false;
+
+  playerHorses.forEach(h => {
+    if (!h.perk) return;
+    if (h.perk.id === "divine_aura")  { goldBonus  += 0.25; dropBonus += 5; }
+    if (h.perk.id === "swift_blood")  { goldBonus  += 0.15; }
+    if (h.perk.id === "golden_luck")  { dropBonus  += 3; }
+    if (h.perk.id === "star_born" && Math.random() < 0.20) doubleReward = true;
+    // immortal obsługiwany w renderHorses (wiek)
+  });
+
+  return { goldBonus, dropBonus, doubleReward };
+}
+
+function startExpedition(i, horseIdx) {
   if (getDailyCount() >= DAILY_LIMIT) { log("⚠️ Osiągnięto dzienny limit wypraw!"); return; }
   if (playerHorses.length === 0)      { log("⚠️ Nie masz żadnych koni!"); return; }
-  expeditions.push({ end: Date.now() + EXPEDITION_TIME, locationIndex: i, done: false });
+  let h = playerHorses[horseIdx !== undefined ? horseIdx : 0];
+  expeditions.push({ end: Date.now() + EXPEDITION_TIME, locationIndex: i, horseIdx: horseIdx||0, horseName: h?.name||"?", done: false });
   addDaily();
   trackQuest("expedition");
+  closeExpeditionHorsePicker();
   saveGame();
-  log(`🌍 Wyprawa do ${LOCATIONS[i].name} rozpoczęta!`);
+  log(`🌍 ${h?.flag||"🐴"} ${h?.name||"Koń"} wyruszył na wyprawę do ${LOCATIONS[i].name}!`);
+}
+
+// =====================
+// MODAL WYBORU KONIA DO WYPRAWY
+// =====================
+let pendingExpLocation = null;
+
+function openExpeditionHorsePicker(locIdx) {
+  if (getDailyCount() >= DAILY_LIMIT) { log("⚠️ Osiągnięto dzienny limit wypraw!"); return; }
+  if (playerHorses.length === 0)      { log("⚠️ Nie masz żadnych koni!"); return; }
+  pendingExpLocation = locIdx;
+
+  let loc = LOCATIONS[locIdx];
+  document.getElementById("expPickerTitle").textContent    = `${loc.icon} Wyprawa do: ${loc.name}`;
+  document.getElementById("expPickerSubtitle").textContent = loc.desc;
+
+  let list = document.getElementById("expHorseList");
+  list.innerHTML = "";
+
+  playerHorses.forEach((h, hi) => {
+    let col    = RARITY_COLORS[h.rarity] || "#8aab84";
+    let hunger = getHunger(h);
+    let hCol   = hunger > 70 ? "#c94a4a" : hunger > 40 ? "#c97c2a" : "#7ec870";
+    let age    = getHorseAgeDays(h);
+    let btn    = document.createElement("button");
+    btn.className = "modal-horse-btn";
+    btn.innerHTML = `
+      <span style="font-size:22px">${h.flag||"🐴"}</span>
+      <div style="flex:1">
+        <div class="mh-name" style="color:${col}">${h.name}${h.stars>0?" "+"⭐".repeat(h.stars):""}</div>
+        <div class="mh-stats">⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck}</div>
+        ${h.perk ? `<div style="font-size:10px;color:#e08070;margin-top:2px">${h.perk.icon} ${h.perk.name}</div>` : ""}
+        <div style="font-size:10px;color:${hCol};margin-top:2px">🍽️ Głód: ${hunger}% &nbsp; 🎂 ${age} dni</div>
+      </div>
+    `;
+    btn.onclick = () => startExpedition(pendingExpLocation, hi);
+    list.appendChild(btn);
+  });
+
+  document.getElementById("expeditionHorsePickerModal").style.display = "flex";
+}
+
+function closeExpeditionHorsePicker() {
+  document.getElementById("expeditionHorsePickerModal").style.display = "none";
+  pendingExpLocation = null;
 }
 
 function finishExpedition(e) {
@@ -55,7 +122,9 @@ function finishExpedition(e) {
     log(`📜 Wyprawa do ${loc.name} — nic nie znaleziono.`);
   }
 
-  let goldGain = 50 + Math.floor(Math.random() * 151) + Math.floor(luck * 0.5);
+  let perks    = getActivePerkBonus();
+  let baseGold = 50 + Math.floor(Math.random() * 151) + Math.floor(luck * 0.5);
+  let goldGain = Math.round(baseGold * perks.goldBonus);
   gold += goldGain;
   log(`💰 +${goldGain} złota z wyprawy!`);
 
@@ -90,7 +159,7 @@ function renderLocations() {
     let b = document.createElement("div");
     b.className = "location-btn";
     b.innerHTML = `<span class="loc-icon">${l.icon}</span><span class="loc-name">${l.name}</span><span class="loc-desc">${l.desc}</span>`;
-    b.onclick = () => startExpedition(i);
+    b.onclick = () => openExpeditionHorsePicker(i);
     el.appendChild(b);
   });
 }
@@ -109,7 +178,19 @@ function renderExpeditions() {
     let div = document.createElement("div");
     div.className = "exp-item";
     let loc = LOCATIONS[e.locationIndex];
-    div.innerHTML = `<span>${loc.icon} ${loc.name}</span><span class="exp-timer">${Math.ceil(t/1000)}s</span>`;
+    let expHorse = playerHorses[e.horseIdx] || null;
+    let hFlag = expHorse ? (expHorse.flag||"🐴") : "🐴";
+    let hName = e.horseName || (expHorse?.name||"Koń");
+    div.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">${hFlag}</span>
+        <div>
+          <div style="font-size:13px;color:var(--text)">${hName}</div>
+          <div style="font-size:11px;color:var(--text2)">${loc.icon} ${loc.name}</div>
+        </div>
+      </div>
+      <span class="exp-timer">${Math.ceil(t/1000)}s</span>
+    `;
     el.appendChild(div);
   });
 }

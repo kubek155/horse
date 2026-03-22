@@ -191,8 +191,8 @@
           <button data-ency="rarity" data-val="legendary" style="color:#c9a84c;border-color:#c9a84c"   onclick="setEncyFilter('rarity','legendary')">Mityczny</button>
           <button data-ency="rarity" data-val="epic"      style="color:#7b5ea7;border-color:#7b5ea7"   onclick="setEncyFilter('rarity','epic')">Legendarny</button>
           <button data-ency="rarity" data-val="rare"      style="color:#4a7ec8;border-color:#4a7ec8"   onclick="setEncyFilter('rarity','rare')">Rzadki</button>
-          <button data-ency="rarity" data-val="uncommon"  style="color:#4a9e6a;border-color:#4a9e6a"   onclick="setEncyFilter('rarity','uncommon')">Piękny</button>
-          <button data-ency="rarity" data-val="common"    style="color:#8aab84;border-color:#8aab84"   onclick="setEncyFilter('rarity','common')">Pospolity</button>
+          <button data-ency="rarity" data-val="uncommon"  style="color:#8aab84;border-color:#8aab84"   onclick="setEncyFilter('rarity','uncommon')">Pospolity</button>
+          <button data-ency="rarity" data-val="common"    style="color:#909090;border-color:#909090"   onclick="setEncyFilter('rarity','common')">Zwykły</button>
         </div>
 
         <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:1px;margin-bottom:8px">KREW</div>
@@ -249,8 +249,8 @@
         <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:1px;margin-bottom:8px">RASA / RZADKOŚĆ</div>
         <div class="market-filter" style="flex-wrap:wrap;margin-bottom:12px">
           <button data-filter="rarity" data-val="all"       class="active" onclick="setMarketFilter('rarity','all')">Wszystkie</button>
-          <button data-filter="rarity" data-val="common"    style="color:#8aab84;border-color:#8aab84"    onclick="setMarketFilter('rarity','common')">Pospolite</button>
-          <button data-filter="rarity" data-val="rare"      style="color:#7b5ea7;border-color:#7b5ea7"    onclick="setMarketFilter('rarity','rare')">Szlachetne</button>
+          <button data-filter="rarity" data-val="common"    style="color:#909090;border-color:#909090"    onclick="setMarketFilter('rarity','common')">Zwykłe</button>
+          <button data-filter="rarity" data-val="rare"      style="color:#4a7ec8;border-color:#4a7ec8"    onclick="setMarketFilter('rarity','rare')">Rzadkie</button>
           <button data-filter="rarity" data-val="epic"      style="color:#c97c2a;border-color:#c97c2a"    onclick="setMarketFilter('rarity','epic')">Bojowe</button>
           <button data-filter="rarity" data-val="legendary" style="color:var(--gold);border-color:var(--gold)" onclick="setMarketFilter('rarity','legendary')">Legendarne</button>
         </div>
@@ -278,6 +278,16 @@
     <div id="rankingList"></div>
   </div>
 
+</div>
+
+<!-- MODAL WYBORU KONIA DO WYPRAWY -->
+<div id="expeditionHorsePickerModal" class="modal-overlay" style="display:none">
+  <div class="modal" style="min-width:360px;max-width:460px">
+    <div class="modal-title" id="expPickerTitle">Wybierz konia</div>
+    <div class="modal-subtitle" id="expPickerSubtitle"></div>
+    <div id="expHorseList" class="modal-horse-list" style="max-height:340px;overflow-y:auto;margin:12px 0"></div>
+    <button class="modal-cancel" onclick="closeExpeditionHorsePicker()">✕ Anuluj</button>
+  </div>
 </div>
 
 <!-- MODAL ROZMNAŻANIA -->
