@@ -186,10 +186,18 @@ function renderLocations() {
 function renderExpeditions() {
   let el     = document.getElementById("expeditionsDiv");
   let active = expeditions.filter(e => !e.done);
+
+  // Sprawdź czy są jakieś po zakończeniu
+  active.forEach(e => { if (Date.now() >= e.end) finishExpedition(e); });
+  active = expeditions.filter(e => !e.done);
+
   if (active.length === 0) {
     el.innerHTML = `<div class="empty"><div class="empty-icon">🗺️</div>Brak aktywnych wypraw</div>`;
     return;
   }
+  // Upewnij się że nie ma "brak" komunikatu gdy są aktywne
+  let emptyEl = el.querySelector(".empty");
+  if (emptyEl) emptyEl.remove();
 
   // Zachowaj istniejące karty — tylko aktualizuj timer i progress
   active.forEach(e => {

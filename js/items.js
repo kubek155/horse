@@ -148,9 +148,8 @@ function _doOpenLootBox(itemIdx) {
         ? drawHorseSVG(h.breedKey||h.name, h.rarity, h.stars)
         : null;
       lootResult = { svg: horseSvgStr, icon: h.flag||"🐴", name: h.name, desc: RARITY_LABELS[h.rarity]||h.rarity, color: rc };
-      if (typeof showRareHorseEffect === "function") {
-        setTimeout(() => showRareHorseEffect(h.name, h.rarity, h.flag), 2400);
-      }
+      // Efekt rzadkości pokazany po zamknięciu loot box animacji
+      lootResult._showRareEffect = { name: h.name, rarity: h.rarity, flag: h.flag };
     }
   } else if (r < 80) {
     inventory.push({ name: "Eliksir Odmłodzenia", obtained: Date.now() });

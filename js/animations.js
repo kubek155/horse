@@ -426,10 +426,18 @@ function showLootBoxAnimation(callback) {
           resultEl.style.display = "flex";
         }, 200);
 
-        // Zamknij po chwili
+        // Zamknij po chwili, potem pokaż efekt rzadkości jeśli koń
         setTimeout(() => {
           overlay.style.animation = "sceneFadeOut 0.5s ease forwards";
-          setTimeout(() => overlay.remove(), 500);
+          setTimeout(() => {
+            overlay.remove();
+            let r2 = window._lastLootResult;
+            if (r2 && r2._showRareEffect && typeof showRareHorseEffect === "function") {
+              let s = r2._showRareEffect;
+              let tier = { common:0, uncommon:1, rare:2, epic:3, legendary:4, mythic:5 }[s.rarity]||0;
+              if (tier >= 2) showRareHorseEffect(s.name, s.rarity, s.flag);
+            }
+          }, 500);
         }, 2200);
       }, 100);
     }, 400);
