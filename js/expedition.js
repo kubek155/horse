@@ -455,48 +455,10 @@ function renderExpeditions() {
         <div style="position:absolute;bottom:0;width:200%;height:22px;background:#0a2a0a;animation:expScrollFar 5s linear infinite"></div>
         <div style="position:absolute;bottom:0;width:200%;height:14px;background:#0f3a0f;animation:expScrollMid 3.5s linear infinite"></div>
         <div style="position:absolute;bottom:0;width:200%;height:8px;background:#1a5a1a;animation:expScrollNear 2s linear infinite"></div>
-        <!-- KOŃ — przesuwa się od lewej do prawej wraz z postępem -->
-        <div class="exp-card-horse" style="
-          position:absolute;bottom:6px;
-          left:${Math.max(2,Math.min(88,pct))}%;
-          transform:translateX(-50%);
-          animation:expBob 0.35s ease-in-out infinite alternate;
-          transition:left 1s linear;
-        ">
-          <svg width="52" height="38" viewBox="0 0 52 38">
-            <ellipse cx="38" cy="34" rx="16" ry="3" fill="rgba(0,0,0,0.25)"/>
-            <!-- Ogon -->
-            <path style="animation:expTailWave 0.25s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:0% 50%" d="M44,16 C50,13 52,20 47,26" stroke="${mane}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <!-- Nogi tylne -->
-            <rect style="animation:expLegBack 0.3s ease-in-out 0.1s infinite;transform-box:fill-box;transform-origin:top center" x="32" y="22" width="3" height="11" rx="1.5" fill="${darken3(coat,20)}"/>
-            <rect style="animation:expLegBack 0.3s ease-in-out 0.3s infinite;transform-box:fill-box;transform-origin:top center" x="37" y="22" width="3" height="11" rx="1.5" fill="${darken3(coat,20)}"/>
-            <!-- Tułów -->
-            <ellipse cx="28" cy="18" rx="17" ry="8" fill="${coat}"/>
-            <!-- Szyja -->
-            <ellipse cx="14" cy="12" rx="5" ry="8" fill="${coat}" transform="rotate(-18,14,12)"/>
-            <!-- Głowa -->
-            <ellipse cx="8" cy="6" rx="5.5" ry="4" fill="${coat}"/>
-            <!-- Nos -->
-            <ellipse cx="4" cy="8" rx="2.5" ry="2" fill="${darken3(coat,25)}"/>
-            <!-- Oko -->
-            <circle cx="10" cy="5" r="1.5" fill="#1a0800"/>
-            <circle cx="10.5" cy="4.5" r="0.5" fill="#fff"/>
-            <!-- Ucho -->
-            <ellipse cx="13" cy="2" rx="1.5" ry="2.5" fill="${coat}" transform="rotate(-10,13,2)"/>
-            <!-- Grzywa -->
-            <path style="animation:expManeWave 0.25s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:right top" d="M13,7 C9,10 8,14 10,17" stroke="${mane}" stroke-width="3" fill="none" stroke-linecap="round"/>
-            <!-- Nogi przednie -->
-            <rect style="animation:expLegFront 0.3s ease-in-out 0s infinite;transform-box:fill-box;transform-origin:top center" x="18" y="22" width="3" height="11" rx="1.5" fill="${darken3(coat,15)}"/>
-            <rect style="animation:expLegFront 0.3s ease-in-out 0.2s infinite;transform-box:fill-box;transform-origin:top center" x="23" y="22" width="3" height="11" rx="1.5" fill="${darken3(coat,15)}"/>
-            <!-- Kopyta -->
-            <rect x="32" y="31" width="3" height="2" rx="1" fill="#1a0800"/>
-            <rect x="37" y="31" width="3" height="2" rx="1" fill="#1a0800"/>
-            <rect x="18" y="31" width="3" height="2" rx="1" fill="#1a0800"/>
-            <rect x="23" y="31" width="3" height="2" rx="1" fill="#1a0800"/>
-          </svg>
+        <div id="expHorseWrap_${existingId}" style="position:absolute;bottom:6px;left:${Math.max(2,Math.min(88,pct))}%;transform:translateX(-50%);animation:expBob 0.35s ease-in-out infinite alternate;transition:left 1s linear">
+          <!-- koń wstawiany przez JS po render -->
         </div>
-        <!-- Pyłek -->
-        <div style="position:absolute;bottom:5px;left:${Math.max(2,Math.min(88,pct))}%;margin-left:-12px">
+        <div id="expDustWrap_${existingId}" style="position:absolute;bottom:5px;left:${Math.max(2,Math.min(88,pct))}%;margin-left:-12px">
           <div style="width:5px;height:5px;border-radius:50%;background:rgba(139,105,20,0.4);position:absolute;animation:expDust 0.5s ease-out 0s infinite"></div>
           <div style="width:4px;height:4px;border-radius:50%;background:rgba(139,105,20,0.35);position:absolute;left:8px;animation:expDust 0.5s ease-out 0.15s infinite"></div>
         </div>
@@ -508,6 +470,32 @@ function renderExpeditions() {
       </div>
     `;
     el.appendChild(card);
+
+    // Wstaw konia SVG przez DOM (nie innerHTML) żeby animacje działały
+    let horseWrap = document.getElementById(`expHorseWrap_${existingId}`);
+    if (horseWrap) {
+      let svgDiv = document.createElement("div");
+      svgDiv.innerHTML = buildExpHorseSVG(coat, mane);
+      let svgEl = svgDiv.querySelector("svg");
+      if (svgEl) {
+        // Animuj nogi CSS
+        svgEl.querySelectorAll(".efl").forEach((el2,i) => {
+          el2.style.transformBox = "fill-box";
+          el2.style.transformOrigin = "top center";
+          el2.style.animation = `expLegFront 0.3s ease-in-out ${["0s","0.2s"][i]||"0s"} infinite`;
+        });
+        svgEl.querySelectorAll(".ebl").forEach((el2,i) => {
+          el2.style.transformBox = "fill-box";
+          el2.style.transformOrigin = "top center";
+          el2.style.animation = `expLegBack 0.3s ease-in-out ${["0.1s","0.3s"][i]||"0s"} infinite`;
+        });
+        let tail = svgEl.querySelector(".etail");
+        if (tail) { tail.style.transformBox="fill-box"; tail.style.transformOrigin="0% 50%"; tail.style.animation="expTailWave 0.25s ease-in-out infinite alternate"; }
+        let maneEl = svgEl.querySelector(".emane");
+        if (maneEl) { maneEl.style.transformBox="fill-box"; maneEl.style.transformOrigin="right top"; maneEl.style.animation="expManeWave 0.25s ease-in-out infinite alternate"; }
+        horseWrap.appendChild(svgEl);
+      }
+    }
   });
 
   // Usuń karty dla zakończonych wypraw
@@ -515,6 +503,33 @@ function renderExpeditions() {
     let id = card.id.replace("exp_card_","");
     if (!active.find(e => String(e.end) === id)) card.remove();
   });
+}
+
+function buildExpHorseSVG(coat, mane) {
+  let d20 = darken3(coat,20), d25 = darken3(coat,25), d15 = darken3(coat,15);
+  let svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("width","52"); svg.setAttribute("height","38"); svg.setAttribute("viewBox","0 0 52 38");
+  svg.innerHTML = `
+    <ellipse cx="38" cy="34" rx="16" ry="3" fill="rgba(0,0,0,0.25)"/>
+    <path class="etail" d="M44,16 C50,13 52,20 47,26" stroke="${mane}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <rect class="ebl" x="32" y="22" width="3" height="11" rx="1.5" fill="${d20}"/>
+    <rect class="ebl" x="37" y="22" width="3" height="11" rx="1.5" fill="${d20}"/>
+    <ellipse cx="28" cy="18" rx="17" ry="8" fill="${coat}"/>
+    <ellipse cx="14" cy="12" rx="5" ry="8" fill="${coat}" transform="rotate(-18,14,12)"/>
+    <ellipse cx="8" cy="6" rx="5.5" ry="4" fill="${coat}"/>
+    <ellipse cx="4" cy="8" rx="2.5" ry="2" fill="${d25}"/>
+    <circle cx="10" cy="5" r="1.5" fill="#1a0800"/>
+    <circle cx="10.5" cy="4.5" r="0.5" fill="#fff"/>
+    <ellipse cx="13" cy="2" rx="1.5" ry="2.5" fill="${coat}" transform="rotate(-10,13,2)"/>
+    <path class="emane" d="M13,7 C9,10 8,14 10,17" stroke="${mane}" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <rect class="efl" x="18" y="22" width="3" height="11" rx="1.5" fill="${d15}"/>
+    <rect class="efl" x="23" y="22" width="3" height="11" rx="1.5" fill="${d15}"/>
+    <rect x="32" y="31" width="3" height="2" rx="1" fill="#1a0800"/>
+    <rect x="37" y="31" width="3" height="2" rx="1" fill="#1a0800"/>
+    <rect x="18" y="31" width="3" height="2" rx="1" fill="#1a0800"/>
+    <rect x="23" y="31" width="3" height="2" rx="1" fill="#1a0800"/>
+  `;
+  return svg.outerHTML;
 }
 
 function darken3(hex, pct) {

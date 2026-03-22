@@ -8,7 +8,7 @@ function animateHorseCard(svgEl, rarity) {
   if (!svgEl) return;
   let rc = RARITY_COLORS[rarity] || "#8aab84";
 
-  // Nogi — znajdź prostokąty nóg i dodaj animację
+  // Użyj setAttribute żeby animacje działały na SVG sparsowanym przez innerHTML
   let rects = svgEl.querySelectorAll("rect");
   let legRects = [];
   rects.forEach(r => {
@@ -17,42 +17,32 @@ function animateHorseCard(svgEl, rarity) {
     if (h > 14 && h < 38 && w > 3 && w < 12) legRects.push(r);
   });
 
-  // Animuj nogi parami (FL, FR, BL, BR)
   legRects.forEach((leg, i) => {
     let delay = (i % 4) * 0.1;
-    let dir   = (i % 2 === 0) ? 1 : -1;
-    leg.style.transformBox     = "fill-box";
-    leg.style.transformOrigin  = "top center";
-    leg.style.animation        = `legSwing 0.4s ease-in-out ${delay}s infinite alternate`;
+    leg.setAttribute("style", `transform-box:fill-box;transform-origin:top center;animation:legSwing 0.4s ease-in-out ${delay}s infinite alternate`);
   });
 
-  // Ogon — wave
   let paths = svgEl.querySelectorAll("path");
   paths.forEach((p, i) => {
     if (i < 2) {
-      p.style.transformBox    = "fill-box";
-      p.style.transformOrigin = "0% 50%";
-      p.style.animation       = `tailWave 0.35s ease-in-out ${i*0.05}s infinite alternate`;
+      p.setAttribute("style", `transform-box:fill-box;transform-origin:0% 50%;animation:tailWave 0.35s ease-in-out ${i*0.05}s infinite alternate`);
     }
   });
 
-  // Całe SVG — bob (podskakiwanie)
-  svgEl.style.animation = `horseBob 0.4s ease-in-out infinite alternate`;
+  svgEl.setAttribute("style", `animation:horseBob 0.4s ease-in-out infinite alternate`);
 
-  // Aura dla rare+
   let tierVal = { common:0, uncommon:1, rare:2, epic:3, legendary:4, mythic:5 };
   if ((tierVal[rarity]||0) >= 3) {
-    svgEl.style.filter = `drop-shadow(0 0 6px ${rc}88)`;
+    svgEl.setAttribute("style", `animation:horseBob 0.4s ease-in-out infinite alternate;filter:drop-shadow(0 0 6px ${rc}88)`);
   }
 }
 
-// Zatrzymaj animację gdy mysz opuszcza kartę
 function stopHorseAnimation(svgEl) {
   if (!svgEl) return;
-  svgEl.style.animation = "";
-  svgEl.style.filter    = "";
-  svgEl.querySelectorAll("rect, path").forEach(el => { el.style.animation = ""; });
+  svgEl.setAttribute("style","");
+  svgEl.querySelectorAll("rect, path").forEach(el => el.setAttribute("style",""));
 }
+
 
 // Hook do renderHorses — stała animacja dla każdej karty
 function hookHorseCardAnimations() {

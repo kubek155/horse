@@ -247,11 +247,10 @@ const INV_TABS = [
 
 function renderInventory() {
   let el = document.getElementById("inventoryGrid");
-  let tabBar = document.getElementById("invTabBar");
-  if (tabBar) delete tabBar.dataset.rendered; // wymusz re-render zakładek
 
   // Renderuj zakładki
   let tabBar = document.getElementById("invTabBar");
+  if (tabBar) delete tabBar.dataset.rendered; // wymusz re-render
   if (tabBar && !tabBar.dataset.rendered) {
     tabBar.dataset.rendered = "1";
     tabBar.innerHTML = "";
