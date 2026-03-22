@@ -285,10 +285,12 @@ function applySlotItemBonus(h, item, apply) {
   }
 
   // Przedmioty do slotów — bonus z item.bonus (0-10)
-  if (d.isSlotItem && d.stat) {
+  // Używamy item.stat (zapisanego przy generowaniu) dla pewności
+  let slotStat = item.stat || d.stat;
+  if (d.isSlotItem && slotStat) {
     let val = (item.bonus || 0) * mult;
-    h.stats[d.stat] = Math.max(0, Math.min(cap, h.stats[d.stat] + val));
-    applied = d.stat;
+    h.stats[slotStat] = Math.max(0, Math.min(cap, (h.stats[slotStat]||0) + val));
+    applied = slotStat;
   }
 
   // Legacy — stare nazwy eliksirów

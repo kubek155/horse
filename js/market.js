@@ -226,13 +226,24 @@ function renderMarket() {
         </div>
       `;
     } else {
-      let data = ITEMS_DATABASE[offer.item.name] || { icon:"📦", desc:"" };
+      let data    = ITEMS_DATABASE[offer.item.name] || { icon:"📦", desc:"" };
+      let statIcon = { speed:"⚡", strength:"💪", stamina:"❤️", luck:"🍀" }[data.stat] || "";
+      // Dla slot itemów pokaż konkretny bonus zapisany w przedmiocie
+      let bonusLine = (data.isSlotItem && offer.item.bonus !== undefined)
+        ? `<div style="font-size:14px;color:var(--gold2);font-family:'Cinzel',serif;margin-top:2px">+${offer.item.bonus} ${statIcon}</div>`
+        : "";
+      // Opis: jeśli slot item — zastąp generyczny opis konkretnym bonusem
+      let descLine = data.isSlotItem
+        ? `Slot: ${statIcon} +${offer.item.bonus ?? "?"} do ${data.stat==="speed"?"szybkości":data.stat==="strength"?"siły":data.stat==="stamina"?"wytrzymałości":"szczęścia"}`
+        : data.desc;
+
       div.innerHTML = `
         <div class="mc-header">
           <span class="mc-icon">${data.icon}</span>
           <div style="flex:1">
             <div class="mc-name">${offer.item.name}</div>
-            <div class="mc-sub">${data.desc}</div>
+            <div class="mc-sub">${descLine}</div>
+            ${bonusLine}
           </div>
           ${isOwn ? `<span class="mc-badge">Twoja oferta</span>` : `<span class="mc-seller">👤 ${offer.sellerName}</span>`}
         </div>

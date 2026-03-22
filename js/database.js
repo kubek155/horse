@@ -247,9 +247,11 @@ const ITEMS_DATABASE = {
 };
 
 // Generuje przedmiot do slotu z losowym bonusem 0-10
+// Stat przypisany przy generowaniu — nie zmienia się nigdy
 function generateSlotItem(name) {
   let bonus = Math.floor(Math.random() * 11); // 0-10
-  return { name, bonus, obtained: Date.now() };
+  let stat  = (ITEMS_DATABASE[name] || {}).stat || null; // przypisz stat z bazy
+  return { name, bonus, stat, obtained: Date.now() };
 }
 
 const SHOP_ITEMS = [

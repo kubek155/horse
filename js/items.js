@@ -167,20 +167,28 @@ function renderInventory() {
 
   el.innerHTML = "";
   inventory.forEach((item, idx) => {
-    let data     = ITEMS_DATABASE[item.name] || { icon: "📦", desc: "" };
-    let isSlot   = !!data.isSlotItem;
-    let bonusTag = (isSlot && item.bonus !== undefined)
-      ? `<div style="font-size:12px;color:var(--gold2);font-family:'Cinzel',serif">+${item.bonus} ${item.name==="Piorun"?"⚡":item.name==="Kowadło"?"💪":item.name==="Koniczyna"?"🍀":"❤️"}</div>`
+    let data    = ITEMS_DATABASE[item.name] || { icon:"📦", desc:"" };
+    let isSlot  = !!data.isSlotItem;
+    let isFood  = !!data.isFood;
+    let statIcon = { speed:"⚡", strength:"💪", stamina:"❤️", luck:"🍀" }[data.stat] || "";
+
+    // Bonus tag — dla slot itemów
+    let bonusHtml = (isSlot && item.bonus !== undefined)
+      ? `<div class="inv-bonus">+${item.bonus} ${statIcon}</div>`
       : "";
-    let div  = document.createElement("div");
+
+    // Przycisk akcji
+    let useLabel = isFood ? "🍎 Karm" : isSlot ? "✨ Slot" : "Użyj";
+
+    let div = document.createElement("div");
     div.className = "inv-item";
     div.innerHTML = `
       <span class="inv-icon">${data.icon}</span>
       <span class="inv-name">${item.name}</span>
-      ${bonusTag}
-      <div style="display:flex;gap:4px;margin-top:6px">
-        <button style="flex:1;font-size:11px;padding:4px 6px" onclick="openHorsePicker(${idx})">${isSlot?"✨ Slot":"Użyj"}</button>
-        <button style="flex:1;font-size:11px;padding:4px 6px;border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1)" onclick="openListItem(${idx})">🏪</button>
+      ${bonusHtml}
+      <div class="inv-actions">
+        <button onclick="openHorsePicker(${idx})">${useLabel}</button>
+        <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1)" onclick="openListItem(${idx})">🏪</button>
       </div>
     `;
     el.appendChild(div);

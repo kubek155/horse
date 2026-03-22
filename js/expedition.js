@@ -63,13 +63,20 @@ function openExpeditionHorsePicker(locIdx) {
   let list = document.getElementById("expHorseList");
   list.innerHTML = "";
 
+  // Konie które są już na aktywnej wyprawie
+  let busyHorseIdxs = new Set(
+    expeditions.filter(e => !e.done).map(e => e.horseIdx)
+  );
+
   playerHorses.forEach((h, hi) => {
     let col    = RARITY_COLORS[h.rarity] || "#8aab84";
     let hunger = getHunger(h);
     let hCol   = hunger > 70 ? "#c94a4a" : hunger > 40 ? "#c97c2a" : "#7ec870";
     let age    = getHorseAgeDays(h);
+    let busy   = busyHorseIdxs.has(hi);
     let btn    = document.createElement("button");
     btn.className = "modal-horse-btn";
+    if (busy) btn.style.opacity = "0.45";
     btn.innerHTML = `
       <span style="font-size:22px">${h.flag||"🐴"}</span>
       <div style="flex:1">
@@ -77,9 +84,15 @@ function openExpeditionHorsePicker(locIdx) {
         <div class="mh-stats">⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck}</div>
         ${h.perk ? `<div style="font-size:10px;color:#e08070;margin-top:2px">${h.perk.icon} ${h.perk.name}</div>` : ""}
         <div style="font-size:10px;color:${hCol};margin-top:2px">🍽️ Głód: ${hunger}% &nbsp; 🎂 ${age} dni</div>
+        ${busy ? `<div style="font-size:10px;color:#c97c2a;margin-top:2px">🌍 Już na wyprawie</div>` : ""}
       </div>
     `;
-    btn.onclick = () => startExpedition(pendingExpLocation, hi);
+    if (busy) {
+      btn.disabled = true;
+      btn.style.cursor = "not-allowed";
+    } else {
+      btn.onclick = () => startExpedition(pendingExpLocation, hi);
+    }
     list.appendChild(btn);
   });
 
