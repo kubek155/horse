@@ -449,7 +449,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .mc-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
 .mc-price  { font-family: 'Cinzel', serif; font-size: 15px; color: var(--gold2); }
 
-.market-filter {
+.market-filter { flex-wrap: wrap;
   display: flex;
   gap: 8px;
   margin-bottom: 16px;

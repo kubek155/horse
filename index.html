@@ -148,7 +148,7 @@
           </div>
         </div>
         <div class="card" style="margin:0;flex:2;padding:12px 16px;font-size:13px;color:var(--text2)">
-          💡 Złoto zdobywasz wysyłając konie na wyprawy. Każda wyprawa daje 50–200 złota.
+          💡 Złoto zdobywasz wysyłając konie na wyprawy (50–200 💰 za wyprawę). Konie zdobywaj na wyprawach, ze skrzynek lub na rynku.
         </div>
       </div>
 
@@ -157,10 +157,7 @@
         <div id="shopItemsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px"></div>
       </div>
 
-      <div class="card">
-        <h4>KONIE (GWARANTOWANE)</h4>
-        <div id="shopHorsesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px"></div>
-      </div>
+
     </div>
 
 
@@ -184,10 +181,38 @@
         </div>
       </div>
 
-      <div class="market-filter">
-        <button id="filterAll"   class="active" onclick="setMarketFilter('all')">Wszystko</button>
-        <button id="filterHorse"               onclick="setMarketFilter('horse')">🐴 Konie</button>
-        <button id="filterItem"                onclick="setMarketFilter('item')">🎒 Przedmioty</button>
+      <!-- FILTRY RYNKU -->
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:1px">TYP</div>
+          <div id="myListingsCount" style="font-size:12px;color:#b090e0"></div>
+        </div>
+        <div class="market-filter" style="margin-bottom:12px">
+          <button data-filter="type" data-val="all"   class="active" onclick="setMarketFilter('type','all')">Wszystko</button>
+          <button data-filter="type" data-val="horse"               onclick="setMarketFilter('type','horse')">🐴 Konie</button>
+          <button data-filter="type" data-val="item"                onclick="setMarketFilter('type','item')">🎒 Przedmioty</button>
+        </div>
+
+        <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:1px;margin-bottom:8px">RASA / RZADKOŚĆ</div>
+        <div class="market-filter" style="flex-wrap:wrap;margin-bottom:12px">
+          <button data-filter="rarity" data-val="all"       class="active" onclick="setMarketFilter('rarity','all')">Wszystkie</button>
+          <button data-filter="rarity" data-val="common"    style="color:#8aab84;border-color:#8aab84"    onclick="setMarketFilter('rarity','common')">Pospolite</button>
+          <button data-filter="rarity" data-val="rare"      style="color:#7b5ea7;border-color:#7b5ea7"    onclick="setMarketFilter('rarity','rare')">Szlachetne</button>
+          <button data-filter="rarity" data-val="epic"      style="color:#c97c2a;border-color:#c97c2a"    onclick="setMarketFilter('rarity','epic')">Bojowe</button>
+          <button data-filter="rarity" data-val="legendary" style="color:var(--gold);border-color:var(--gold)" onclick="setMarketFilter('rarity','legendary')">Legendarne</button>
+        </div>
+
+        <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:1px;margin-bottom:8px">SORTUJ WG</div>
+        <div class="market-filter" style="flex-wrap:wrap">
+          <button data-filter="sortBy" data-val="mine"          class="active" onclick="setMarketFilter('sortBy','mine')">Moje pierwsze</button>
+          <button data-filter="sortBy" data-val="price_asc"                    onclick="setMarketFilter('sortBy','price_asc')">Cena ↑</button>
+          <button data-filter="sortBy" data-val="price_desc"                   onclick="setMarketFilter('sortBy','price_desc')">Cena ↓</button>
+          <button data-filter="sortBy" data-val="stat_speed"                   onclick="setMarketFilter('sortBy','stat_speed')">⚡ Szybkość</button>
+          <button data-filter="sortBy" data-val="stat_strength"                onclick="setMarketFilter('sortBy','stat_strength')">💪 Siła</button>
+          <button data-filter="sortBy" data-val="stat_stamina"                 onclick="setMarketFilter('sortBy','stat_stamina')">❤️ Wytrzymałość</button>
+          <button data-filter="sortBy" data-val="stat_luck"                    onclick="setMarketFilter('sortBy','stat_luck')">🍀 Szczęście</button>
+        </div>
       </div>
 
       <div id="marketListings" class="market-grid"></div>
@@ -254,22 +279,7 @@
 <script src="js/market.js"></script>
 <script src="js/quests.js"></script>
 <script src="main.js"></script>
-<script>
-  let _marketFilter = "all";
-  function setMarketFilter(f) {
-    _marketFilter = f;
-    document.querySelectorAll(".market-filter button").forEach(b => b.classList.remove("active"));
-    document.getElementById("filter" + f.charAt(0).toUpperCase() + f.slice(1)).classList.add("active");
-    // patch renderMarket to use filter
-    document.getElementById("marketFilter") || (() => {
-      let inp = document.createElement("input");
-      inp.id = "marketFilter"; inp.type = "hidden"; inp.value = f;
-      document.body.appendChild(inp);
-    })();
-    document.getElementById("marketFilter").value = f;
-    renderMarket();
-  }
-</script>
+
 
 </body>
 </html>
