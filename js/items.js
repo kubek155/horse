@@ -119,6 +119,15 @@ function applyItemToHorse(itemIdx, horseIdx) {
 // LOOT BOX
 // =====================
 function openLootBox(itemIdx) {
+  // Animacja otwarcia skrzynki — wykonaj callback po animacji
+  if (typeof showLootBoxAnimation === "function") {
+    showLootBoxAnimation(() => _doOpenLootBox(itemIdx));
+    return;
+  }
+  _doOpenLootBox(itemIdx);
+}
+
+function _doOpenLootBox(itemIdx) {
   let r = Math.random() * 100;
   if (r < 66) {
     if (playerHorses.length >= STABLE_LIMIT) {

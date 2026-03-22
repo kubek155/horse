@@ -596,3 +596,60 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
 .item-slot-filled:hover { background: rgba(201,74,74,0.15); border-color: #c94a4a; }
+
+/* ===================== ANIMACJE ===================== */
+
+/* Nogi konia w stajni (hover) */
+@keyframes legSwing {
+  from { transform: rotate(-22deg); }
+  to   { transform: rotate(18deg);  }
+}
+@keyframes tailWave {
+  from { transform: rotate(-12deg); }
+  to   { transform: rotate(12deg);  }
+}
+@keyframes horseBob {
+  from { transform: translateY(0);   }
+  to   { transform: translateY(-3px);}
+}
+
+/* Ekran wyprawy */
+@keyframes expScrollFar  { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+@keyframes expScrollMid  { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+@keyframes expScrollNear { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+@keyframes expBob        { from{transform:translateY(0) translateX(-50%)} to{transform:translateY(-4px) translateX(-50%)} }
+@keyframes expLegFront   { 0%{transform:rotate(-25deg)} 50%{transform:rotate(22deg)} 100%{transform:rotate(-25deg)} }
+@keyframes expLegBack    { 0%{transform:rotate(22deg)}  50%{transform:rotate(-25deg)} 100%{transform:rotate(22deg)}  }
+@keyframes expTailWave   { from{transform:rotate(-14deg)} to{transform:rotate(14deg)} }
+@keyframes expManeWave   { from{transform:skewX(-4deg)}   to{transform:skewX(4deg)}  }
+@keyframes expTwinkle    { from{opacity:0.2} to{opacity:1} }
+@keyframes expDust       { 0%{transform:translate(0,0) scale(1);opacity:0.5} 100%{transform:translate(-22px,-12px) scale(0.1);opacity:0} }
+
+.exp-ground-far  { position:absolute;bottom:0;width:200%;height:65px;background:#0a2a0a;animation:expScrollFar 7s linear infinite; }
+.exp-ground-mid  { position:absolute;bottom:0;width:200%;height:44px;background:#0f3a0f;animation:expScrollMid 4.5s linear infinite; }
+.exp-ground-near { position:absolute;bottom:0;width:200%;height:24px;background:#1a5a1a;animation:expScrollNear 2.5s linear infinite; }
+
+/* Efekt rzadkiego konia */
+@keyframes particleFly {
+  0%   { transform:translate(0,0) scale(1);opacity:1; }
+  100% { transform:translate(var(--tx),var(--ty)) scale(0);opacity:0; }
+}
+@keyframes rareCardPop {
+  0%   { transform:scale(0.3);opacity:0; }
+  60%  { transform:scale(1.1); }
+  100% { transform:scale(1);opacity:1; }
+}
+@keyframes starPop {
+  0%   { transform:scale(0) rotate(0deg);opacity:0; }
+  50%  { transform:scale(1.5) rotate(180deg);opacity:1; }
+  100% { transform:scale(1) rotate(360deg);opacity:0; }
+}
+
+/* Skrzynka z łupem */
+@keyframes boxFloat   { from{transform:translateY(0) scale(1)} to{transform:translateY(-12px) scale(1.05)} }
+@keyframes boxShake   { 0%{transform:rotate(0)} 20%{transform:rotate(-8deg)} 40%{transform:rotate(8deg)} 60%{transform:rotate(-6deg)} 80%{transform:rotate(6deg)} 100%{transform:rotate(0)} }
+@keyframes boxExplode { 0%{transform:scale(1)} 50%{transform:scale(1.6)} 100%{transform:scale(0);opacity:0} }
+@keyframes pulse      { from{opacity:0.5} to{opacity:1} }
+
+/* Fade out scen */
+@keyframes sceneFadeOut { from{opacity:1} to{opacity:0} }

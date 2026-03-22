@@ -628,6 +628,7 @@ function renderHorses() {
 
     let card=document.createElement("div");
     card.className=`horse-card ${starsClass}`;
+    card.dataset.rarity=h.rarity;
 
     // SVG musi być wstawiony przez parser, nie innerHTML — używamy oddzielnego kontenera
     let svgWrap = document.createElement("div");
@@ -681,6 +682,7 @@ function renderHorses() {
     el.appendChild(card);
   });
   document.getElementById("horseCount").textContent=count;
+  setTimeout(hookHorseCardAnimations, 50);
 }
 
 // =====================

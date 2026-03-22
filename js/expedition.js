@@ -123,6 +123,10 @@ function finishExpedition(e) {
       let h = generateHorse(loc.reward);
       playerHorses.push(h);
       log(`🐴 Nowy koń: ${h.name} (${HORSE_DATABASE[h.group].name})!`);
+      // Efekt wizualny dla rzadkich+
+      if (typeof showRareHorseEffect === "function") {
+        setTimeout(() => showRareHorseEffect(h.name, h.rarity, h.flag), 300);
+      }
     }
   } else if (r < boxChance) {
     inventory.push({ name: "Skrzynka z Łupem", obtained: Date.now() });
