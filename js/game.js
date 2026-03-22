@@ -73,3 +73,23 @@ function log(t) {
   clearTimeout(logTimer);
   logTimer = setTimeout(() => { el.style.display = "none"; }, 3500);
 }
+
+// =====================
+// RESET WYPRAW (debug / test)
+// =====================
+function resetExpeditions() {
+  expeditions = [];
+  // Wyczyść wszystkie klucze dziennego limitu
+  let keys = Object.keys(localStorage).filter(k => k.startsWith("d_"));
+  keys.forEach(k => localStorage.removeItem(k));
+  saveGame();
+  renderAll();
+  log("🔄 Wyprawy zresetowane! Limit dzienny wyczyszczony.");
+}
+
+function addDebugGold() {
+  gold += 10000;
+  saveGame();
+  renderAll();
+  log("💰 Dodano 10 000 złota!");
+}

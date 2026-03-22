@@ -39,15 +39,22 @@ function openHorsePicker(itemIdx) {
 
     let btn = document.createElement("button");
     btn.className = "modal-horse-btn";
+    // Sprawdź czy eliksir już użyty na tym koniu
+    let curItem  = inventory[pendingItemIdx] || {};
+    let curData  = ITEMS_DATABASE[curItem.name] || {};
+    let alreadyUsed = curData.isElixir && h.usedElixirs?.[curItem.name];
+    let rarC = RARITY_COLORS[h.rarity]||"#8aab84";
     btn.innerHTML = `
-      <span style="font-size:20px">🐴</span>
+      <span style="font-size:20px">${h.flag||"🐴"}</span>
       <div style="flex:1">
-        <div class="mh-name">${h.name} ${h.stars > 0 ? "⭐".repeat(h.stars) : ""}</div>
-        <div class="mh-stats" style="color:${rarityColor}">⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina}</div>
+        <div class="mh-name" style="color:${rarC}">${h.name} ${h.stars > 0 ? "⭐".repeat(h.stars) : ""}</div>
+        <div class="mh-stats" style="color:var(--text2)">⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina}</div>
         ${isFood ? `<div style="font-size:11px;color:${hungerColor};margin-top:2px">🍽️ Głód: ${hunger}%</div>` : ""}
+        ${alreadyUsed ? `<div style="font-size:11px;color:#c94a4a;margin-top:2px">✕ Już użyto na tym koniu</div>` : ""}
       </div>
       <div class="mh-age">🎂 ${age} dni</div>
     `;
+    if (alreadyUsed) btn.disabled = true;
     btn.onclick = () => { applyItemToHorse(pendingItemIdx, hi); closeModal(); };
     list.appendChild(btn);
   });
@@ -67,6 +74,17 @@ function applyItemToHorse(itemIdx, horseIdx) {
   let item = inventory[itemIdx];
   let h    = playerHorses[horseIdx];
   if (!item || !h) return;
+
+  // Sprawdź czy eliksir jednorazowy już był użyty na tym koniu
+  let data = ITEMS_DATABASE[item.name] || {};
+  if (data.isElixir) {
+    if (!h.usedElixirs) h.usedElixirs = {};
+    if (h.usedElixirs[item.name]) {
+      log(`⚠️ ${h.name} już otrzymał ${item.name} — nie można użyć ponownie!`);
+      return;
+    }
+    h.usedElixirs[item.name] = true;
+  }
 
   if (item.name === "Jabłko" || item.name === "Słoma") {
     feedHorse(horseIdx, item.name);

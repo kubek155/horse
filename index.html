@@ -51,6 +51,15 @@
         <div class="location-grid" id="locations"></div>
       </div>
 
+
+      <div class="card" style="border-color:#333">
+        <h4 style="color:#555">🔧 NARZĘDZIA TESTOWE</h4>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="resetExpeditions()" style="font-size:12px;border-color:#555;color:#888">🔄 Reset wypraw</button>
+          <button onclick="addDebugGold()" style="font-size:12px;border-color:#555;color:#888">💰 +10 000 złota</button>
+        </div>
+      </div>
+
       <div class="card">
         <h4>AKTYWNE WYPRAWY</h4>
         <div id="expeditionsDiv">
@@ -287,6 +296,22 @@
     <div class="modal-subtitle" id="slotPickerSubtitle">Wybierz eliksir statystyki z ekwipunku</div>
     <div id="slotPickerList" class="modal-horse-list" style="max-height:300px;overflow-y:auto;margin:12px 0"></div>
     <button class="modal-cancel" onclick="closeSlotPicker()">✕ Anuluj</button>
+  </div>
+</div>
+
+<!-- MODAL WYPUSZCZENIA KONIA -->
+<div id="releaseModal" class="modal-overlay" style="display:none">
+  <div class="modal" style="min-width:300px;max-width:380px">
+    <div class="modal-title" style="color:#888">🌿 Wypuść konia</div>
+    <div class="modal-subtitle">Czy na pewno chcesz wypuścić tego konia? Akcja jest nieodwracalna.</div>
+    <div style="margin:14px 0;padding:12px;background:var(--panel2);border-radius:8px;text-align:center">
+      <div id="releaseHorseName" style="font-family:'Cinzel',serif;font-size:15px;color:var(--text);margin-bottom:4px"></div>
+      <div id="releaseHorseDesc" style="font-size:12px;color:var(--text2)"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button id="releaseConfirmBtn" style="flex:2;border-color:#666;color:#aaa;background:rgba(100,100,100,0.15)">🌿 Wypuść</button>
+      <button class="modal-cancel" style="flex:1" onclick="closeReleaseModal()">✕ Anuluj</button>
+    </div>
   </div>
 </div>
 

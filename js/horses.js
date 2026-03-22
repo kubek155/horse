@@ -562,6 +562,7 @@ function renderHorses() {
       ${slotsHtml}
       <div class="horse-age ${ageClass}">🎂 ${age} dni${h.bonusApplied?` · ${h.bonusApplied}`:""}</div>
       <button class="btn-market" onclick="openListHorse(${idx})">🏪 Wystaw na rynek</button>
+      <button onclick="confirmReleaseHorse(${idx})" style="margin-top:4px;width:100%;font-size:11px;border-color:#666;color:#888;background:rgba(100,100,100,0.1)">🌿 Wypuść na wolność</button>
     `;
     el.appendChild(card);
   });
@@ -585,4 +586,37 @@ function buildRanking() {
     div.innerHTML=`<div class="rank-num ${nc}">#${i+1}</div><div class="rank-name">${e.isPlayer?`<strong style="color:var(--accent2)">${e.name}</strong>`:e.name}</div><div class="rank-score">${e.score} pkt</div>`;
     list.appendChild(div);
   });
+}
+
+// =====================
+// WYPUŚĆ KONIA
+// =====================
+function confirmReleaseHorse(idx) {
+  let h = playerHorses[idx];
+  if (!h) return;
+  // Prosty confirm dialog
+  let modal = document.getElementById("releaseModal");
+  document.getElementById("releaseHorseName").textContent = `${h.flag||"🐴"} ${h.name}`;
+  document.getElementById("releaseHorseDesc").textContent =
+    `${RARITY_LABELS[h.rarity]||h.rarity} · ${h.type||""} · ⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina}`;
+  document.getElementById("releaseConfirmBtn").onclick = () => releaseHorse(idx);
+  modal.style.display = "flex";
+}
+
+function closeReleaseModal() {
+  document.getElementById("releaseModal").style.display = "none";
+}
+
+function releaseHorse(idx) {
+  let h = playerHorses[idx];
+  if (!h) return;
+  // Zwróć wyposażone itemy do ekwipunku
+  (h.equippedItems||[]).forEach(item => {
+    if (item) inventory.push({ name: item.name, bonus: item.bonus, obtained: Date.now() });
+  });
+  playerHorses.splice(idx, 1);
+  closeReleaseModal();
+  saveGame();
+  renderAll();
+  log(`🌿 ${h.name} został wypuszczony na wolność.`);
 }
