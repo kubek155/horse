@@ -218,6 +218,7 @@ function renderMarket() {
           ${isOwn ? `<span class="mc-badge">Twoja oferta</span>` : `<span class="mc-seller">👤 ${offer.sellerName}</span>`}
         </div>
         <div class="mc-stats">⚡ ${h.stats.speed} &nbsp;💪 ${h.stats.strength} &nbsp;❤️ ${h.stats.stamina} &nbsp;🍀 ${luckVal}</div>
+        ${h.mutation ? `<div style="font-size:10px;color:#80d0ff;padding:2px 0">🧬 Mutacja: ${h.mutation.name} (${h.mutation.donorFlag} ${h.mutation.donor})</div>` : ""}
         <div class="mc-footer">
           <span class="mc-price">💰 ${offer.price}</span>
           ${isOwn

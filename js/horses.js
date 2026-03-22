@@ -105,6 +105,83 @@ function rollRarity(override) {
   return "common";
 }
 
+// =====================
+// SYSTEM MUTACJI (0.1% szansa)
+// =====================
+const MUTATION_NAMES = [
+  "Bursztynowe Oko", "Srebrna Grzywa", "Złote Kopyta", "Żelazna Skóra",
+  "Wieczny Bieg", "Diamentowe Serce", "Piorunowe Nogi", "Duchy Przodków",
+  "Kryształowa Krew", "Ogień Wewnętrzny", "Cień Tarpana", "Głos Wiatru",
+  "Lodowe Żyły", "Słoneczna Sierść", "Niebiański Krok"
+];
+
+// Losuje mutację — 0.1% szansa
+function rollMutation(breedName, rarity) {
+  if (Math.random() >= 0.001) return null; // 0.1%
+
+  // Losuj drugi gatunek do pożyczenia wyglądu
+  let otherBreeds = BREEDS.filter(b => b.name !== breedName);
+  let donor = otherBreeds[Math.floor(Math.random() * otherBreeds.length)];
+  let donorVis = getBreedVisual(donor.name);
+
+  // Losuj który element wizualny bierzemy od donora
+  const VISUAL_PARTS = ["coat","mane","extras_one"];
+  let part = VISUAL_PARTS[Math.floor(Math.random() * VISUAL_PARTS.length)];
+
+  // Losuj bonus statystyczny (+3 do +12 do losowego statu)
+  let statKeys = ["speed","strength","stamina","luck"];
+  let bonusStat = statKeys[Math.floor(Math.random() * statKeys.length)];
+  let bonusVal  = 3 + Math.floor(Math.random() * 10); // 3-12
+
+  // Losuj bonus wtórny (50% szansa na drugi bonus)
+  let secondaryBonus = null;
+  if (Math.random() < 0.5) {
+    let st2 = statKeys.filter(s=>s!==bonusStat)[Math.floor(Math.random()*3)];
+    secondaryBonus = { stat: st2, val: Math.floor(Math.random() * 6) + 1 };
+  }
+
+  let mutName = MUTATION_NAMES[Math.floor(Math.random() * MUTATION_NAMES.length)];
+
+  // Co zostało zmutowane wizualnie
+  let visualChange = {};
+  if (part === "coat")      visualChange = { coat: donorVis.coat };
+  else if (part === "mane") visualChange = { mane: donorVis.mane };
+  else {
+    // extras_one — weź jeden losowy extra od donora (jeśli ma)
+    if (donorVis.extras && donorVis.extras.length > 0) {
+      let ex = donorVis.extras[Math.floor(Math.random() * donorVis.extras.length)];
+      visualChange = { extra: ex };
+    } else {
+      visualChange = { coat: donorVis.coat }; // fallback
+    }
+  }
+
+  let statLabel = {speed:"⚡ Szybkość",strength:"💪 Siła",stamina:"❤️ Wytrzymałość",luck:"🍀 Szczęście"}[bonusStat];
+
+  return {
+    name:      mutName,
+    donor:     donor.name,
+    donorFlag: donor.flag,
+    visualChange,
+    bonusStat,
+    bonusVal,
+    secondaryBonus,
+    desc: `Mutacja od ${donor.flag} ${donor.name}: ${statLabel} +${bonusVal}${secondaryBonus ? " · +" + secondaryBonus.val + " " + secondaryBonus.stat : ""}`,
+  };
+}
+
+// Aplikuje mutację wizualną do SVG (nadpisuje część danych wizualnych)
+function getMutatedVisual(breedName, mutation) {
+  let vis = JSON.parse(JSON.stringify(getBreedVisual(breedName))); // kopia
+  if (!mutation) return vis;
+  if (mutation.visualChange.coat)  vis.coat = mutation.visualChange.coat;
+  if (mutation.visualChange.mane)  vis.mane = mutation.visualChange.mane;
+  if (mutation.visualChange.extra && !vis.extras.includes(mutation.visualChange.extra)) {
+    vis.extras = [...vis.extras, mutation.visualChange.extra];
+  }
+  return vis;
+}
+
 function generateHorse(rarityHint) {
   let rarity = rollRarity(rarityHint);
 
@@ -152,9 +229,19 @@ function generateHorse(rarityHint) {
     }
   }
 
+  // Mutacja (0.1% szansa)
+  let mutation = rollMutation(breed.name, rarity);
+  if (mutation) {
+    let cap2 = rarity === "mythic" ? 110 : 100;
+    stats[mutation.bonusStat] = Math.min(cap2, stats[mutation.bonusStat] + mutation.bonusVal);
+    if (mutation.secondaryBonus) {
+      stats[mutation.secondaryBonus.stat] = Math.min(cap2, stats[mutation.secondaryBonus.stat] + mutation.secondaryBonus.val);
+    }
+  }
+
   // Sloty na item
   let itemSlots     = rollItemSlots(rarity);
-  let equippedItems = Array(itemSlots).fill(null); // null = pusty slot
+  let equippedItems = Array(itemSlots).fill(null);
 
   return {
     id:           Date.now() + Math.random(),
@@ -174,6 +261,7 @@ function generateHorse(rarityHint) {
     typeBonus:    { stat: TYPE_BONUS_STAT[breed.type] || null, value: typeBonusRoll, bonuses },
     itemSlots,
     equippedItems,
+    mutation,
     stats,
   };
 }
@@ -391,9 +479,20 @@ function breedHorses(idxA, idxB) {
   let pp = RARITY_PERKS[childRarity];
   if (pp) child.perk = pp[Math.floor(Math.random()*pp.length)];
 
+  // Potomek też może mutować (0.1%)
+  child.mutation = rollMutation(child.name, childRarity);
+  if (child.mutation) {
+    let capM = childRarity === "mythic" ? 110 : 100;
+    child.stats[child.mutation.bonusStat] = Math.min(capM, child.stats[child.mutation.bonusStat] + child.mutation.bonusVal);
+    if (child.mutation.secondaryBonus) {
+      child.stats[child.mutation.secondaryBonus.stat] = Math.min(capM, child.stats[child.mutation.secondaryBonus.stat] + child.mutation.secondaryBonus.val);
+    }
+    log(`🧬✨ MUTACJA! ${child.flag} ${child.name} odziedziczył cechę od ${child.mutation.donorFlag} ${child.mutation.donor}!`);
+  } else {
+    log(`🧬 Urodzono: ${child.flag} ${child.name} (${RARITY_LABELS[child.rarity]})! Rodzice: ${a.name} & ${b.name}`);
+  }
   playerHorses.push(child);
   trackQuest("breed");
-  log(`🧬 Urodzono: ${child.flag} ${child.name} (${RARITY_LABELS[child.rarity]})! Rodzice: ${a.name} & ${b.name}`);
   saveGame(); renderAll(); closeBreedModal();
 }
 
@@ -529,14 +628,16 @@ function renderHorses() {
 
     let card=document.createElement("div");
     card.className=`horse-card ${starsClass}`;
+    let horseSVG = drawHorseSVGMutated(h.breedKey||h.name, h.rarity, h.stars, h.mutation||null);
     card.innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-        <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-size:20px">${h.flag||"🐴"}</span>
-          <span class="horse-name" style="color:${rarCol}">${h.name}</span>
-        </div>
+        <span style="font-size:20px">${h.flag||"🐴"}</span>
         <span style="font-size:10px;background:${rarCol}22;padding:2px 7px;border-radius:6px;color:${rarCol};border:1px solid ${rarCol}55">${RARITY_LABELS[h.rarity]||h.rarity}</span>
       </div>
+      <div style="background:var(--panel2);border-radius:8px;overflow:hidden;margin-bottom:8px;border:1px solid ${rarCol}33">
+        ${horseSVG}
+      </div>
+      <div class="horse-name" style="color:${rarCol}">${h.name}</div>
       <div class="horse-breed">${h.type||""} · ${bl}</div>
       ${h.stars>0?`<div class="horse-stars">${"⭐".repeat(h.stars)}</div>`:""}
       ${h.parents?`<div style="font-size:10px;color:var(--text2);margin-bottom:4px">🧬 ${h.parents[0]} × ${h.parents[1]}</div>`:""}
@@ -546,6 +647,10 @@ function renderHorses() {
       ${h.perk?`<div style="margin-bottom:6px;padding:5px 8px;background:rgba(201,74,106,0.1);border:1px solid rgba(201,74,106,0.3);border-radius:6px;font-size:11px">
         <span style="color:#e08070">${h.perk.icon} <strong>${h.perk.name}</strong></span>
         <span style="color:var(--text2)"> — ${h.perk.desc}</span>
+      </div>`:""}
+      ${h.mutation?`<div style="margin-bottom:6px;padding:5px 8px;background:rgba(100,200,255,0.08);border:1px solid rgba(100,200,255,0.3);border-radius:6px;font-size:11px">
+        <div style="color:#80d0ff;font-family:'Cinzel',serif;font-size:10px;margin-bottom:2px">🧬 MUTACJA: ${h.mutation.name}</div>
+        <div style="color:var(--text2)">${h.mutation.donorFlag} cecha ${h.mutation.donor} · +${h.mutation.bonusVal} ${h.mutation.bonusStat==="speed"?"⚡":h.mutation.bonusStat==="strength"?"💪":h.mutation.bonusStat==="stamina"?"❤️":"🍀"}${h.mutation.secondaryBonus?` · +${h.mutation.secondaryBonus.val} ${h.mutation.secondaryBonus.stat==="speed"?"⚡":h.mutation.secondaryBonus.stat==="strength"?"💪":h.mutation.secondaryBonus.stat==="stamina"?"❤️":"🍀"}`:""}</div>
       </div>`:""}
       <div class="horse-stats">
         <div class="stat-row"><span>⚡ Szybkość</span><span>${h.stats.speed}</span></div>
