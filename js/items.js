@@ -95,6 +95,11 @@ function applyItemToHorse(itemIdx, horseIdx) {
 
   if (item.name === "Jabłko" || item.name === "Słoma") {
     feedHorse(horseIdx, item.name);
+  } else if (item.name === "Bandaż") {
+    if (!h.injured) { log(`✅ ${h.name} jest zdrowy — bandaż nie jest potrzebny.`); return; }
+    h.injured      = false;
+    h.injuredSince = null;
+    log(`🩹 ${h.name} wyleczony! Może teraz wrócić na wyprawy.`);
   } else if (item.name === "Eliksir Odmłodzenia") {
     let age    = getHorseAgeDays(h);
     let reduce = Math.min(age - 1, Math.min(120, Math.floor(age / 3) + 20)); // nie cofaj poniżej 1 dnia

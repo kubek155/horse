@@ -311,7 +311,8 @@ function showRareHorseEffect(horseName, rarity, flag) {
       display:flex;flex-direction:column;align-items:center;gap:10px;
       animation:rareCardPop 0.5s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
     ">
-      <div style="font-size:48px;line-height:1;filter:drop-shadow(0 0 20px ${rc})">${flag||"🐴"}</div>
+      <div id="rareHorseSVGWrap" style="width:160px;height:130px;border-radius:10px;overflow:hidden;border:2px solid ${rc}66;background:${rc}18;filter:drop-shadow(0 0 16px ${rc}88)"></div>
+      <div style="font-size:22px;line-height:1">${flag||"🐴"}</div>
       <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:${rc};text-transform:uppercase">${lbl}</div>
       <div style="font-family:'Cinzel',serif;font-size:20px;color:#fff;text-shadow:0 0 20px ${rc}">${horseName}</div>
       <div style="font-size:13px;color:var(--text2)">Nowy koń dołączył do stajni!</div>
@@ -319,7 +320,19 @@ function showRareHorseEffect(horseName, rarity, flag) {
     <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,${rc}22 0%,transparent 65%);pointer-events:none"></div>
   `;
   document.body.appendChild(overlay);
-  setTimeout(() => { overlay.style.animation = "sceneFadeOut 0.4s ease forwards"; setTimeout(()=>overlay.remove(),400); }, 2200);
+
+  // Wstaw SVG konia (musi być po appendChild bo DOM musi istnieć)
+  setTimeout(() => {
+    let wrap = document.getElementById("rareHorseSVGWrap");
+    if (wrap && typeof drawHorseSVG === "function") {
+      // horseName to nazwa rasy — szukamy po breedKey
+      let h = playerHorses.find(h2 => h2.name === horseName || h2.breedKey === horseName);
+      let breedKey = h ? (h.breedKey||h.name) : horseName;
+      wrap.innerHTML = drawHorseSVGMutated ? drawHorseSVGMutated(breedKey, rarity, h?.stars||0, h?.mutation||null) : drawHorseSVG(breedKey, rarity, 0);
+    }
+  }, 50);
+
+  setTimeout(() => { overlay.style.animation = "sceneFadeOut 0.4s ease forwards"; setTimeout(()=>overlay.remove(),400); }, 2800);
 }
 
 // ── 4. ANIMACJA SKRZYNKI Z ŁUPEM ─────────────────────────────────────────────

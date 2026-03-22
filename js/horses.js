@@ -646,6 +646,9 @@ function renderHorses() {
       </div>
       <div class="horse-name" style="color:${rarCol}">${h.name}</div>
       <div class="horse-breed">${h.type||""} · ${bl}</div>
+      ${h.injured ? `<div style="margin:4px 0 6px;padding:4px 8px;background:rgba(201,74,74,0.12);border:1px solid rgba(201,74,74,0.4);border-radius:6px;font-size:11px;color:#e08080">
+        🤕 Ranny — użyj Bandaża z Ekwipunku
+      </div>` : ""}
       ${h.stars>0?`<div class="horse-stars">${"⭐".repeat(h.stars)}</div>`:""}
       ${h.parents?`<div style="font-size:10px;color:var(--text2);margin-bottom:4px">🧬 ${h.parents[0]} × ${h.parents[1]}</div>`:""}
       ${tbLabel?`<div style="font-size:11px;color:var(--gold2);margin-bottom:6px;padding:3px 8px;background:rgba(201,168,76,0.1);border-radius:5px;border:1px solid rgba(201,168,76,0.2)">

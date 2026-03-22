@@ -298,6 +298,8 @@ const ITEMS_DATABASE = {
   "Górska Przepustka":   { icon:"🏔️", desc:"Odblokuj dodatkową wyprawę w Góry",          rarity:"rare",     isPass:true, location:"Górskie Szczyty" },
   "Tundrowa Przepustka": { icon:"🧊", desc:"Odblokuj wyprawę do Tundry LUB Mrocznych Ostępów", rarity:"epic", isPass:true, location:"Wieczna Tundra" },
   "Mroczna Przepustka":  { icon:"🌑", desc:"Odblokuj wyprawę do Mrocznych Ostępów",      rarity:"legendary",isPass:true, location:"Mroczne Ostępy"  },
+  // Bandaż
+  "Bandaż":              { icon:"🩹", desc:"Leczy rannego konia — pozwala mu wrócić na wyprawy", rarity:"uncommon" },
   // Specjalne
   "Eliksir Odmłodzenia":   { icon:"🧪", desc:"Odmładza konia o 30–120 dni",         rarity:"rare"     },
   "Skrzynka z Łupem":      { icon:"📦", desc:"Zawiera losowy przedmiot",             rarity:"rare"     },
@@ -322,6 +324,7 @@ function generateSlotItem(name) {
 }
 
 const SHOP_ITEMS = [
+  { name:"Bandaż",              price:80,  icon:"🩹", desc:"Leczy rannego konia — konieczny po kontuzji",         alwaysAvailable:true },
   { name:"Słoma",               price:30,  icon:"🌾",  desc:"Nakarm konia — 25% głodu",                     alwaysAvailable:true },
   { name:"Jabłko",              price:60,  icon:"🍎",  desc:"Nakarm konia — 50% głodu",                     alwaysAvailable:true },
   { name:"Eliksir Szybkości",   price:150, icon:"⚡",  desc:"+5 szybkości konia (jednorazowy)",             alwaysAvailable:true },

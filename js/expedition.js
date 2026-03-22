@@ -38,7 +38,16 @@ function startExpedition(i, horseIdx) {
   if (getDailyCount() >= DAILY_LIMIT) { log("⚠️ Osiągnięto dzienny limit wypraw!"); return; }
   if (playerHorses.length === 0)      { log("⚠️ Nie masz żadnych koni!"); return; }
   let h = playerHorses[horseIdx !== undefined ? horseIdx : 0];
-  expeditions.push({ end: Date.now() + EXPEDITION_TIME, locationIndex: i, horseIdx: horseIdx||0, horseName: h?.name||"?", done: false });
+  // 5% szans na kontuzję — koń wraca wcześniej bez nagrody
+  let injured = Math.random() < 0.05;
+  expeditions.push({
+    end: injured ? Date.now() + Math.floor(EXPEDITION_TIME * 0.3) : Date.now() + EXPEDITION_TIME,
+    locationIndex: i,
+    horseIdx: horseIdx||0,
+    horseName: h?.name||"?",
+    done: false,
+    injured,
+  });
   addDaily();
   trackQuest("expedition");
   closeExpeditionHorsePicker();
@@ -87,11 +96,14 @@ function openExpeditionHorsePicker(locIdx) {
         ${h.perk ? `<div style="font-size:10px;color:#e08070;margin-top:2px">${h.perk.icon} ${h.perk.name}</div>` : ""}
         <div style="font-size:10px;color:${hCol};margin-top:2px">🍽️ Głód: ${hunger}% &nbsp; 🎂 ${age} dni</div>
         ${busy ? `<div style="font-size:10px;color:#c97c2a;margin-top:2px">🌍 Już na wyprawie</div>` : ""}
+        ${h.injured ? `<div style="font-size:10px;color:#c94a4a;margin-top:2px">🤕 Ranny — wymaga Bandaża!</div>` : ""}
       </div>
     `;
-    if (busy) {
+    let injured2 = !!h.injured;
+    if (busy || injured2) {
       btn.disabled = true;
       btn.style.cursor = "not-allowed";
+      if (injured2) btn.style.opacity = "0.35";
     } else {
       btn.onclick = () => startExpedition(pendingExpLocation, hi);
     }
@@ -108,8 +120,22 @@ function closeExpeditionHorsePicker() {
 
 function finishExpedition(e) {
   let loc   = LOCATIONS[e.locationIndex];
-  let luck  = getPartyLuck(); // 0–100+
-  // Szczęście dodaje bonus do szansy: np. luck=50 → +5% do dropów
+
+  // Kontuzja — koń wrócił ranny, brak nagrody
+  if (e.injured) {
+    let expHorse = playerHorses[e.horseIdx];
+    if (expHorse) {
+      expHorse.injured = true;
+      expHorse.injuredSince = Date.now();
+    }
+    inventory.push({ name: "Bandaż", obtained: Date.now() });
+    log(`🤕 ${expHorse?.name||"Koń"} wrócił ranny z wyprawy! Użyj Bandaża żeby go wyleczyć.`);
+    e.done = true;
+    saveGame();
+    return;
+  }
+
+  let luck  = getPartyLuck();
   let luckBonus = luck / 10;
   let r     = Math.random() * 100;
 
@@ -148,8 +174,8 @@ function finishExpedition(e) {
   gold += goldGain;
   log(`💰 +${goldGain} złota z wyprawy!`);
 
-  // Drop przepustki
-  if (loc.rewardPass && Math.random() < (loc.passChance||0.05)) {
+  // Drop przepustki — 3%
+  if (loc.rewardPass && Math.random() < 0.03) {
     inventory.push({ name: loc.rewardPass, obtained: Date.now() });
     log(`🎫 Znaleziono: ${loc.rewardPass}!`);
   }
@@ -393,8 +419,8 @@ function renderExpeditions() {
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:20px">${expHorse?.flag||"🐴"}</span>
           <div>
-            <div style="font-family:'Cinzel',serif;font-size:13px;color:${rc}">${hName}</div>
-            <div style="font-size:11px;color:var(--text2)">${loc.icon} ${loc.name}</div>
+            <div style="font-family:'Cinzel',serif;font-size:13px;color:${rc}">${hName}${e.injured ? " 🤕" : ""}</div>
+            <div style="font-size:11px;color:var(--text2)">${loc.icon} ${loc.name}${e.injured ? ` <span style="color:#c94a4a">· Kontuzja!</span>` : ""}</div>
           </div>
         </div>
         <span class="exp-card-timer exp-timer">${Math.ceil(t/1000)}s</span>
