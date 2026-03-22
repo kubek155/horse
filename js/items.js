@@ -17,6 +17,12 @@ function openHorsePicker(itemIdx) {
     return;
   }
 
+  // Jabłko Sfinksa — przejdź do hodowli
+  if (itemData.isBreedItem) {
+    log(`🍏 Jabłko Sfinksa — przejdź do Stajni i wybierz Rozmnóż konie.`);
+    showSection("stable");
+    return;
+  }
   // Przepustki — pokaż info gdzie można użyć
   if (itemData.isPass) {
     log(`🎫 ${item.name} — użyj przy wyborze krainy "${itemData.location}" na Wyprawach.`);
@@ -119,7 +125,7 @@ function applyItemToHorse(itemIdx, horseIdx) {
     log(`❤️ ${h.name}: +5 wytrzymałości!`);
   } else if (item.name === "Eliksir Szczęścia") {
     if (!h.stats.luck) h.stats.luck = 5;
-    h.stats.luck = Math.min(110, h.stats.luck + 5);
+    h.stats.luck = Math.min(200, h.stats.luck + 5);
     log(`🍀 ${h.name}: +5 szczęścia!`);
   } else {
     log(`✨ Użyto ${item.name} na ${h.name}!`);
@@ -207,35 +213,102 @@ function _doOpenLootBox(itemIdx) {
 }
 
 // =====================
-// RENDER INVENTORY
+// RENDER INVENTORY — zakładki
 // =====================
+let invTab = "all";
+
+function setInvTab(tab) {
+  invTab = tab;
+  document.querySelectorAll(".inv-tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+  renderInventory();
+}
+
+function getItemCategory(name) {
+  let d = ITEMS_DATABASE[name] || {};
+  if (d.isFood)      return "food";
+  if (d.isBreedItem) return "breed";
+  if (d.isPass)      return "pass";
+  if (d.isSlotItem)  return "slot";
+  if (d.isElixir || name.startsWith("Eliksir")) return "elixir";
+  if (name === "Bandaż") return "other";
+  if (name === "Skrzynka z Łupem") return "other";
+  return "other";
+}
+
+const INV_TABS = [
+  { id:"all",    label:"Wszystko",   icon:"🎒" },
+  { id:"food",   label:"Jedzenie",   icon:"🍎" },
+  { id:"breed",  label:"Hodowla",    icon:"🍏" },
+  { id:"elixir", label:"Eliksiry",   icon:"🧪" },
+  { id:"slot",   label:"Sloty",      icon:"✨" },
+  { id:"pass",   label:"Przepustki", icon:"🎫" },
+  { id:"other",  label:"Inne",       icon:"📦" },
+];
+
 function renderInventory() {
   let el = document.getElementById("inventoryGrid");
+  let tabBar = document.getElementById("invTabBar");
+  if (tabBar) delete tabBar.dataset.rendered; // wymusz re-render zakładek
+
+  // Renderuj zakładki
+  let tabBar = document.getElementById("invTabBar");
+  if (tabBar && !tabBar.dataset.rendered) {
+    tabBar.dataset.rendered = "1";
+    tabBar.innerHTML = "";
+    INV_TABS.forEach(t => {
+      let btn = document.createElement("button");
+      btn.className = "inv-tab-btn" + (invTab === t.id ? " active" : "");
+      btn.dataset.tab = t.id;
+      let count = t.id === "all" ? inventory.length
+        : inventory.filter(i => getItemCategory(i.name) === t.id).length;
+      btn.innerHTML = `${t.icon} ${t.label}${count>0?` <span style="font-size:10px;opacity:0.7">(${count})</span>`:""}`;
+      btn.onclick = () => setInvTab(t.id);
+      tabBar.appendChild(btn);
+    });
+  } else if (tabBar) {
+    // Aktualizuj liczniki
+    tabBar.querySelectorAll(".inv-tab-btn").forEach(btn => {
+      let tid = btn.dataset.tab;
+      let count = tid === "all" ? inventory.length
+        : inventory.filter(i => getItemCategory(i.name) === tid).length;
+      let t = INV_TABS.find(t2=>t2.id===tid);
+      if (t) btn.innerHTML = `${t.icon} ${t.label}${count>0?` <span style="font-size:10px;opacity:0.7">(${count})</span>`:""}`;
+      btn.classList.toggle("active", tid === invTab);
+    });
+  }
+
   document.getElementById("invCount").textContent = inventory.length;
+
+  let filtered = invTab === "all" ? inventory
+    : inventory.filter(i => getItemCategory(i.name) === invTab);
 
   if (inventory.length === 0) {
     el.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🎒</div>Ekwipunek jest pusty</div>`;
     return;
   }
+  if (filtered.length === 0) {
+    el.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">${INV_TABS.find(t=>t.id===invTab)?.icon||"📦"}</div>Brak przedmiotów w tej kategorii</div>`;
+    return;
+  }
 
   el.innerHTML = "";
-  inventory.forEach((item, idx) => {
+  filtered.forEach((item) => {
+    let idx     = inventory.indexOf(item);
     let data    = ITEMS_DATABASE[item.name] || { icon:"📦", desc:"" };
     let isSlot  = !!data.isSlotItem;
     let isFood  = !!data.isFood;
-    let statIcon = { speed:"⚡", strength:"💪", stamina:"❤️", luck:"🍀" }[data.stat] || "";
-
-    // Bonus tag — dla slot itemów
-    let bonusHtml = (isSlot && item.bonus !== undefined)
-      ? `<div class="inv-bonus">+${item.bonus} ${statIcon}</div>`
-      : "";
-
-    // Przycisk akcji
     let isPass  = !!data.isPass;
-    let useLabel = isFood ? "🍎 Karm" : isSlot ? "✨ Slot" : isPass ? "🎫 Info" : "Użyj";
+    let isBreed = !!data.isBreedItem;
+    let statIcon = { speed:"⚡", strength:"💪", stamina:"❤️", luck:"🍀" }[data.stat] || "";
+    let rc       = { rare:"#4a7ec8", epic:"#7b5ea7", legendary:"#c9a84c", uncommon:"#8aab84" }[data.rarity] || "var(--border)";
+
+    let bonusHtml = (isSlot && item.bonus !== undefined)
+      ? `<div class="inv-bonus">+${item.bonus} ${statIcon}</div>` : "";
+    let useLabel = isFood ? "🍎 Karm" : isSlot ? "✨ Slot" : isPass ? "🎫 Info" : isBreed ? "🍏 Hoduj" : "Użyj";
 
     let div = document.createElement("div");
     div.className = "inv-item";
+    div.style.borderColor = rc;
     div.innerHTML = `
       <span class="inv-icon">${data.icon}</span>
       <span class="inv-name">${item.name}</span>

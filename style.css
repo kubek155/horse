@@ -696,3 +696,34 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   transition: all 0.15s;
   font-family: 'Crimson Text', serif;
 }
+
+/* ===================== INVENTORY TABS ===================== */
+.inv-tab-btn {
+  padding: 5px 12px;
+  font-size: 11px;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.5px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.inv-tab-btn:hover  { border-color: var(--accent2); color: var(--accent2); }
+.inv-tab-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.12); }
+
+/* Animacja błysku rzadkiego dropu */
+@keyframes rareFlash {
+  0%   { transform: scale(1);    opacity: 1; }
+  20%  { transform: scale(1.35); opacity: 1; }
+  50%  { transform: scale(1.15); opacity: 0.9; }
+  100% { transform: scale(1);    opacity: 0; }
+}
+@keyframes rareFlashBg {
+  0%   { opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 0.6; }
+  100% { opacity: 0; }
+}

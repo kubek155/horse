@@ -471,3 +471,40 @@ function darken2(hex, pct) {
   if(isNaN(r)) return "#4a3520";
   return "#"+[Math.max(0,r-pct),Math.max(0,g-pct),Math.max(0,b-pct)].map(v=>v.toString(16).padStart(2,"0")).join("");
 }
+
+// ── 5. ANIMACJA BŁYSKU RZADKIEGO DROPU ────────────────────────────────────────
+function flashRareDrop(icon, name) {
+  let d    = ITEMS_DATABASE[name] || {};
+  let tier = { uncommon:1, rare:2, epic:3, legendary:4, mythic:5 }[d.rarity] || 1;
+  let col  = { uncommon:"#8aab84", rare:"#4a7ec8", epic:"#7b5ea7", legendary:"#c9a84c", mythic:"#c94a6a" }[d.rarity] || "#c9a84c";
+
+  let overlay = document.createElement("div");
+  overlay.style.cssText = `
+    position:fixed;inset:0;z-index:8500;pointer-events:none;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+  `;
+
+  // Cząsteczki
+  let particles = "";
+  let count = tier * 8;
+  for (let i=0;i<count;i++) {
+    let angle = (i/count)*360, dist=60+Math.random()*100;
+    let tx=Math.cos(angle*Math.PI/180)*dist, ty=Math.sin(angle*Math.PI/180)*dist;
+    let sz = 3+Math.random()*5;
+    particles += `<div style="position:absolute;width:${sz}px;height:${sz}px;border-radius:50%;background:${col};top:50%;left:50%;
+      animation:particleFly ${0.4+Math.random()*0.4}s ease-out forwards;--tx:${tx}px;--ty:${ty}px;animation-delay:${Math.random()*0.1}s"></div>`;
+  }
+
+  overlay.innerHTML = `
+    ${particles}
+    <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,${col}44,transparent 70%);
+      animation:rareFlashBg 0.8s ease-out forwards"></div>
+    <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:6px;
+      animation:rareFlash 0.8s ease-out forwards">
+      <div style="font-size:52px;line-height:1;filter:drop-shadow(0 0 12px ${col})">${icon}</div>
+      <div style="font-family:'Cinzel',serif;font-size:12px;color:${col};letter-spacing:2px">${name}</div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  setTimeout(() => overlay.remove(), 900);
+}

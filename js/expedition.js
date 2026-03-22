@@ -118,6 +118,21 @@ function closeExpeditionHorsePicker() {
   pendingExpLocation = null;
 }
 
+function rollLocationDrop(loc) {
+  if (!loc.drops || !loc.dropWeights) return null;
+  let total = loc.dropWeights.reduce((a,b)=>a+b,0);
+  let r = Math.random() * total;
+  for (let i=0; i<loc.drops.length; i++) {
+    r -= loc.dropWeights[i];
+    if (r <= 0) {
+      let name = loc.drops[i];
+      let d    = ITEMS_DATABASE[name] || {};
+      return { name, isSlot: !!d.isSlotItem };
+    }
+  }
+  return null;
+}
+
 function finishExpedition(e) {
   let loc   = LOCATIONS[e.locationIndex];
 
@@ -157,12 +172,21 @@ function finishExpedition(e) {
       }
     }
   } else if (r < boxChance) {
-    inventory.push({ name: "Skrzynka z Łupem", obtained: Date.now() });
-    log(`📦 Znaleziono Skrzynkę z Łupem!`);
-  } else if (r < foodChance) {
-    let food = Math.random() < 0.6 ? "Słoma" : "Jabłko";
-    inventory.push({ name: food, obtained: Date.now() });
-    log(`${food === "Jabłko" ? "🍎" : "🌾"} Znaleziono: ${food}!`);
+    // Drop z tabeli lokacji
+    let dropped = rollLocationDrop(loc);
+    if (dropped) {
+      let item = dropped.isSlot ? generateSlotItem(dropped.name) : { name: dropped.name, obtained: Date.now() };
+      inventory.push(item);
+      let d = ITEMS_DATABASE[dropped.name] || { icon:"📦" };
+      let isRareDrop = ["Jabłko Sfinksa","Eliksir Odmłodzenia"].includes(dropped.name) ||
+                       dropped.name.includes("Przepustka");
+      if (isRareDrop && typeof flashRareDrop === "function") {
+        setTimeout(() => flashRareDrop(d.icon, dropped.name), 300);
+      }
+      log(`✨ Znaleziono: ${d.icon} ${dropped.name}${item.bonus!==undefined?" (+"+item.bonus+")":""}!`);
+    } else {
+      log(`📜 Wyprawa do ${loc.name} — nic nie znaleziono.`);
+    }
   } else {
     log(`📜 Wyprawa do ${loc.name} — nic nie znaleziono.`);
   }
@@ -173,12 +197,6 @@ function finishExpedition(e) {
   let goldGain = Math.round(baseGold * perks.goldBonus);
   gold += goldGain;
   log(`💰 +${goldGain} złota z wyprawy!`);
-
-  // Drop przepustki — 3%
-  if (loc.rewardPass && Math.random() < 0.03) {
-    inventory.push({ name: loc.rewardPass, obtained: Date.now() });
-    log(`🎫 Znaleziono: ${loc.rewardPass}!`);
-  }
 
   e.done = true;
   saveGame();

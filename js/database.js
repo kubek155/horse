@@ -226,6 +226,8 @@ const LOCATIONS = [
     icon: "🌲",
     desc: "Spokojne ostępy leśne — idealne dla młodych koni stawiających pierwsze kroki.",
     lore: "Stare dęby szepcą legendy o pierwszych dzikich koniach. Tu każdy może zacząć swoją przygodę.",
+    drops: ["Jabłko","Słoma","Leśna Przepustka","Skrzynka z Łupem","Bandaż"],
+    dropWeights: [35, 35, 8, 12, 10],
     reward: "common",
     rewardPass: "Leśna Przepustka",
     passChance: 0.08,
@@ -239,6 +241,8 @@ const LOCATIONS = [
     icon: "🏜️",
     desc: "Rozpalony piasek i skwarne słońce — wytrzymałość ponad wszystko.",
     lore: "Karawany arabskich koni przemierzały te piaski od tysięcy lat. Tylko najsilniejsi przeżywają.",
+    drops: ["Jabłko Sfinksa","Pustynna Przepustka","Eliksir Szybkości","Skrzynka z Łupem","Jabłko"],
+    dropWeights: [20, 8, 25, 15, 32],
     reward: "rare",
     rewardPass: "Pustynna Przepustka",
     passChance: 0.06,
@@ -252,6 +256,8 @@ const LOCATIONS = [
     icon: "⛰️",
     desc: "Strome zbocza i rozrzedzone powietrze — tylko silne konie dają radę.",
     lore: "Noriker i Fjord znają te ścieżki na pamięć. Dla innych to wyzwanie życia.",
+    drops: ["Jabłko Sfinksa","Górska Przepustka","Eliksir Siły","Eliksir Wytrzymałości","Skrzynka z Łupem"],
+    dropWeights: [25, 8, 25, 22, 20],
     reward: "epic",
     rewardPass: "Górska Przepustka",
     passChance: 0.05,
@@ -265,6 +271,8 @@ const LOCATIONS = [
     icon: "❄️",
     desc: "Mroźne stepy bez końca — wyprawa dla prawdziwych legend.",
     lore: "Tylko nieliczni wracają z Wiecznej Tundry. Ci co wracają — wracają ze skarbami.",
+    drops: ["Jabłko Sfinksa","Tundrowa Przepustka","Eliksir Odmłodzenia","Skrzynka z Łupem","Kowadło"],
+    dropWeights: [22, 8, 12, 28, 30],
     reward: "legendary",
     rewardPass: "Tundrowa Przepustka",
     passChance: 0.04,
@@ -278,6 +286,8 @@ const LOCATIONS = [
     icon: "🌑",
     desc: "Zakazane rubieże — kraina cieni i pradawnej magii.",
     lore: "Mówią że konie które tu wchodzą zmieniają się na zawsze. Wchodzisz własnym ryzykiem.",
+    drops: ["Jabłko Sfinksa","Mroczna Przepustka","Eliksir Szczęścia","Skrzynka z Łupem","Piorun"],
+    dropWeights: [20, 8, 28, 24, 20],
     reward: "mythic",
     rewardPass: "Mroczna Przepustka",
     passChance: 0.03,
@@ -298,6 +308,8 @@ const ITEMS_DATABASE = {
   "Górska Przepustka":   { icon:"🏔️", desc:"Odblokuj dodatkową wyprawę w Góry",          rarity:"rare",     isPass:true, location:"Górskie Szczyty" },
   "Tundrowa Przepustka": { icon:"🧊", desc:"Odblokuj wyprawę do Tundry LUB Mrocznych Ostępów", rarity:"epic", isPass:true, location:"Wieczna Tundra" },
   "Mroczna Przepustka":  { icon:"🌑", desc:"Odblokuj wyprawę do Mrocznych Ostępów",      rarity:"legendary",isPass:true, location:"Mroczne Ostępy"  },
+  // Rozmnażanie
+  "Jabłko Sfinksa":      { icon:"🍏", desc:"Magiczny owoc — wymagany do rozmnażania koni", rarity:"rare", isBreedItem:true },
   // Bandaż
   "Bandaż":              { icon:"🩹", desc:"Leczy rannego konia — pozwala mu wrócić na wyprawy", rarity:"uncommon" },
   // Specjalne
@@ -335,6 +347,7 @@ const SHOP_ITEMS = [
   { name:"Kowadło",             price:220, icon:"🔨",  desc:"Slot: +0–10 siły (losowy bonus)",              alwaysAvailable:true, isSlotShop:true },
   { name:"Koniczyna",           price:220, icon:"🍀",  desc:"Slot: +0–10 szczęścia (losowy bonus)",         alwaysAvailable:true, isSlotShop:true },
   { name:"Serce",               price:220, icon:"❤️‍🔥", desc:"Slot: +0–10 wytrzymałości (losowy bonus)",   alwaysAvailable:true, isSlotShop:true },
+  { name:"Jabłko Sfinksa",       price:600, icon:"🍏",  desc:"Wymagane do rozmnażania koni",                alwaysAvailable:true },
   { name:"Eliksir Odmłodzenia", price:800, icon:"🧪",  desc:"Odmładza konia — globalny limit 5 szt.",       rare:true, globalLimit:5 },
 ];
 

@@ -81,7 +81,9 @@ function rollStatInRange(base, rarity) {
   let span = hi - lo;
   let normalized = (base / 110) * span + lo;
   let jitter     = (Math.random() - 0.5) * span * 0.2;
-  return Math.max(lo, Math.min(hi, Math.round(normalized + jitter)));
+  let result     = Math.round(normalized + jitter);
+  // Minimum 1 — stat nigdy nie może być 0
+  return Math.max(Math.max(1, lo), Math.min(hi, result));
 }
 
 function rollStars() {
@@ -214,9 +216,9 @@ function generateHorse(rarityHint) {
   stats.stamina  += starBonus;
   stats.luck     += Math.round(starBonus * 0.5);
 
-  // Cap
-  let cap = rarity === "mythic" ? 110 : 100;
-  Object.keys(stats).forEach(k => { stats[k] = Math.max(0, Math.min(cap, stats[k])); });
+  // Cap — min 1, max 200 (przedmioty/perki mogą podnosić wysoko)
+  let cap = 200;
+  Object.keys(stats).forEach(k => { stats[k] = Math.max(1, Math.min(cap, stats[k])); });
 
   // Perk
   let perk = null;
@@ -280,7 +282,7 @@ function getHorseAgeDays(h) {
 function applyGrowth(h) {
   if (h.bonusApplied) return;
   if (getHorseAgeDays(h) > 7) {
-    let cap = h.rarity === "mythic" ? 110 : 100;
+    let cap = 200;
     let r = Math.random();
     if      (r < 0.30) { h.stats.speed    = Math.min(cap, h.stats.speed+3);    h.bonusApplied="+szybkość"; }
     else if (r < 0.55) { h.stats.strength = Math.min(cap, h.stats.strength+3); h.bonusApplied="+siła"; }
@@ -360,7 +362,7 @@ function unequipSlot(horseIdx, slotIdx) {
 }
 
 function applySlotItemBonus(h, item, apply) {
-  let cap  = h.rarity === "mythic" ? 110 : 100;
+  let cap  = 200;
   let mult = apply ? 1 : -1;
   let applied = null;
   let d    = ITEMS_DATABASE[item.name] || {};
@@ -414,6 +416,10 @@ function typeBonusLabel(h) {
 function breedHorses(idxA, idxB) {
   if (idxA===idxB)                       { log("⚠️ Wybierz dwa różne konie!"); return; }
   if (playerHorses.length>=STABLE_LIMIT) { log("⚠️ Stajnia pełna!"); return; }
+  // Sprawdź czy gracz ma Jabłko Sfinksa
+  let appleIdx = inventory.findIndex(i => i.name === "Jabłko Sfinksa");
+  if (appleIdx === -1) { log("⚠️ Rozmnażanie wymaga 🍏 Jabłka Sfinksa! Znajdź je na wyprawie."); return; }
+  inventory.splice(appleIdx, 1); // zużyj jabłko
 
   let a = playerHorses[idxA], b = playerHorses[idxB];
   const rarityTier = { common:0, uncommon:1, rare:2, epic:3, legendary:4, mythic:5 };
@@ -435,7 +441,7 @@ function breedHorses(idxA, idxB) {
   let starBonus = stars * 4;
   let bl        = BLOODLINE_BONUS[childBloodline] || {};
   let cRange    = RARITY_STAT_RANGE[childRarity]  || RARITY_STAT_RANGE.common;
-  let cap       = childRarity === "mythic" ? 110 : 100;
+  let cap       = 200;
 
   function inherit(sA, sB, base) {
     let v = sA*0.4 + sB*0.4 + base*0.2 + (Math.random()-0.5)*8;
@@ -530,7 +536,11 @@ function renderBreedModal() {
     list.appendChild(btn);
   });
   document.getElementById("breedConfirmBtn").disabled=true;
-  document.getElementById("breedStatus").textContent="Wybierz pierwszego rodzica";
+  let hasApple = inventory.some(i => i.name === "Jabłko Sfinksa");
+  let appleCount = inventory.filter(i => i.name === "Jabłko Sfinksa").length;
+  document.getElementById("breedStatus").innerHTML = hasApple
+    ? `Wybierz pierwszego rodzica &nbsp;·&nbsp; <span style="color:#4ab870">🍏 Jabłek Sfinksa: ${appleCount}</span>`
+    : `<span style="color:#c94a4a">⚠️ Brak Jabłka Sfinksa — zdobądź je na wyprawie!</span>`;
 }
 
 function selectBreedHorse(idx) {
@@ -664,13 +674,13 @@ function renderHorses() {
       </div>`:""}
       <div class="horse-stats">
         <div class="stat-row"><span>⚡ Szybkość</span><span>${h.stats.speed}</span></div>
-        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(100,(h.stats.speed/110)*100).toFixed(1)}%"></div></div>
+        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(100,(h.stats.speed/200)*100).toFixed(1)}%"></div></div>
         <div class="stat-row"><span>💪 Siła</span><span>${h.stats.strength}</span></div>
-        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(100,(h.stats.strength/110)*100).toFixed(1)}%;background:var(--gold)"></div></div>
+        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(100,(h.stats.strength/200)*100).toFixed(1)}%;background:var(--gold)"></div></div>
         <div class="stat-row"><span>❤️ Wytrzymałość</span><span>${h.stats.stamina}</span></div>
-        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(100,(h.stats.stamina/110)*100).toFixed(1)}%;background:var(--rare)"></div></div>
+        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(100,(h.stats.stamina/200)*100).toFixed(1)}%;background:var(--rare)"></div></div>
         <div class="stat-row"><span>🍀 Szczęście</span><span>${h.stats.luck}</span></div>
-        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(100,(h.stats.luck/110)*100).toFixed(1)}%;background:#4ab870"></div></div>
+        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(100,(h.stats.luck/200)*100).toFixed(1)}%;background:#4ab870"></div></div>
       </div>
       <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">
         <div class="stat-row" style="margin-bottom:3px"><span style="color:${hCol}">🍽️ Głód</span><span style="color:${hCol}">${hunger}% — ${hLbl}</span></div>

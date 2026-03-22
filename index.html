@@ -84,66 +84,8 @@
     <!-- EKWIPUNEK -->
     <div id="inventorySection" style="display:none">
       <div class="section-title">🎒 Ekwipunek</div>
+      <div id="invTabBar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
       <div id="inventoryGrid" class="inv-grid"></div>
-
-      <div class="chances-section">
-        <div class="section-title" style="font-size:15px; margin-top:24px;">📊 Szanse na konie</div>
-
-        <div class="card">
-          <h4>RZADKOŚĆ KONIA (ogólna)</h4>
-          <table class="chances-table">
-            <thead><tr><th>Rzadkość</th><th>Szansa</th><th></th></tr></thead>
-            <tbody>
-              <tr><td><span class="rarity-dot" style="background:#8aab84"></span>Pospolity</td><td style="color:var(--text)">60%</td><td><div class="chance-bar-wrap"><div class="chance-bar-fill" style="width:60%;background:#8aab84"></div></div></td></tr>
-              <tr><td><span class="rarity-dot" style="background:#7b5ea7"></span>Szlachetny</td><td style="color:var(--rare)">28%</td><td><div class="chance-bar-wrap"><div class="chance-bar-fill" style="width:28%;background:#7b5ea7"></div></div></td></tr>
-              <tr><td><span class="rarity-dot" style="background:#c97c2a"></span>Bojowy</td><td style="color:var(--epic)">10%</td><td><div class="chance-bar-wrap"><div class="chance-bar-fill" style="width:10%;background:#c97c2a"></div></div></td></tr>
-              <tr><td><span class="rarity-dot" style="background:#c9a84c"></span>Legendarny</td><td style="color:var(--gold)">2%</td><td><div class="chance-bar-wrap"><div class="chance-bar-fill" style="width:2%;background:#c9a84c"></div></div></td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="card">
-          <h4>GWIAZDKI (niezależne od rzadkości)</h4>
-          <table class="chances-table">
-            <thead><tr><th>Gwiazdki</th><th>Szansa</th><th>Bonus statystyk</th></tr></thead>
-            <tbody>
-              <tr><td>Brak</td><td style="color:var(--text)">98%</td><td style="color:var(--text2)">+0</td></tr>
-              <tr><td>⭐</td><td style="color:var(--rare)">2%</td><td style="color:var(--rare)">+12 do każdego</td></tr>
-              <tr><td>⭐⭐</td><td style="color:var(--epic)">0.02%</td><td style="color:var(--epic)">+24 do każdego</td></tr>
-              <tr><td>⭐⭐⭐</td><td style="color:var(--gold)">0.001%</td><td style="color:var(--gold)">+36 do każdego</td></tr>
-            </tbody>
-          </table>
-          <div class="stars-chance" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-            Szansa na ⭐⭐⭐ to mniej więcej <strong>1 na 100 000</strong> wygenerowanych koni.
-          </div>
-        </div>
-
-        <div class="card">
-          <h4>WYPRAWA → NAGRODA</h4>
-          <table class="chances-table">
-            <thead><tr><th>Wynik</th><th>Szansa</th></tr></thead>
-            <tbody>
-              <tr><td>🐴 Nowy koń (z danej krainy)</td><td style="color:var(--accent2)">7%</td></tr>
-              <tr><td>📦 Skrzynka z Łupem</td><td style="color:var(--rare)">3%</td></tr>
-              <tr><td>🌾🍎 Jedzenie (Słoma / Jabłko)</td><td style="color:var(--gold2)">10%</td></tr>
-              <tr><td>💰 Złoto (50–200)</td><td style="color:var(--gold)">zawsze</td></tr>
-              <tr><td>📜 Nic poza złotem</td><td style="color:var(--text2)">80%</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="card">
-          <h4>SKRZYNKA Z ŁUPEM → ZAWARTOŚĆ</h4>
-          <table class="chances-table">
-            <thead><tr><th>Wynik</th><th>Szansa</th></tr></thead>
-            <tbody>
-              <tr><td>🐴 Losowy koń</td><td style="color:var(--accent2)">66%</td></tr>
-              <tr><td>🧪 Eliksir Odmłodzenia</td><td style="color:var(--gold)">14%</td></tr>
-              <tr><td>⚡💪❤️ Eliksir statystyki (+5)</td><td style="color:var(--rare)">20%</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
 
     <!-- SKLEP -->
