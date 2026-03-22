@@ -93,3 +93,12 @@ function addDebugGold() {
   renderAll();
   log("💰 Dodano 10 000 złota!");
 }
+
+function addDebugLootbox() {
+  for (let i = 0; i < 5; i++) {
+    inventory.push({ name: "Skrzynka z Łupem", obtained: Date.now() });
+  }
+  saveGame();
+  renderAll();
+  log("📦 Dodano 5 Skrzynek z Łupem!");
+}

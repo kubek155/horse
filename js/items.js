@@ -143,8 +143,11 @@ function _doOpenLootBox(itemIdx) {
       playerHorses.push(h);
       let rc = RARITY_COLORS[h.rarity]||"#8aab84";
       log(`📦 Skrzynka: Nowy koń — ${h.name}!`);
-      lootResult = { icon: h.flag||"🐴", name: h.name, desc: RARITY_LABELS[h.rarity]||h.rarity, color: rc };
-      // Efekt rzadkości
+      // Generuj SVG konia dla wyniku loot boxa
+      let horseSvgStr = (typeof drawHorseSVG === "function")
+        ? drawHorseSVG(h.breedKey||h.name, h.rarity, h.stars)
+        : null;
+      lootResult = { svg: horseSvgStr, icon: h.flag||"🐴", name: h.name, desc: RARITY_LABELS[h.rarity]||h.rarity, color: rc };
       if (typeof showRareHorseEffect === "function") {
         setTimeout(() => showRareHorseEffect(h.name, h.rarity, h.flag), 2400);
       }

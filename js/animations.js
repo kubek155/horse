@@ -402,11 +402,27 @@ function showLootBoxAnimation(callback) {
 
         // Pokaż wynik
         setTimeout(() => {
-          let resultEl = document.getElementById("lootResult");
-          document.getElementById("lootResultIcon").textContent = icon;
-          document.getElementById("lootResultName").style.color = col;
-          document.getElementById("lootResultName").textContent = name;
-          document.getElementById("lootResultDesc").textContent = desc;
+          let resultEl  = document.getElementById("lootResult");
+          let iconEl    = document.getElementById("lootResultIcon");
+          let nameEl    = document.getElementById("lootResultName");
+          let descEl    = document.getElementById("lootResultDesc");
+
+          // Jeśli koń — wstaw SVG (160x130 skalowane do 120x97)
+          if (result.svg) {
+            iconEl.innerHTML = "";
+            let svgWrap = document.createElement("div");
+            svgWrap.style.cssText = `width:120px;height:97px;background:${col}18;border-radius:10px;overflow:hidden;border:1px solid ${col}44;margin:0 auto`;
+            svgWrap.innerHTML = result.svg;
+            let svgEl2 = svgWrap.querySelector("svg");
+            if (svgEl2) { svgEl2.setAttribute("width","120"); svgEl2.setAttribute("height","97"); }
+            iconEl.appendChild(svgWrap);
+          } else {
+            iconEl.textContent = icon;
+          }
+
+          nameEl.style.color = col;
+          nameEl.textContent = name;
+          descEl.textContent = desc;
           resultEl.style.display = "flex";
         }, 200);
 
