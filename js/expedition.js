@@ -405,13 +405,12 @@ function renderExpeditions() {
       let timerEl = existing.querySelector(".exp-card-timer");
       let barEl   = existing.querySelector(".exp-card-bar");
       let horseEl = existing.querySelector(".exp-card-horse");
-      let dustEl  = existing.querySelector("[id^='expDustWrap']");
+      let dustEl  = existing.querySelector(".exp-card-dust");
       let newLeft = Math.max(2, Math.min(88, pct)) + "%";
       if (timerEl) timerEl.textContent = Math.ceil(t/1000) + "s";
-      if (barEl)   { barEl.style.width = pct + "%"; barEl.style.transition = "width 1s linear"; }
-      // Przesuń konia — używaj style.left bezpośrednio
-      if (horseEl) { horseEl.style.left = newLeft; horseEl.style.transition = "left 1s linear"; }
-      if (dustEl)  { dustEl.style.left  = newLeft; dustEl.style.transition  = "left 1s linear"; }
+      if (barEl)   { barEl.style.width = pct + "%"; }
+      if (horseEl) { horseEl.style.left = newLeft; }
+      if (dustEl)  { dustEl.style.left  = newLeft; }
       return;
     }
 
@@ -457,10 +456,10 @@ function renderExpeditions() {
         <div style="position:absolute;bottom:0;width:200%;height:22px;background:#0a2a0a;animation:expScrollFar 5s linear infinite"></div>
         <div style="position:absolute;bottom:0;width:200%;height:14px;background:#0f3a0f;animation:expScrollMid 3.5s linear infinite"></div>
         <div style="position:absolute;bottom:0;width:200%;height:8px;background:#1a5a1a;animation:expScrollNear 2s linear infinite"></div>
-        <div id="expHorseWrap_${existingId}" style="position:absolute;bottom:6px;left:${Math.max(2,Math.min(88,pct))}%;transform:translateX(-50%);animation:expBob 0.35s ease-in-out infinite alternate;transition:left 1s linear">
+        <div class="exp-card-horse" style="position:absolute;bottom:6px;left:${Math.max(2,Math.min(88,pct))}%;transform:translateX(-50%);animation:expBob 0.35s ease-in-out infinite alternate;transition:left 1s linear">
           <!-- koń wstawiany przez JS po render -->
         </div>
-        <div id="expDustWrap_${existingId}" style="position:absolute;bottom:5px;left:${Math.max(2,Math.min(88,pct))}%;margin-left:-12px">
+        <div class="exp-card-dust" style="position:absolute;bottom:5px;left:${Math.max(2,Math.min(88,pct))}%;margin-left:-12px">
           <div style="width:5px;height:5px;border-radius:50%;background:rgba(139,105,20,0.4);position:absolute;animation:expDust 0.5s ease-out 0s infinite"></div>
           <div style="width:4px;height:4px;border-radius:50%;background:rgba(139,105,20,0.35);position:absolute;left:8px;animation:expDust 0.5s ease-out 0.15s infinite"></div>
         </div>
@@ -473,8 +472,8 @@ function renderExpeditions() {
     `;
     el.appendChild(card);
 
-    // Wstaw konia SVG przez DOM (nie innerHTML) żeby animacje działały
-    let horseWrap = document.getElementById(`expHorseWrap_${existingId}`);
+    // Wstaw konia SVG przez DOM — querySelector na właśnie dodanej karcie
+    let horseWrap = card.querySelector(".exp-card-horse");
     if (horseWrap) {
       let svgDiv = document.createElement("div");
       svgDiv.innerHTML = buildExpHorseSVG(coat, mane);
