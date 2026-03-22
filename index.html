@@ -3,162 +3,920 @@
 <head>
 <meta charset="UTF-8">
 <title>Happy Horses</title>
-
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
+:root {
+  --bg: #0a0e0a;
+  --panel: #0f1a0f;
+  --panel2: #131f13;
+  --accent: #4a8c3f;
+  --accent2: #7ec870;
+  --gold: #c9a84c;
+  --gold2: #f0d080;
+  --text: #d4e8d0;
+  --text2: #8aab84;
+  --border: #1e3a1e;
+  --rare: #7b5ea7;
+  --epic: #c97c2a;
+  --legendary: #c9a84c;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
 body {
-  margin:0;
-  font-family:Arial;
-  background:#0f2f2f;
-  color:white;
+  font-family: 'Crimson Text', serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(74,140,63,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(201,168,76,0.03) 0%, transparent 50%);
 }
 
-/* GRID */
+/* LAYOUT */
 .container {
-  display:grid;
-  grid-template-columns:220px 1fr 250px;
-  grid-template-rows:80px 1fr;
-  height:100vh;
+  display: grid;
+  grid-template-columns: 200px 1fr 230px;
+  grid-template-rows: 64px 1fr;
+  height: 100vh;
 }
 
-/* GÓRA */
+/* TOPBAR */
 .topbar {
-  grid-column:1/4;
-  background:#1f5f5f;
-  display:flex;
-  align-items:center;
-  padding:0 20px;
-  font-size:20px;
+  grid-column: 1/4;
+  background: linear-gradient(90deg, #0a1a0a 0%, #0f2a0f 50%, #0a1a0a 100%);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 20px;
 }
 
-/* LEWY PANEL */
+.topbar-title {
+  font-family: 'Cinzel', serif;
+  font-size: 22px;
+  color: var(--gold);
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px rgba(201,168,76,0.4);
+}
+
+.topbar-stats {
+  display: flex;
+  gap: 20px;
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--text2);
+}
+
+.topbar-stat { display: flex; align-items: center; gap: 6px; }
+.topbar-stat span { color: var(--gold2); font-weight: 600; }
+
+/* SIDEBAR */
 .sidebar {
-  background:#123c3c;
-  padding:15px;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
 }
 
-/* PRAWA */
-.rightbar {
-  background:#123c3c;
-  padding:15px;
+.sidebar h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  color: var(--text2);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 12px 0 8px 4px;
 }
 
-/* ŚRODEK */
-.main {
-  background:#e6f2f2;
-  color:black;
-  padding:20px;
-}
-
-/* MENU */
 .menu-item {
-  margin:10px 0;
-  padding:12px;
-  background:#1f5f5f;
-  border-radius:10px;
-  cursor:pointer;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text2);
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid transparent;
 }
 
-/* BOX */
-.box {
-  background:white;
-  padding:15px;
-  margin-bottom:15px;
-  border-radius:12px;
+.menu-item:hover { background: var(--panel2); color: var(--text); border-color: var(--border); }
+.menu-item.active { background: rgba(74,140,63,0.15); color: var(--accent2); border-color: var(--accent); }
+
+/* MAIN */
+.main {
+  background: var(--bg);
+  overflow-y: auto;
+  padding: 20px;
 }
 
-/* BUTTON */
+/* RIGHTBAR */
+.rightbar {
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  padding: 16px 12px;
+  overflow-y: auto;
+}
+
+.rightbar h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  color: var(--text2);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+/* SECTION TITLE */
+.section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 18px;
+  color: var(--gold);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* CARDS */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.card h4 {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  color: var(--text2);
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+/* BUTTONS */
 button {
-  padding:10px;
-  margin:5px;
-  border:none;
-  border-radius:8px;
-  background:#1f5f5f;
-  color:white;
-  cursor:pointer;
+  padding: 8px 16px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: rgba(74,140,63,0.15);
+  color: var(--accent2);
+  cursor: pointer;
+  font-family: 'Crimson Text', serif;
+  font-size: 14px;
+  transition: all 0.15s;
 }
+
+button:hover { background: rgba(74,140,63,0.3); border-color: var(--accent2); }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-gold {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.1);
+  color: var(--gold2);
+}
+.btn-gold:hover { background: rgba(201,168,76,0.25); }
+
+/* LOCATION GRID */
+.location-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.location-btn {
+  padding: 14px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+  font-family: 'Crimson Text', serif;
+}
+
+.location-btn:hover { border-color: var(--accent); background: rgba(74,140,63,0.1); }
+
+.location-btn .loc-name {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  color: var(--text);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.location-btn .loc-desc {
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.location-btn .loc-icon { font-size: 22px; margin-bottom: 6px; display: block; }
+
+/* EXPEDITION ITEM */
+.exp-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.exp-timer { color: var(--gold2); font-family: 'Cinzel', serif; font-size: 13px; }
+.exp-done { color: var(--accent2); }
+
+/* HORSE CARDS */
+.horse-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.horse-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  transition: border-color 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+
+.horse-card:hover { border-color: var(--accent); }
+
+.horse-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--accent);
+}
+
+.horse-card.stars-1::before { background: var(--rare); }
+.horse-card.stars-2::before { background: var(--epic); }
+.horse-card.stars-3::before { background: linear-gradient(90deg, var(--gold), var(--gold2), var(--gold)); }
+
+.horse-name {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.horse-breed {
+  font-size: 11px;
+  color: var(--text2);
+  margin-bottom: 8px;
+}
+
+.horse-stars { color: var(--gold); font-size: 12px; margin-bottom: 8px; }
+
+.horse-stats { display: flex; flex-direction: column; gap: 4px; }
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.stat-row span:last-child { color: var(--text); }
+
+.stat-bar-wrap {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-top: 2px;
+  overflow: hidden;
+}
+
+.stat-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.horse-age {
+  font-size: 11px;
+  color: var(--text2);
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.horse-age.old { color: #c97c2a; }
+.horse-age.ancient { color: #c94a4a; }
+
+/* INVENTORY */
+.inv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.inv-item {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 13px;
+}
+
+.inv-item:hover { border-color: var(--gold); }
+.inv-item .inv-icon { font-size: 24px; display: block; margin-bottom: 6px; }
+.inv-item .inv-name { color: var(--text2); font-size: 12px; }
+
+/* LOG */
+#logBox {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 14px;
+  color: var(--accent2);
+  display: none;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn { from { opacity:0; transform: translateX(-50%) translateY(8px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+
+/* RANKING */
+.rank-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+}
+
+.rank-num {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  color: var(--text2);
+  width: 20px;
+}
+
+.rank-num.gold { color: var(--gold); }
+.rank-num.silver { color: #aaa; }
+.rank-num.bronze { color: #c97c2a; }
+
+.rank-name { flex: 1; color: var(--text); }
+.rank-score { color: var(--gold2); font-size: 12px; }
+
+/* DAILY LIMIT BAR */
+.limit-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.limit-pip {
+  width: 24px; height: 8px;
+  border-radius: 4px;
+  background: var(--border);
+  transition: background 0.3s;
+}
+
+.limit-pip.used { background: var(--accent); }
+
+/* EMPTY STATE */
+.empty {
+  text-align: center;
+  padding: 40px;
+  color: var(--text2);
+  font-size: 14px;
+}
+
+.empty .empty-icon { font-size: 40px; margin-bottom: 10px; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--panel); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 </style>
 </head>
-
 <body>
 
 <div class="container">
 
-<!-- GÓRA -->
-<div class="topbar">
-🐎 HAPPY HORSES
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title">🐎 HAPPY HORSES</div>
+    <div class="topbar-stats">
+      <div class="topbar-stat">🐴 Konie: <span id="horseCount">0</span></div>
+      <div class="topbar-stat">🎒 Ekwipunek: <span id="invCount">0</span></div>
+      <div class="topbar-stat">📅 Wyprawy dziś: <span id="dailyCount">0</span>/4</div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h3>Menu</h3>
+    <div class="menu-item active" id="menu-expedition" onclick="showSection('expedition')">🌍 Wyprawy</div>
+    <div class="menu-item" id="menu-stable" onclick="showSection('stable')">🐎 Stajnia</div>
+    <div class="menu-item" id="menu-inventory" onclick="showSection('inventory')">🎒 Ekwipunek</div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- WYPRAWY -->
+    <div id="expeditionSection">
+      <div class="section-title">🌍 Wyprawy</div>
+
+      <div class="card">
+        <h4>DZIENNY LIMIT</h4>
+        <div class="limit-bar" id="limitBar"></div>
+        <div style="font-size:13px; color:var(--text2)">Pozostało wypraw: <span id="remainingExp" style="color:var(--gold2)">4</span></div>
+      </div>
+
+      <div class="card">
+        <h4>WYBIERZ KRAINĘ</h4>
+        <div class="location-grid" id="locations"></div>
+      </div>
+
+      <div class="card">
+        <h4>AKTYWNE WYPRAWY</h4>
+        <div id="expeditionsDiv"><div class="empty"><div class="empty-icon">🗺️</div>Brak aktywnych wypraw</div></div>
+      </div>
+    </div>
+
+    <!-- STAJNIA -->
+    <div id="stableSection" style="display:none">
+      <div class="section-title">🐎 Stajnia</div>
+      <div id="horsesGrid" class="horse-grid"></div>
+    </div>
+
+    <!-- EKWIPUNEK -->
+    <div id="inventorySection" style="display:none">
+      <div class="section-title">🎒 Ekwipunek</div>
+      <div id="inventoryGrid" class="inv-grid"></div>
+    </div>
+
+  </div>
+
+  <!-- RIGHTBAR -->
+  <div class="rightbar">
+    <h3>🏆 Ranking</h3>
+    <div id="rankingList"></div>
+  </div>
+
 </div>
 
-<!-- LEWO -->
-<div class="sidebar">
-<h3>🐎 Gracz</h3>
-Konie: <span id="horseCount">0</span>
-
-<div class="menu-item" onclick="showSection('expedition')">🌍 Wyprawy</div>
-<div class="menu-item" onclick="showSection('stable')">🐎 Stajnia</div>
-<div class="menu-item" onclick="showSection('inventory')">🎒 Ekwipunek</div>
-</div>
-
-<!-- ŚRODEK -->
-<div class="main">
-
-<div id="expeditionSection">
-
-<div class="box">
-<h3>Wybierz krainę</h3>
-<div id="locations"></div>
-</div>
-
-<div class="box">
-<h3>Aktywne wyprawy</h3>
-<div id="expeditionsDiv"></div>
-</div>
-
-<div class="box">
-<div id="log"></div>
-</div>
-
-</div>
-
-<div id="stableSection" style="display:none;">
-<div id="horses"></div>
-</div>
-
-<div id="inventorySection" style="display:none;">
-<div id="inventory"></div>
-</div>
-
-</div>
-
-<!-- PRAWO -->
-<div class="rightbar">
-<h3>🏆 Ranking</h3>
-
-<div class="box">
-NPC 1<br>
-NPC 2
-</div>
-</div>
-
-</div>
+<div id="logBox"></div>
 
 <script>
-function showSection(s){
-document.getElementById("expeditionSection").style.display="none";
-document.getElementById("stableSection").style.display="none";
-document.getElementById("inventorySection").style.display="none";
+// =====================
+// DATABASE
+// =====================
+const HORSE_DATABASE = {
+  common: {
+    name: "Pospolite",
+    rarity: "common",
+    baseStats: { speed: 30, strength: 25, stamina: 28 },
+    breeds: ["Konik Polski", "Huculski", "Śląski", "Małopolski", "Wielkopolski"]
+  },
+  rare: {
+    name: "Szlachetne",
+    rarity: "rare",
+    baseStats: { speed: 50, strength: 45, stamina: 48 },
+    breeds: ["Arabski", "Lipicański", "Andaluzyjski", "Lusitano"]
+  },
+  epic: {
+    name: "Bojowe",
+    rarity: "epic",
+    baseStats: { speed: 70, strength: 68, stamina: 65 },
+    breeds: ["Destrier", "Frison", "Kladruber", "Azteca"]
+  },
+  legendary: {
+    name: "Legendarne",
+    rarity: "legendary",
+    baseStats: { speed: 90, strength: 88, stamina: 85 },
+    breeds: ["Pegaz", "Sleipnir", "Bucephalus", "Arion"]
+  }
+};
 
-if(s==="expedition") document.getElementById("expeditionSection").style.display="block";
-if(s==="stable") document.getElementById("stableSection").style.display="block";
-if(s==="inventory") document.getElementById("inventorySection").style.display="block";
+const LOCATIONS = [
+  { name: "Las",      icon: "🌲", desc: "Spokojny teren, dobre dla młodych koni", bestGroup: "common",    reward: "common" },
+  { name: "Pustynia", icon: "🏜️", desc: "Gorąco i piasek — wymagające warunki",   bestGroup: "rare",      reward: "rare" },
+  { name: "Góry",     icon: "⛰️", desc: "Strome zbocza, silne konie tylko",       bestGroup: "epic",      reward: "epic" },
+  { name: "Tundra",   icon: "❄️", desc: "Mróz i śnieg — tylko dla wytrwałych",    bestGroup: "legendary", reward: "legendary" }
+];
+
+const ITEMS_DATABASE = {
+  "Eliksir Odmłodzenia": { icon: "🧪", desc: "Odmładza konia o 30–100 dni", rarity: "common" },
+  "Złote Jabłko":        { icon: "🍎", desc: "Trwale zwiększa statystyki konia", rarity: "rare" },
+  "Amulet Szczęścia":    { icon: "🔮", desc: "Zwiększa szansę na rzadkiego konia", rarity: "rare" },
+  "Podkowa Mistrza":     { icon: "🧲", desc: "Znacznie zwiększa szybkość konia", rarity: "epic" }
+};
+
+// =====================
+// STATE
+// =====================
+let playerHorses = [];
+let expeditions = [];
+let inventory = [];
+
+// =====================
+// SAVE / LOAD
+// =====================
+function saveGame() {
+  localStorage.setItem("hh_horses", JSON.stringify(playerHorses));
+  localStorage.setItem("hh_expeditions", JSON.stringify(expeditions));
+  localStorage.setItem("hh_inventory", JSON.stringify(inventory));
 }
-</script>
 
-<script src="js/database.js"></script>
-<script src="js/horses.js"></script>
-<script src="js/items.js"></script>
-<script src="js/expedition.js"></script>
-<script src="js/game.js"></script>
-<script src="main.js"></script>
+function loadGame() {
+  playerHorses = JSON.parse(localStorage.getItem("hh_horses")) || [];
+  expeditions  = JSON.parse(localStorage.getItem("hh_expeditions")) || [];
+  inventory    = JSON.parse(localStorage.getItem("hh_inventory")) || [];
+}
+
+// =====================
+// HORSE GENERATION
+// =====================
+function rollStatBonus() {
+  let r = Math.random();
+  if (r < 0.50) return Math.random() * 10;
+  if (r < 0.80) return Math.random() * 20;
+  if (r < 0.95) return Math.random() * 35;
+  if (r < 0.99) return Math.random() * 45;
+  return Math.random() * 60;
+}
+
+function rollStars() {
+  let s = 0;
+  if (Math.random() < 0.02) {
+    s++;
+    if (Math.random() < 0.01) {
+      s++;
+      if (Math.random() < 0.005) s++;
+    }
+  }
+  return s;
+}
+
+function generateHorse(rarityOverride) {
+  let keys = Object.keys(HORSE_DATABASE);
+  let key;
+  if (rarityOverride && HORSE_DATABASE[rarityOverride]) {
+    key = rarityOverride;
+  } else {
+    // weighted: common 60%, rare 28%, epic 10%, legendary 2%
+    let r = Math.random();
+    if (r < 0.60) key = "common";
+    else if (r < 0.88) key = "rare";
+    else if (r < 0.98) key = "epic";
+    else key = "legendary";
+  }
+  let g = HORSE_DATABASE[key];
+  let breed = g.breeds[Math.floor(Math.random() * g.breeds.length)];
+  let stars = rollStars();
+  let bonus = stars * 12;
+
+  return {
+    id: Date.now() + Math.random(),
+    name: breed,
+    group: key,
+    rarity: g.rarity,
+    stars,
+    born: Date.now(),
+    bonusApplied: null,
+    stats: {
+      speed:    Math.round(g.baseStats.speed    + rollStatBonus() + bonus),
+      strength: Math.round(g.baseStats.strength + rollStatBonus() + bonus),
+      stamina:  Math.round(g.baseStats.stamina  + rollStatBonus() + bonus)
+    }
+  };
+}
+
+function getHorseAgeDays(h) {
+  return Math.floor((Date.now() - h.born) / 86400000);
+}
+
+function applyGrowth(h) {
+  if (h.bonusApplied) return;
+  if (getHorseAgeDays(h) > 7) {
+    let roll = Math.random();
+    if (roll < 0.4) { h.stats.speed += 3; h.bonusApplied = "+szybkość"; }
+    else if (roll < 0.7) { h.stats.strength += 3; h.bonusApplied = "+siła"; }
+    else if (roll < 0.9) { h.stats.stamina += 3; h.bonusApplied = "+wytrzymałość"; }
+    else h.bonusApplied = "brak";
+  }
+}
+
+// =====================
+// DAILY LIMIT
+// =====================
+function getTodayKey() {
+  let d = new Date();
+  return `d_${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+function getDailyCount() {
+  return parseInt(localStorage.getItem(getTodayKey())) || 0;
+}
+
+function addDaily() {
+  localStorage.setItem(getTodayKey(), getDailyCount() + 1);
+}
+
+// =====================
+// EXPEDITION
+// =====================
+const EXPEDITION_TIME = 60000;
+
+function startExpedition(i) {
+  if (getDailyCount() >= 4) { log("⚠️ Osiągnięto dzienny limit wypraw!"); return; }
+  if (playerHorses.length === 0) { log("⚠️ Nie masz żadnych koni!"); return; }
+
+  expeditions.push({
+    end: Date.now() + EXPEDITION_TIME,
+    locationIndex: i,
+    done: false
+  });
+  addDaily();
+  saveGame();
+  log(`🌍 Wyprawa do ${LOCATIONS[i].name} rozpoczęta!`);
+}
+
+function finishExpedition(e) {
+  let loc = LOCATIONS[e.locationIndex];
+  let r = Math.random() * 100;
+
+  if (r < 25) {
+    let newHorse = generateHorse(loc.reward);
+    playerHorses.push(newHorse);
+    log(`🐴 Nowy koń: ${newHorse.name} (${HORSE_DATABASE[newHorse.group].name})!`);
+  } else if (r < 50) {
+    let itemKeys = Object.keys(ITEMS_DATABASE);
+    let item = itemKeys[Math.floor(Math.random() * itemKeys.length)];
+    inventory.push({ name: item, obtained: Date.now() });
+    log(`🎒 Znaleziono: ${item}!`);
+  } else if (r < 65) {
+    // stat boost to random horse
+    if (playerHorses.length > 0) {
+      let h = playerHorses[Math.floor(Math.random() * playerHorses.length)];
+      h.stats.speed += 2; h.stats.stamina += 1;
+      log(`⚡ ${h.name} stał się silniejszy po wyprawie!`);
+    }
+  } else {
+    log(`📜 Wyprawa do ${loc.name} zakończona — nic nie znaleziono.`);
+  }
+
+  e.done = true;
+  saveGame();
+}
+
+// =====================
+// ITEMS
+// =====================
+function useItem(idx) {
+  let item = inventory[idx];
+  if (!item) return;
+
+  if (item.name === "Eliksir Odmłodzenia") {
+    if (playerHorses.length === 0) { log("Brak koni!"); return; }
+    let h = playerHorses[0];
+    let age = getHorseAgeDays(h);
+    let reduce = Math.min(120, Math.floor(age / 3) + 20);
+    h.born += reduce * 86400000;
+    inventory.splice(idx, 1);
+    saveGame();
+    log(`🧪 Odmłodzono ${h.name} o ${reduce} dni!`);
+  } else if (item.name === "Złote Jabłko") {
+    if (playerHorses.length === 0) { log("Brak koni!"); return; }
+    let h = playerHorses[0];
+    h.stats.speed += 5; h.stats.strength += 5; h.stats.stamina += 5;
+    inventory.splice(idx, 1);
+    saveGame();
+    log(`🍎 ${h.name} dostał Złote Jabłko! +5 do wszystkich statystyk!`);
+  } else if (item.name === "Podkowa Mistrza") {
+    if (playerHorses.length === 0) { log("Brak koni!"); return; }
+    let h = playerHorses[0];
+    h.stats.speed += 15;
+    inventory.splice(idx, 1);
+    saveGame();
+    log(`🧲 ${h.name}: +15 szybkości!`);
+  } else {
+    log(`🔮 ${item.name} — wkrótce dostępne!`);
+  }
+  renderAll();
+}
+
+// =====================
+// RANKING (local NPC)
+// =====================
+function buildRanking() {
+  let npcs = [
+    { name: "Marek K.",   score: 1200 },
+    { name: "Zuzanna P.", score: 980 },
+    { name: "Tomasz W.",  score: 750 },
+    { name: "Ania M.",    score: 610 }
+  ];
+
+  let playerScore = playerHorses.reduce((s, h) => s + h.stats.speed + h.stats.strength + h.stats.stamina, 0);
+  let entries = [{ name: "Ty", score: Math.round(playerScore), isPlayer: true }, ...npcs];
+  entries.sort((a, b) => b.score - a.score);
+
+  let list = document.getElementById("rankingList");
+  list.innerHTML = "";
+
+  entries.forEach((e, i) => {
+    let div = document.createElement("div");
+    div.className = "rank-item";
+    if (e.isPlayer) div.style.borderColor = "var(--accent)";
+
+    let numClass = i === 0 ? "gold" : i === 1 ? "silver" : i === 2 ? "bronze" : "";
+    div.innerHTML = `
+      <div class="rank-num ${numClass}">#${i+1}</div>
+      <div class="rank-name">${e.isPlayer ? `<strong style="color:var(--accent2)">${e.name}</strong>` : e.name}</div>
+      <div class="rank-score">${e.score} pkt</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// =====================
+// RENDER
+// =====================
+function renderLimitBar() {
+  let used = getDailyCount();
+  let bar = document.getElementById("limitBar");
+  bar.innerHTML = "";
+  for (let i = 0; i < 4; i++) {
+    let pip = document.createElement("div");
+    pip.className = "limit-pip" + (i < used ? " used" : "");
+    bar.appendChild(pip);
+  }
+  document.getElementById("remainingExp").textContent = Math.max(0, 4 - used);
+  document.getElementById("dailyCount").textContent = used;
+}
+
+function renderLocations() {
+  let el = document.getElementById("locations");
+  el.innerHTML = "";
+  LOCATIONS.forEach((l, i) => {
+    let b = document.createElement("div");
+    b.className = "location-btn";
+    b.innerHTML = `<span class="loc-icon">${l.icon}</span><span class="loc-name">${l.name}</span><span class="loc-desc">${l.desc}</span>`;
+    b.onclick = () => startExpedition(i);
+    el.appendChild(b);
+  });
+}
+
+function renderExpeditions() {
+  let el = document.getElementById("expeditionsDiv");
+  let active = expeditions.filter(e => !e.done);
+  if (active.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🗺️</div>Brak aktywnych wypraw</div>`;
+    return;
+  }
+  el.innerHTML = "";
+  active.forEach(e => {
+    let t = e.end - Date.now();
+    if (t <= 0) { finishExpedition(e); return; }
+    let div = document.createElement("div");
+    div.className = "exp-item";
+    let loc = LOCATIONS[e.locationIndex];
+    div.innerHTML = `
+      <span>${loc.icon} ${loc.name}</span>
+      <span class="exp-timer">${Math.ceil(t/1000)}s</span>
+    `;
+    el.appendChild(div);
+  });
+}
+
+function renderHorses() {
+  // Remove dead horses (>365 days)
+  playerHorses = playerHorses.filter(h => getHorseAgeDays(h) < 365);
+
+  let el = document.getElementById("horsesGrid");
+  if (playerHorses.length === 0) {
+    el.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🐴</div>Brak koni — idź na wyprawę!</div>`;
+    return;
+  }
+  el.innerHTML = "";
+  playerHorses.forEach(h => {
+    applyGrowth(h);
+    let age = getHorseAgeDays(h);
+    let ageClass = age > 300 ? "ancient" : age > 200 ? "old" : "";
+    let maxStat = 150;
+    let starsClass = h.stars > 0 ? `stars-${Math.min(h.stars, 3)}` : "";
+
+    let card = document.createElement("div");
+    card.className = `horse-card ${starsClass}`;
+    card.innerHTML = `
+      <div class="horse-name">${h.name}</div>
+      <div class="horse-breed">${HORSE_DATABASE[h.group].name}</div>
+      ${h.stars > 0 ? `<div class="horse-stars">${"⭐".repeat(h.stars)}</div>` : ""}
+      <div class="horse-stats">
+        <div class="stat-row"><span>⚡ Szybkość</span><span>${h.stats.speed}</span></div>
+        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(100,(h.stats.speed/maxStat)*100)}%"></div></div>
+        <div class="stat-row"><span>💪 Siła</span><span>${h.stats.strength}</span></div>
+        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(100,(h.stats.strength/maxStat)*100)}%;background:var(--gold)"></div></div>
+        <div class="stat-row"><span>❤️ Wytrzymałość</span><span>${h.stats.stamina}</span></div>
+        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(100,(h.stats.stamina/maxStat)*100)}%;background:var(--rare)"></div></div>
+      </div>
+      <div class="horse-age ${ageClass}">🎂 ${age} dni ${h.bonusApplied ? `· ${h.bonusApplied}` : ""}</div>
+    `;
+    el.appendChild(card);
+  });
+
+  document.getElementById("horseCount").textContent = playerHorses.length;
+}
+
+function renderInventory() {
+  let el = document.getElementById("inventoryGrid");
+  document.getElementById("invCount").textContent = inventory.length;
+  if (inventory.length === 0) {
+    el.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🎒</div>Ekwipunek jest pusty</div>`;
+    return;
+  }
+  el.innerHTML = "";
+  inventory.forEach((item, idx) => {
+    let data = ITEMS_DATABASE[item.name] || { icon: "📦", desc: "" };
+    let div = document.createElement("div");
+    div.className = "inv-item";
+    div.innerHTML = `<span class="inv-icon">${data.icon}</span><span class="inv-name">${item.name}</span>`;
+    div.onclick = () => { useItem(idx); };
+    el.appendChild(div);
+  });
+}
+
+function renderAll() {
+  renderLimitBar();
+  renderExpeditions();
+  renderHorses();
+  renderInventory();
+  buildRanking();
+  saveGame();
+}
+
+// =====================
+// UI
+// =====================
+function showSection(s) {
+  ["expedition","stable","inventory"].forEach(sec => {
+    document.getElementById(sec + "Section").style.display = "none";
+    document.getElementById("menu-" + sec).classList.remove("active");
+  });
+  document.getElementById(s + "Section").style.display = "block";
+  document.getElementById("menu-" + s).classList.add("active");
+}
+
+let logTimer;
+function log(t) {
+  let el = document.getElementById("logBox");
+  el.textContent = t;
+  el.style.display = "block";
+  clearTimeout(logTimer);
+  logTimer = setTimeout(() => { el.style.display = "none"; }, 3000);
+}
+
+// =====================
+// INIT
+// =====================
+document.addEventListener("DOMContentLoaded", () => {
+  loadGame();
+
+  if (playerHorses.length === 0) {
+    playerHorses.push(generateHorse("common"));
+    saveGame();
+  }
+
+  renderLocations();
+  renderAll();
+
+  setInterval(() => {
+    expeditions.forEach(e => {
+      if (!e.done && Date.now() >= e.end) finishExpedition(e);
+    });
+    renderAll();
+  }, 1000);
+});
+</script>
 
 </body>
 </html>
