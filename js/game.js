@@ -1,34 +1,61 @@
-let playerHorses=[];
-let expeditions=[];
+// =====================
+// STATE
+// =====================
+let playerHorses = [];
+let expeditions  = [];
+let inventory    = [];
+let gold         = 0;
 
-function loadGame(){
-playerHorses=JSON.parse(localStorage.getItem("horses"))||[];
-expeditions=JSON.parse(localStorage.getItem("expeditions"))||[];
+// =====================
+// SAVE / LOAD
+// =====================
+function saveGame() {
+  localStorage.setItem("hh_horses",      JSON.stringify(playerHorses));
+  localStorage.setItem("hh_expeditions", JSON.stringify(expeditions));
+  localStorage.setItem("hh_inventory",   JSON.stringify(inventory));
+  localStorage.setItem("hh_gold",        gold);
 }
 
-function saveGame(){
-localStorage.setItem("horses",JSON.stringify(playerHorses));
-localStorage.setItem("expeditions",JSON.stringify(expeditions));
+function loadGame() {
+  playerHorses = JSON.parse(localStorage.getItem("hh_horses"))      || [];
+  expeditions  = JSON.parse(localStorage.getItem("hh_expeditions")) || [];
+  inventory    = JSON.parse(localStorage.getItem("hh_inventory"))   || [];
+  gold         = parseInt(localStorage.getItem("hh_gold"))          || 0;
 }
 
-function render(){
-expeditionsDiv.innerHTML="";
-
-let info=document.createElement("div");
-info.innerText="Pozostało: "+(4-getDailyCount());
-expeditionsDiv.appendChild(info);
-
-expeditions.forEach(e=>{
-let d=document.createElement("div");
-
-if(!e.done){
-let t=e.end-Date.now();
-if(t<=0)finishExpedition(e);
-else d.innerText=e.location.name+" "+Math.floor(t/1000)+"s";
+// =====================
+// RENDER ALL
+// =====================
+function renderAll() {
+  renderLimitBar();
+  renderExpeditions();
+  renderHorses();
+  renderInventory();
+  renderShop();
+  buildRanking();
+  saveGame();
 }
 
-expeditionsDiv.appendChild(d);
-});
+// =====================
+// UI NAVIGATION
+// =====================
+function showSection(s) {
+  ["expedition", "stable", "inventory", "shop"].forEach(sec => {
+    document.getElementById(sec + "Section").style.display = "none";
+    document.getElementById("menu-" + sec).classList.remove("active");
+  });
+  document.getElementById(s + "Section").style.display = "block";
+  document.getElementById("menu-" + s).classList.add("active");
+}
 
-renderHorses();
+// =====================
+// LOG
+// =====================
+let logTimer;
+function log(t) {
+  let el = document.getElementById("logBox");
+  el.textContent = t;
+  el.style.display = "block";
+  clearTimeout(logTimer);
+  logTimer = setTimeout(() => { el.style.display = "none"; }, 3000);
 }
