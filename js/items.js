@@ -93,12 +93,15 @@ function applyItemToHorse(itemIdx, horseIdx) {
 // LOOT BOX
 // =====================
 function openLootBox(itemIdx) {
-  // 66% koń, 14% eliksir odmłodzenia, 20% eliksir statystyki
   let r = Math.random() * 100;
   if (r < 66) {
-    let h = generateHorse();
-    playerHorses.push(h);
-    log(`📦 Skrzynka: Nowy koń — ${h.name}!`);
+    if (playerHorses.length >= STABLE_LIMIT) {
+      log(`📦 Skrzynka: Znaleziono konia, ale stajnia pełna! (${STABLE_LIMIT}/${STABLE_LIMIT})`);
+    } else {
+      let h = generateHorse();
+      playerHorses.push(h);
+      log(`📦 Skrzynka: Nowy koń — ${h.name}!`);
+    }
   } else if (r < 80) {
     inventory.push({ name: "Eliksir Odmłodzenia", obtained: Date.now() });
     log(`📦 Skrzynka: Eliksir Odmłodzenia! 🧪`);
@@ -130,8 +133,14 @@ function renderInventory() {
     let data = ITEMS_DATABASE[item.name] || { icon: "📦", desc: "" };
     let div  = document.createElement("div");
     div.className = "inv-item";
-    div.innerHTML = `<span class="inv-icon">${data.icon}</span><span class="inv-name">${item.name}</span>`;
-    div.onclick   = () => openHorsePicker(idx);
+    div.innerHTML = `
+      <span class="inv-icon">${data.icon}</span>
+      <span class="inv-name">${item.name}</span>
+      <div style="display:flex;gap:4px;margin-top:6px">
+        <button style="flex:1;font-size:11px;padding:4px 6px" onclick="openHorsePicker(${idx})">Użyj</button>
+        <button style="flex:1;font-size:11px;padding:4px 6px;border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1)" onclick="openListItem(${idx})">🏪</button>
+      </div>
+    `;
     el.appendChild(div);
   });
 }

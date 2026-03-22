@@ -5,6 +5,9 @@ let playerHorses = [];
 let expeditions  = [];
 let inventory    = [];
 let gold         = 0;
+let market       = []; // oferty na rynku: { id, sellerId, sellerName, type, item/horse, price, listedAt }
+
+const STABLE_LIMIT = 8;
 
 // =====================
 // SAVE / LOAD
@@ -14,6 +17,7 @@ function saveGame() {
   localStorage.setItem("hh_expeditions", JSON.stringify(expeditions));
   localStorage.setItem("hh_inventory",   JSON.stringify(inventory));
   localStorage.setItem("hh_gold",        gold);
+  localStorage.setItem("hh_market",      JSON.stringify(market));
 }
 
 function loadGame() {
@@ -21,6 +25,10 @@ function loadGame() {
   expeditions  = JSON.parse(localStorage.getItem("hh_expeditions")) || [];
   inventory    = JSON.parse(localStorage.getItem("hh_inventory"))   || [];
   gold         = parseInt(localStorage.getItem("hh_gold"))          || 0;
+  market       = JSON.parse(localStorage.getItem("hh_market"))      || [];
+
+  // Jeśli rynek pusty — wygeneruj oferty NPC na start
+  if (market.length === 0) seedMarket();
 }
 
 // =====================
@@ -32,6 +40,7 @@ function renderAll() {
   renderHorses();
   renderInventory();
   renderShop();
+  renderMarket();
   buildRanking();
   saveGame();
 }
@@ -40,7 +49,7 @@ function renderAll() {
 // UI NAVIGATION
 // =====================
 function showSection(s) {
-  ["expedition", "stable", "inventory", "shop"].forEach(sec => {
+  ["expedition", "stable", "inventory", "shop", "market"].forEach(sec => {
     document.getElementById(sec + "Section").style.display = "none";
     document.getElementById("menu-" + sec).classList.remove("active");
   });

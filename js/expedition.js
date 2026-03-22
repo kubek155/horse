@@ -43,9 +43,13 @@ function finishExpedition(e) {
 
   // koń 7% | skrzynka 3% | jedzenie 10% | reszta nic
   if (r < 7) {
-    let newHorse = generateHorse(loc.reward);
-    playerHorses.push(newHorse);
-    log(`🐴 Nowy koń: ${newHorse.name} (${HORSE_DATABASE[newHorse.group].name})!`);
+    if (playerHorses.length >= STABLE_LIMIT) {
+      log(`🐴 Znaleziono konia, ale stajnia pełna! (${STABLE_LIMIT}/${STABLE_LIMIT})`);
+    } else {
+      let newHorse = generateHorse(loc.reward);
+      playerHorses.push(newHorse);
+      log(`🐴 Nowy koń: ${newHorse.name} (${HORSE_DATABASE[newHorse.group].name})!`);
+    }
   } else if (r < 10) {
     inventory.push({ name: "Skrzynka z Łupem", obtained: Date.now() });
     log(`📦 Znaleziono Skrzynkę z Łupem!`);

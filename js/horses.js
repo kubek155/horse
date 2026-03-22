@@ -98,11 +98,18 @@ function feedHorse(horseIdx, foodName) {
 // RENDER HORSES
 // =====================
 function renderHorses() {
-  // Usuń martwe konie (>365 dni)
   playerHorses = playerHorses.filter(h => getHorseAgeDays(h) < 365);
 
-  let el = document.getElementById("horsesGrid");
-  if (playerHorses.length === 0) {
+  let el    = document.getElementById("horsesGrid");
+  let count = playerHorses.length;
+
+  let countEl = document.getElementById("stableCountDisplay");
+  if (countEl) {
+    countEl.textContent = `${count} / ${STABLE_LIMIT}`;
+    countEl.style.color = count >= STABLE_LIMIT ? "#c94a4a" : "var(--gold2)";
+  }
+
+  if (count === 0) {
     el.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🐴</div>Brak koni — idź na wyprawę!</div>`;
     document.getElementById("horseCount").textContent = 0;
     return;
@@ -111,7 +118,7 @@ function renderHorses() {
   el.innerHTML = "";
   const maxStat = 150;
 
-  playerHorses.forEach(h => {
+  playerHorses.forEach((h, idx) => {
     applyGrowth(h);
 
     let age         = getHorseAgeDays(h);
@@ -145,11 +152,12 @@ function renderHorses() {
         </div>
       </div>
       <div class="horse-age ${ageClass}">🎂 ${age} dni ${h.bonusApplied ? `· ${h.bonusApplied}` : ""}</div>
+      <button class="btn-market" onclick="openListHorse(${idx})">🏪 Wystaw na rynek</button>
     `;
     el.appendChild(card);
   });
 
-  document.getElementById("horseCount").textContent = playerHorses.length;
+  document.getElementById("horseCount").textContent = count;
 }
 
 // =====================

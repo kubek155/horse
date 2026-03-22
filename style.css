@@ -417,3 +417,55 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 ::-webkit-scrollbar       { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--panel); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ===================== MARKET ===================== */
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.market-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.15s;
+}
+
+.market-card:hover  { border-color: var(--gold); }
+.market-card.market-own { border-color: #7b5ea7; }
+
+.mc-header { display: flex; align-items: flex-start; gap: 12px; }
+.mc-icon   { font-size: 26px; flex-shrink: 0; }
+.mc-name   { font-family: 'Cinzel', serif; font-size: 13px; color: var(--text); }
+.mc-sub    { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.mc-stats  { font-size: 12px; color: var(--text2); padding: 6px 10px; background: var(--panel2); border-radius: 6px; }
+.mc-seller { margin-left: auto; font-size: 11px; color: var(--text2); white-space: nowrap; }
+.mc-badge  { margin-left: auto; font-size: 11px; color: #b090e0; background: rgba(123,94,167,0.15); padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+.mc-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.mc-price  { font-family: 'Cinzel', serif; font-size: 15px; color: var(--gold2); }
+
+.market-filter {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.market-filter button         { font-size: 13px; padding: 6px 14px; }
+.market-filter button.active  { background: rgba(74,140,63,0.3); border-color: var(--accent2); color: var(--accent2); }
+
+/* Przycisk wystawiania w stajni */
+.btn-market {
+  margin-top: 10px;
+  width: 100%;
+  font-size: 12px;
+  border-color: #7b5ea7;
+  color: #b090e0;
+  background: rgba(123,94,167,0.1);
+}
+
+.btn-market:hover { background: rgba(123,94,167,0.25); border-color: #b090e0; }
