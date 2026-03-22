@@ -402,14 +402,16 @@ function renderExpeditions() {
     let existing   = document.getElementById(existingId);
 
     if (existing) {
-      // Tylko aktualizuj timer i pasek
       let timerEl = existing.querySelector(".exp-card-timer");
       let barEl   = existing.querySelector(".exp-card-bar");
       let horseEl = existing.querySelector(".exp-card-horse");
+      let dustEl  = existing.querySelector("[id^='expDustWrap']");
+      let newLeft = Math.max(2, Math.min(88, pct)) + "%";
       if (timerEl) timerEl.textContent = Math.ceil(t/1000) + "s";
-      if (barEl)   barEl.style.width = pct + "%";
-      // Przesuń konia wzdłuż paska
-      if (horseEl) horseEl.style.left = Math.max(2, Math.min(88, pct)) + "%";
+      if (barEl)   { barEl.style.width = pct + "%"; barEl.style.transition = "width 1s linear"; }
+      // Przesuń konia — używaj style.left bezpośrednio
+      if (horseEl) { horseEl.style.left = newLeft; horseEl.style.transition = "left 1s linear"; }
+      if (dustEl)  { dustEl.style.left  = newLeft; dustEl.style.transition  = "left 1s linear"; }
       return;
     }
 

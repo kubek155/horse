@@ -245,6 +245,8 @@ function generateHorse(rarityHint) {
   let itemSlots     = rollItemSlots(rarity);
   let equippedItems = Array(itemSlots).fill(null);
 
+  let gender = Math.random() < 0.5 ? "male" : "female";
+
   return {
     id:           Date.now() + Math.random(),
     name:         breed.name,
@@ -255,6 +257,7 @@ function generateHorse(rarityHint) {
     bloodline:    breed.bloodline,
     group:        rarity,
     rarity,
+    gender,
     stars,
     born:         Date.now(),
     lastFed:      Date.now(),
@@ -422,6 +425,15 @@ function breedHorses(idxA, idxB) {
   inventory.splice(appleIdx, 1); // zużyj jabłko
 
   let a = playerHorses[idxA], b = playerHorses[idxB];
+
+  // Sprawdź płeć — potrzeba samca i samicy
+  let gA = a.gender || "male", gB = b.gender || "female";
+  if (gA === gB) {
+    let icon = gA === "male" ? "♂" : "♀";
+    log(`⚠️ Do rozmnażania potrzeba konia ♂ i klaczy ♀! Oba konie to ${icon}.`);
+    return;
+  }
+
   const rarityTier = { common:0, uncommon:1, rare:2, epic:3, legendary:4, mythic:5 };
   const tierRarity = ["common","uncommon","rare","epic","legendary","mythic"];
   let tierA = rarityTier[a.rarity]||0, tierB = rarityTier[b.rarity]||0;
@@ -444,13 +456,19 @@ function breedHorses(idxA, idxB) {
   let cap       = 200;
 
   function inherit(sA, sB, base) {
-    let v = sA*0.4 + sB*0.4 + base*0.2 + (Math.random()-0.5)*8;
+    // Bazowa wartość z rodziców i rasy
+    let parentAvg = sA*0.4 + sB*0.4 + base*0.2;
+    // Jeśli dziecko jest wyższej rzadkości — podnieś do minimum zakresu
+    let minVal = cRange.lo;
+    let v = Math.max(parentAvg, minVal + (Math.random() * (cRange.hi - minVal) * 0.5));
+    v += (Math.random()-0.5) * 8;
     if (Math.random() < 0.05) v *= 1.1;
     return Math.max(cRange.lo, Math.min(cap, Math.round(v)));
   }
 
   let { bonuses: childBonuses, roll: cbRoll } = calcTypeBonuses(breed.type);
 
+  let childGender = Math.random() < 0.5 ? "male" : "female";
   let child = {
     id:           Date.now()+Math.random(),
     name:         breed.name,
@@ -461,6 +479,7 @@ function breedHorses(idxA, idxB) {
     bloodline:    childBloodline,
     group:        childRarity,
     rarity:       childRarity,
+    gender:       childGender,
     stars,
     born:         Date.now(),
     lastFed:      Date.now(),
@@ -526,10 +545,12 @@ function renderBreedModal() {
     let col=RARITY_COLORS[h.rarity]||"#8aab84";
     let btn=document.createElement("div");
     btn.className="breed-horse-btn"; btn.id=`breedBtn_${i}`;
+    let genderIcon = h.gender==="male" ? "♂" : "♀";
+    let genderColor = h.gender==="male" ? "#6ab0e0" : "#e080a0";
     btn.innerHTML=`
       <span style="font-size:18px">${h.flag||"🐴"}</span>
       <div style="flex:1">
-        <div style="font-family:'Cinzel',serif;font-size:12px;color:${col}">${h.name}${h.stars>0?" "+"⭐".repeat(h.stars):""}</div>
+        <div style="font-family:'Cinzel',serif;font-size:12px;color:${col}">${h.name}${h.stars>0?" "+"⭐".repeat(h.stars):""} <span style="color:${genderColor}">${genderIcon}</span></div>
         <div style="font-size:11px;color:var(--text2)">${BLOODLINE_LABELS[h.bloodline]||""} · ⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck}</div>
       </div>`;
     btn.onclick=()=>selectBreedHorse(i);
@@ -563,7 +584,11 @@ function selectBreedHorse(idx) {
       btn.style.opacity=(i===breedFirstIdx||i===idx)?"1":"0.4";
       btn.style.borderColor=(i===breedFirstIdx||i===idx)?"var(--gold)":"";
     });
-    document.getElementById("breedStatus").innerHTML=`🐴 <strong style="color:var(--gold2)">${a.name}</strong> × <strong style="color:var(--gold2)">${bh.name}</strong>`;
+    let gA2 = a.gender||"male", gB2 = bh.gender||"female";
+    let genderOk = gA2 !== gB2;
+    let gWarn = genderOk ? "" : ` <span style="color:#c94a4a;font-size:11px">⚠️ ta sama płeć!</span>`;
+    document.getElementById("breedStatus").innerHTML=`🐴 <strong style="color:var(--gold2)">${a.name}</strong> ${a.gender==="male"?"♂":"♀"} × <strong style="color:var(--gold2)">${bh.name}</strong> ${bh.gender==="male"?"♂":"♀"}${gWarn}`;
+    document.getElementById("breedConfirmBtn").disabled = !genderOk;
     document.getElementById("breedConfirmBtn").disabled=false;
     document.getElementById("breedConfirmBtn").onclick=()=>breedHorses(breedFirstIdx,idx);
   }
@@ -654,7 +679,7 @@ function renderHorses() {
         <span style="font-size:20px">${h.flag||"🐴"}</span>
         <span style="font-size:10px;background:${rarCol}22;padding:2px 7px;border-radius:6px;color:${rarCol};border:1px solid ${rarCol}55">${RARITY_LABELS[h.rarity]||h.rarity}</span>
       </div>
-      <div class="horse-name" style="color:${rarCol}">${h.name}</div>
+      <div class="horse-name" style="color:${rarCol}">${h.name} <span style="font-size:13px">${h.gender==="male"?"♂":"♀"}</span></div>
       <div class="horse-breed">${h.type||""} · ${bl}</div>
       ${h.injured ? `<div style="margin:4px 0 6px;padding:4px 8px;background:rgba(201,74,74,0.12);border:1px solid rgba(201,74,74,0.4);border-radius:6px;font-size:11px;color:#e08080">
         🤕 Ranny — użyj Bandaża z Ekwipunku

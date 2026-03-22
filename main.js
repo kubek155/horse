@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
       lastFed:      Date.now(),
       bonusApplied: null,
       isStarter:    true,
+      gender:       "male",
       stats:        { speed:38, strength:32, stamina:35, luck:8 }
     });
     saveGame();
