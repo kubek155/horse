@@ -65,7 +65,7 @@ async function resetPassword(email) {
 async function logout() {
   await signOut(auth);
   currentUser = null;
-  renderFirebaseStatus();
+  // onAuthStateChanged wyśle hh_logged_out event automatycznie
 }
 
 // Nasłuchuj zmian auth
@@ -73,30 +73,24 @@ onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   if (user) {
     // Załaduj profil z Firestore
-    let snap = await getDoc(doc(db,"players",user.uid));
-    if (snap.exists()) {
-      let data = snap.data();
-      if (data.nick) localStorage.setItem("hh_nick", data.nick);
-    }
-    // Jeśli Google — ustaw nick z displayName jeśli brak
+    try {
+      let snap = await getDoc(doc(db,"players",user.uid));
+      if (snap.exists()) {
+        let data = snap.data();
+        if (data.nick) localStorage.setItem("hh_nick", data.nick);
+      }
+    } catch(e) { console.warn("Firestore read error:", e); }
+
     if (!user.isAnonymous && user.displayName && !localStorage.getItem("hh_nick")) {
       localStorage.setItem("hh_nick", user.displayName.split(" ")[0]);
     }
-    await savePlayerProfile();
-    if (typeof initGlobalMarket === "function") initGlobalMarket();
-    // Zamknij ekran logowania
-    if (typeof closeMandatoryLogin === "function") closeMandatoryLogin();
-    // Odśwież cały UI natychmiast
-    if (typeof renderAll === "function") setTimeout(renderAll, 100);
-    if (typeof renderFirebaseStatus === "function") setTimeout(renderFirebaseStatus, 100);
-    if (typeof initGlobalMarket === "function") setTimeout(initGlobalMarket, 500);
+    try { await savePlayerProfile(); } catch(e) {}
+
+    // Powiadom resztę gry przez event (moduł ES ma osobny scope)
+    window.dispatchEvent(new CustomEvent("hh_logged_in", { detail: { uid: user.uid } }));
   } else {
-    // Wylogowany — pokaż ekran logowania (z opóźnieniem żeby gra zdążyła się załadować)
-    if (typeof showMandatoryLogin === "function") {
-      setTimeout(showMandatoryLogin, 800);
-    }
+    window.dispatchEvent(new CustomEvent("hh_logged_out"));
   }
-  if (typeof renderFirebaseStatus === "function") renderFirebaseStatus();
 });
 
 function getPlayerId()   { return currentUser?.uid || localStorage.getItem("hh_player_id") || "anon"; }

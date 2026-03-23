@@ -363,16 +363,32 @@ async function renderGlobalRanking() {
   }).join("");
 }
 
-// Auto-init — firebase.js sam obsługuje logowanie przez onAuthStateChanged
-// Tutaj tylko renderujemy status gdy gra jest gotowa
-document.addEventListener("DOMContentLoaded",()=>{
-  // Status Firebase w UI — odśwież co sekundę przez chwilę
-  let statusChecks = 0;
-  let statusInterval = setInterval(()=>{
-    statusChecks++;
-    if (typeof renderFirebaseStatus === "function") renderFirebaseStatus();
-    if (statusChecks > 10) clearInterval(statusInterval);
-  }, 500);
+// Nasłuchuj eventów z firebase.js (moduł ES komunikuje się przez window events)
+window.addEventListener("hh_logged_in", (e) => {
+  // Zalogowano — zamknij overlay i odśwież UI
+  closeMandatoryLogin();
+  renderFirebaseStatus();
+  initGlobalMarket();
+  setTimeout(renderAll, 200);
+  log(`✅ Zalogowano jako ${window.FB?.getPlayerNick()||"Gracz"}!`);
+});
+
+window.addEventListener("hh_logged_out", () => {
+  // Wylogowano — pokaż ekran logowania
+  renderFirebaseStatus();
+  setTimeout(showMandatoryLogin, 300);
+});
+
+// Auto-init przy załadowaniu
+document.addEventListener("DOMContentLoaded", () => {
+  // Odśwież status co 1s przez pierwsze 10s (czekamy na Firebase)
+  let checks = 0;
+  let si = setInterval(() => {
+    checks++;
+    renderFirebaseStatus();
+    if (window.FB) { clearInterval(si); }
+    else if (checks > 10) clearInterval(si);
+  }, 1000);
 });
 
 function showMandatoryLogin() {
