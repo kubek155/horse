@@ -167,6 +167,12 @@ function finishExpedition(e) {
         // Koń trafia do transportera
         inventory.push({ name:"Transporter Konia", obtained:Date.now(), horse:h });
         log(`🧳 Stajnia pełna! ${h.flag} ${h.name} czeka w Transporterze w Ekwipunku.`);
+        if (typeof addDropHistory === "function") addDropHistory({
+          icon:   "🧳",
+          name:   h.name + " (transporter)",
+          source: `${loc.icon} ${loc.name}`,
+          color:  RARITY_COLORS[h.rarity]||"#c97c2a",
+        });
       } else {
         playerHorses.push(h);
         log(`🐴 Nowy koń: ${h.name} (${HORSE_DATABASE[h.group]?.name||h.rarity})!`);
@@ -178,6 +184,7 @@ function finishExpedition(e) {
           icon: h.flag||"🐴", name: h.name,
           source: `${loc.icon} ${loc.name}`,
           color: RARITY_COLORS[h.rarity]||"#8aab84",
+          chance: `~${horseChance.toFixed(1)}% szans`,
         });
       }
     }
@@ -194,6 +201,14 @@ function finishExpedition(e) {
         setTimeout(() => flashRareDrop(d.icon, dropped.name), 300);
       }
       log(`✨ Znaleziono: ${d.icon} ${dropped.name}${item.bonus!==undefined?" (+"+item.bonus+")":""}!`);
+      if (typeof addDropHistory === "function") addDropHistory({
+        icon:   d.icon || "📦",
+        name:   dropped.name + (item.bonus !== undefined ? ` +${item.bonus}` : ""),
+        source: `${loc.icon} ${loc.name}`,
+        color:  RARITY_COLORS[d.rarity] || "#8aab84",
+        bonus:  item.bonus,
+        chance: `~${(boxChance - horseChance).toFixed(1)}% szans`,
+      });
     } else {
       log(`📜 Wyprawa do ${loc.name} — nic nie znaleziono.`);
     }
@@ -209,10 +224,26 @@ function finishExpedition(e) {
   gold += goldGain;
   log(`💰 +${goldGain} złota z wyprawy!`);
 
+  // Dodaj złoto do historii
+  if (typeof addDropHistory === "function") addDropHistory({
+    icon:   "💰",
+    name:   `+${goldGain} złota`,
+    source: `${loc.icon} ${loc.name}`,
+    color:  "#c9a84c",
+  });
+
   // Dodaj XP za wyprawę
   if (typeof addXP === "function") {
     let xpGain = LOCATION_XP[loc.name] || 20;
     addXP(xpGain, loc.name);
+    // Zapisz XP do historii
+    addDropHistory({
+      icon:   "⭐",
+      name:   `+${xpGain} XP`,
+      source: `${loc.icon} ${loc.name}`,
+      color:  "#f0d080",
+      chance: "zawsze",
+    });
   }
 
   e.done = true;

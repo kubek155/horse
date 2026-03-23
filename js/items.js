@@ -241,11 +241,14 @@ function _doOpenLootBox(itemIdx) {
 
   // Zapisz do historii dropów
   if (typeof addDropHistory === "function" && lootResult.name) {
+    // Oblicz szansę na ten wynik
+    let chanceLabel = r < 66 ? "66% koń" : r < 80 ? "14% eliksir" : "20% item/przepustka";
     addDropHistory({
-      icon:   lootResult.icon || "📦",
+      icon:   lootResult.svg ? "🐴" : (lootResult.icon || "📦"),
       name:   lootResult.name,
       source: "📦 Skrzynka z Łupem",
       color:  lootResult.color || "#c9a84c",
+      chance: chanceLabel,
     });
   }
 

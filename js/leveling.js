@@ -170,7 +170,8 @@ function renderDropHistory() {
         <div style="font-size:12px;color:${rc};font-family:'Cinzel',serif;
           white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${entry.name}</div>
         <div style="font-size:10px;color:var(--text2);margin-top:1px">
-          ${entry.source||""} ${entry.bonus?`<span style="color:var(--gold2)">+${entry.bonus}</span>`:""}
+          ${entry.source||""}
+          ${entry.chance ? `<span style="color:var(--text2);opacity:0.6"> · ${entry.chance}</span>` : ""}
         </div>
       </div>
       <div style="font-size:10px;color:var(--text2);white-space:nowrap">${ago}</div>

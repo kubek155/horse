@@ -43,9 +43,11 @@ body {
   background: linear-gradient(90deg, #0a1a0a 0%, #0f2a0f 50%, #0a1a0a 100%);
   border-bottom: 1px solid var(--border);
   display: flex;
+  flex-direction: row;
   align-items: center;
   padding: 0 20px;
   gap: 20px;
+  height: 64px;
 }
 
 .topbar-title {
@@ -729,22 +731,20 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
 /* ===================== XP BAR ===================== */
-.topbar {
-  flex-direction: column;
-  gap: 4px;
-  padding: 6px 20px;
-}
-
 .xp-bar-wrap {
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 180px;
+  max-width: 220px;
 }
 
 .xp-bar-label {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 3px;
   font-size: 11px;
+  gap: 6px;
 }
 
 .xp-bar-track {
