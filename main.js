@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
     expeditions.forEach(e => {
       if (!e.done && Date.now() >= e.end) finishExpedition(e);
     });
+    if (typeof checkPregnancies === "function") checkPregnancies();
     renderAll();
   }, 1000);
 

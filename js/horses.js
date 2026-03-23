@@ -684,6 +684,25 @@ function renderHorses() {
       ${h.injured ? `<div style="margin:4px 0 6px;padding:4px 8px;background:rgba(201,74,74,0.12);border:1px solid rgba(201,74,74,0.4);border-radius:6px;font-size:11px;color:#e08080">
         🤕 Ranny — użyj Bandaża z Ekwipunku
       </div>` : ""}
+      ${(()=>{
+        if (!h.pregnant) return "";
+        let elapsed = Date.now()-h.pregnant.since;
+        let pct = Math.min(100,(elapsed/172800000)*100);
+        let msLeft = Math.max(0,h.pregnant.due-Date.now());
+        let hLeft = Math.floor(msLeft/3600000);
+        let mLeft = Math.floor((msLeft%3600000)/60000);
+        let maxP = {common:3,uncommon:4,rare:5,epic:6,legendary:7,mythic:8}[h.rarity]||3;
+        return `<div style="margin:4px 0 6px;padding:6px 8px;background:rgba(240,160,200,0.1);border:1px solid rgba(240,160,200,0.35);border-radius:6px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:11px;color:#f0a0c8">🤰 W ciąży · ${h.pregnancyCount||1}/${maxP}</span>
+            <span style="font-size:10px;color:var(--text2)">${hLeft}h ${mLeft}min</span>
+          </div>
+          <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${pct.toFixed(1)}%;background:linear-gradient(90deg,#e080a0,#f0a0c8);border-radius:3px;transition:width 1s"></div>
+          </div>
+          <div style="font-size:10px;color:var(--text2);margin-top:3px">🐴 Ojciec: ${h.pregnant.sireFlag} ${h.pregnant.sireName} · ${RARITY_LABELS[h.pregnant.childRarity]||""}</div>
+        </div>`;
+      })()}
       ${h.stars>0?`<div class="horse-stars">${"⭐".repeat(h.stars)}</div>`:""}
       ${h.parents?`<div style="font-size:10px;color:var(--text2);margin-bottom:4px">🧬 ${h.parents[0]} × ${h.parents[1]}</div>`:""}
       ${tbLabel?`<div style="font-size:11px;color:var(--gold2);margin-bottom:6px;padding:3px 8px;background:rgba(201,168,76,0.1);border-radius:5px;border:1px solid rgba(201,168,76,0.2)">

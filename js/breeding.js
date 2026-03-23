@@ -2,6 +2,125 @@
 // NOWY EKRAN ROZMNAŻANIA
 // =====================
 
+// Maksymalna liczba ciąż klaczy zależna od rzadkości
+const MAX_PREGNANCIES = {
+  common:    3,
+  uncommon:  4,
+  rare:      5,
+  epic:      6,
+  legendary: 7,
+  mythic:    8,
+};
+
+// Czas ciąży w ms — 48h = 172800000
+const PREGNANCY_DURATION = 48 * 60 * 60 * 1000;
+
+// Sprawdź i zakończ dojrzałe ciąże
+function checkPregnancies() {
+  let changed = false;
+  playerHorses.forEach(h => {
+    if (!h.pregnant) return;
+    if (Date.now() >= h.pregnant.due) {
+      birthFoal(h);
+      changed = true;
+    }
+  });
+  if (changed) { saveGame(); renderAll(); }
+}
+
+function birthFoal(mare) {
+  let p = mare.pregnant;
+  mare.pregnant = null;
+
+  if (playerHorses.length >= STABLE_LIMIT) {
+    // Stajnia pełna — foal do transportera
+    let foal = generateFoalFromPregnancy(p);
+    inventory.push({ name:"Transporter Konia", obtained:Date.now(), horse:foal });
+    log(`🐣 ${mare.name} urodziła! Stajnia pełna — ${foal.name} czeka w Transporterze.`);
+    return;
+  }
+
+  let foal = generateFoalFromPregnancy(p);
+  playerHorses.push(foal);
+  log(`🐣 ${mare.name} urodziła ${foal.flag} ${foal.name} (${RARITY_LABELS[foal.rarity]})!`);
+
+  let tier = {common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5}[foal.rarity]||0;
+  if (tier >= 2 && typeof showRareHorseEffect === "function") {
+    setTimeout(() => showRareHorseEffect(foal.name, foal.rarity, foal.flag), 400);
+  }
+  if (typeof addDropHistory === "function") addDropHistory({
+    icon: foal.flag||"🐴", name: `${foal.name} (narodziny)`,
+    source: `🧬 ${mare.name} × ${p.sireNname||"Ogier"}`,
+    color: RARITY_COLORS[foal.rarity]||"#8aab84",
+  });
+  trackQuest("breed");
+}
+
+function generateFoalFromPregnancy(p) {
+  // p zawiera wszystkie dane potrzebne do wygenerowania źrebięcia
+  const TIER = {common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5};
+  const RARITY = ["common","uncommon","rare","epic","legendary","mythic"];
+
+  let pool = BREEDS.filter(b2 => b2.rarity === p.childRarity);
+  if (!pool.length) pool = BREEDS.filter(b2 => b2.rarity === "common");
+  let breed = pool[Math.floor(Math.random() * pool.length)];
+
+  let bl = BLOODLINE_BONUS[p.childBloodline] || {};
+  let cRange = RARITY_STAT_RANGE[p.childRarity] || RARITY_STAT_RANGE.common;
+  let cap = 200;
+  let stars = rollStars(), starBonus = stars * 4;
+
+  function inherit(sA, sB, base) {
+    let parentAvg = sA*0.4 + sB*0.4 + base*0.2;
+    let v = Math.max(parentAvg, cRange.lo + Math.random()*(cRange.hi-cRange.lo)*0.5);
+    v += (Math.random()-0.5)*8;
+    if (Math.random()<0.05) v*=1.1;
+    return Math.max(cRange.lo, Math.min(cap, Math.round(v)));
+  }
+
+  let { bonuses, roll: cbRoll } = calcTypeBonuses(breed.type);
+  let mutation = rollMutation(breed.name, p.childRarity);
+  let pp = RARITY_PERKS[p.childRarity];
+  let perk = pp ? pp[Math.floor(Math.random()*pp.length)] : null;
+  let itemSlots = rollItemSlots(p.childRarity);
+
+  let stats = {
+    speed:    Math.max(cRange.lo,Math.min(cap,inherit(p.statsA.speed,   p.statsB.speed,   breed.base.speed)   +(bl.speed||0)   +starBonus+bonuses.speed)),
+    strength: Math.max(cRange.lo,Math.min(cap,inherit(p.statsA.strength,p.statsB.strength,breed.base.strength)+(bl.strength||0)+starBonus+bonuses.strength)),
+    stamina:  Math.max(cRange.lo,Math.min(cap,inherit(p.statsA.stamina, p.statsB.stamina, breed.base.stamina) +(bl.stamina||0) +starBonus+bonuses.stamina)),
+    luck:     Math.max(cRange.lo,Math.min(cap,inherit(p.statsA.luck,    p.statsB.luck,    breed.base.luck)    +(bl.luck||0)   +Math.round(starBonus*0.5)+bonuses.luck)),
+  };
+  if (mutation) {
+    stats[mutation.bonusStat] = Math.min(cap, stats[mutation.bonusStat]+mutation.bonusVal);
+    if (mutation.secondaryBonus) stats[mutation.secondaryBonus.stat] = Math.min(cap, stats[mutation.secondaryBonus.stat]+mutation.secondaryBonus.val);
+  }
+
+  return {
+    id: Date.now()+Math.random(), name: breed.name, breedKey: breed.name,
+    flag: breed.flag, country: breed.country, type: breed.type,
+    bloodline: p.childBloodline, group: p.childRarity, rarity: p.childRarity,
+    gender: Math.random()<0.5?"male":"female", stars,
+    born: Date.now(), lastFed: Date.now(), bonusApplied: null,
+    parents: [p.mareName, p.sireName],
+    typeBonus: { stat: TYPE_BONUS_STAT[breed.type]||null, value: cbRoll, bonuses },
+    itemSlots, equippedItems: Array(itemSlots).fill(null),
+    perk, mutation, stats,
+  };
+}
+
+// Render paska ciąży na karcie klaczy
+function getPregnancyStatus(h) {
+  if (!h.pregnant) return null;
+  let elapsed = Date.now() - h.pregnant.since;
+  let total   = PREGNANCY_DURATION;
+  let pct     = Math.min(100, (elapsed/total)*100);
+  let msLeft  = Math.max(0, h.pregnant.due - Date.now());
+  let hLeft   = Math.floor(msLeft/3600000);
+  let mLeft   = Math.floor((msLeft%3600000)/60000);
+  return { pct, hLeft, mLeft, due: h.pregnant.due };
+}
+
+
 let breedSlotA = null; // idx konia w playerHorses
 let breedSlotB = null;
 let breedItems = { nectar: false, compass: false, bloodElixir: false, moonstone: false };
@@ -175,24 +294,34 @@ function openBreedHorsePicker(slot) {
   playerHorses.forEach((h, i) => {
     if (i === otherIdx) return;
     let hGender  = h.gender || "male";
-    let wrongSex = hGender !== targetGender;
-    let rc       = RARITY_COLORS[h.rarity] || "#8aab84";
-    let gc       = hGender === "male" ? "#6ab0e0" : "#e080a0";
-    let btn      = document.createElement("div");
+    let wrongSex  = hGender !== targetGender;
+    let maxPreg   = {common:3,uncommon:4,rare:5,epic:6,legendary:7,mythic:8}[h.rarity]||3;
+    let usedPreg  = h.pregnancyCount||0;
+    let exhausted = hGender==="female" && usedPreg>=maxPreg;
+    let pregnant  = !!h.pregnant;
+    let blocked   = wrongSex || exhausted || pregnant;
+    let rc        = RARITY_COLORS[h.rarity] || "#8aab84";
+    let gc        = hGender === "male" ? "#6ab0e0" : "#e080a0";
+    let statusNote = exhausted ? `<div style="font-size:10px;color:#c94a4a">✕ Wyczerpany limit ciąż (${usedPreg}/${maxPreg})</div>`
+      : pregnant ? `<div style="font-size:10px;color:#f0a0c8">🤰 W ciąży</div>`
+      : hGender==="female" ? `<div style="font-size:10px;color:#4ab870">Ciąże: ${usedPreg}/${maxPreg}</div>`
+      : "";
+    let btn = document.createElement("div");
     btn.style.cssText = `
       display:flex;align-items:center;gap:10px;padding:10px;
-      background:#131f13;border:1px solid ${wrongSex ? "#c94a4a33" : rc+"33"};
-      border-radius:8px;cursor:${wrongSex?"not-allowed":"pointer"};
-      opacity:${wrongSex ? 0.35 : 1};
+      background:#131f13;border:1px solid ${blocked ? "#c94a4a33" : rc+"33"};
+      border-radius:8px;cursor:${blocked?"not-allowed":"pointer"};
+      opacity:${blocked ? 0.35 : 1};
     `;
     btn.innerHTML = `
       <span style="font-size:20px">${h.flag||"🐴"}</span>
       <div style="flex:1">
         <div style="font-size:12px;color:${rc};font-family:'Cinzel',serif">${h.name} <span style="color:${gc}">${hGender==="male"?"♂":"♀"}</span></div>
         <div style="font-size:10px;color:var(--text2)">⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck}</div>
+        ${statusNote}
       </div>
     `;
-    if (!wrongSex) btn.onclick = () => selectBreedSlot(slot, i);
+    if (!blocked) btn.onclick = () => selectBreedSlot(slot, i);
     list.appendChild(btn);
   });
 
@@ -251,6 +380,7 @@ function renderBreedSlot(slot) {
     <div style="font-family:'Cinzel',serif;font-size:12px;color:${rc}">${h.name}</div>
     <div style="font-size:10px;color:var(--text2);margin-top:2px">${RARITY_LABELS[h.rarity]||h.rarity} · ${h.type||""}</div>
     <div style="font-size:10px;color:var(--text2);margin-top:3px">⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck}</div>
+    ${h.gender==="female" ? `<div style="font-size:10px;color:#f0a0c8;margin-top:3px">Ciąże: ${h.pregnancyCount||0}/${({common:3,uncommon:4,rare:5,epic:6,legendary:7,mythic:8}[h.rarity]||3)}</div>` : ""}
     <button onclick="selectBreedSlot_clear('${slot}')" style="margin-top:6px;font-size:10px;border-color:#555;color:#777;width:100%">Zmień</button>
   `;
   el.appendChild(info);
@@ -330,9 +460,10 @@ function renderBreedAppleInfo() {
   let el = document.getElementById("breedAppleInfo");
   if (!el) return;
   let count = inventory.filter(i => i.name === "Jabłko Sfinksa").length;
-  el.innerHTML = count > 0
+  el.innerHTML = (count > 0
     ? `<span style="color:#4ab870">🍏 Jabłka Sfinksa: ${count} · jedno zostanie zużyte</span>`
-    : `<span style="color:#c94a4a">⚠️ Brak Jabłka Sfinksa — wymagane do rozmnażania</span>`;
+    : `<span style="color:#c94a4a">⚠️ Brak Jabłka Sfinksa — wymagane do rozmnażania</span>`)
+    + `<div style="font-size:10px;color:var(--text2);margin-top:4px">⏳ Ciąża trwa 48h — źrebię urodzi się automatycznie</div>`;
 }
 
 function renderBreedConfirmBtn() {
@@ -356,10 +487,28 @@ function confirmBreed() {
   if (breedSlotA === null || breedSlotB === null) return;
   let appleIdx = inventory.findIndex(i => i.name === "Jabłko Sfinksa");
   if (appleIdx === -1) { log("⚠️ Brak Jabłka Sfinksa!"); return; }
-  if (playerHorses.length >= STABLE_LIMIT) { log("⚠️ Stajnia pełna!"); return; }
+
+  let sire = playerHorses[breedSlotA]; // ogier ♂
+  let mare = playerHorses[breedSlotB]; // klacz ♀
+  // Upewnij się że klacz to ♀
+  if ((sire.gender||"male") === "female") [sire, mare] = [mare, sire];
+
+  // Sprawdź limit ciąż klaczy
+  let maxPreg = MAX_PREGNANCIES[mare.rarity] || 3;
+  let usedPreg = mare.pregnancyCount || 0;
+  if (usedPreg >= maxPreg) {
+    log(`⚠️ ${mare.name} osiągnęła limit ciąż (${maxPreg}/${maxPreg})!`);
+    return;
+  }
+
+  // Sprawdź czy klacz nie jest już w ciąży
+  if (mare.pregnant) {
+    let st = getPregnancyStatus(mare);
+    log(`⚠️ ${mare.name} jest już w ciąży! Poród za ${st.hLeft}h ${st.mLeft}min.`);
+    return;
+  }
 
   inventory.splice(appleIdx, 1);
-  // Zużyj aktywne itemy wspomagające
   BREED_SUPPORT_ITEMS.forEach(item => {
     if (breedItems[item.key]) {
       let idx = inventory.findIndex(i => i.name === item.inv);
@@ -367,9 +516,30 @@ function confirmBreed() {
     }
   });
 
+  // Określ cechy potomka teraz (rasa, rzadkość, krew) — urodzenie po 48h
+  const TIER = {common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5};
+  let childRarity   = rollBreedRarity(sire, mare, breedItems.nectar);
+  let childBloodline = breedItems.bloodElixir
+    ? ((TIER[sire.rarity]||0) >= (TIER[mare.rarity]||0) ? sire.bloodline : mare.bloodline)
+    : (Math.random()<0.5 ? sire.bloodline : mare.bloodline);
+
+  // Zapisz ciążę na klaczy
+  mare.pregnant = {
+    since:         Date.now(),
+    due:           Date.now() + PREGNANCY_DURATION,
+    childRarity,
+    childBloodline,
+    sireName:      sire.name,
+    sireFlag:      sire.flag||"🐴",
+    mareName:      mare.name,
+    statsA:        { ...sire.stats },
+    statsB:        { ...mare.stats },
+  };
+  mare.pregnancyCount = (mare.pregnancyCount||0) + 1;
+
   closeBreedScreen();
-  // Wywołaj istniejącą logikę breedHorses z nowymi parametrami
-  breedHorsesNew(breedSlotA, breedSlotB, breedItems);
+  saveGame(); renderAll();
+  log(`🐣 ${mare.name} jest w ciąży! Źrebię urodzi się za 48h. (${mare.pregnancyCount}/${maxPreg} ciąż)`);
 }
 
 // Nowa wersja breedHorses używająca nowych szans i itemów
