@@ -18,7 +18,9 @@ function calcBreedChances(hA, hB, hasNectar) {
 
   // Im wyższa rzadkość tym mniejsza szansa na awans
   // Mutacja (awans o 1) zależy od max tieru
-  const MUTATION_CHANCE = [0.15, 0.12, 0.10, 0.07, 0.04, 0.01];
+  // Im wyższa rzadkość max rodzica, tym mniejsza szansa mutacji
+  // common→uncommon: 8%, uncommon→rare: 5%, rare→epic: 3%, epic→legendary: 1.5%, legendary→mythic: 0.5%, mythic→(cap): 0%
+  const MUTATION_CHANCE = [0.08, 0.05, 0.03, 0.015, 0.005, 0.0];
   let mutChance = MUTATION_CHANCE[tMax] * (hasNectar ? 1.5 : 1);
 
   let pA = (1 - mutChance) * 0.45; // 45% od rodzica A
@@ -44,7 +46,9 @@ function rollBreedRarity(hA, hB, hasNectar) {
   const TIER = { common:0, uncommon:1, rare:2, epic:3, legendary:4, mythic:5 };
   const RARITY = ["common","uncommon","rare","epic","legendary","mythic"];
   let tA = TIER[hA.rarity]||0, tB = TIER[hB.rarity]||0, tMax = Math.max(tA, tB);
-  const MUTATION_CHANCE = [0.15, 0.12, 0.10, 0.07, 0.04, 0.01];
+  // Im wyższa rzadkość max rodzica, tym mniejsza szansa mutacji
+  // common→uncommon: 8%, uncommon→rare: 5%, rare→epic: 3%, epic→legendary: 1.5%, legendary→mythic: 0.5%, mythic→(cap): 0%
+  const MUTATION_CHANCE = [0.08, 0.05, 0.03, 0.015, 0.005, 0.0];
   let mutChance = MUTATION_CHANCE[tMax] * (hasNectar ? 1.5 : 1);
   let roll = Math.random();
   if (roll < mutChance && tMax < 5) return RARITY[tMax+1];
