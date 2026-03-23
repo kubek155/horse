@@ -56,12 +56,14 @@ function renderAll() {
 // UI NAVIGATION
 // =====================
 function showSection(s) {
-  ["expedition","stable","inventory","shop","market","quests","encyclopedia","drops"].forEach(sec => {
+  ["expedition","stable","inventory","shop","market","quests","encyclopedia","drops","contests","tournaments","global-market"].forEach(sec => {
     document.getElementById(sec + "Section").style.display = "none";
     document.getElementById("menu-" + sec).classList.remove("active");
   });
   document.getElementById(s + "Section").style.display = "block";
   document.getElementById("menu-" + s).classList.add("active");
+  if (s === "tournaments" && typeof renderTournamentsSection === "function") renderTournamentsSection();
+  if (s === "global-market" && typeof renderGlobalRanking === "function") renderGlobalRanking();
 }
 
 // =====================

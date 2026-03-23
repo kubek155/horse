@@ -222,7 +222,10 @@ function renderMarket() {
         <div class="mc-footer">
           <span class="mc-price">💰 ${offer.price}</span>
           ${isOwn
-            ? `<button onclick="cancelListing('${offer.id}')" style="border-color:#c94a4a;color:#c94a4a;background:rgba(201,74,74,0.1)">Anuluj</button>`
+            ? `<div style="display:flex;gap:6px;flex-direction:column">
+            <button onclick="cancelListing('${offer.id}')" style="border-color:#c94a4a;color:#c94a4a;background:rgba(201,74,74,0.1);font-size:11px">Anuluj</button>
+            <button onclick="listOnGlobalMarketFromLocal('${offer.id}')" style="border-color:#4a7ec8;color:#4a7ec8;background:rgba(74,126,200,0.1);font-size:10px">🌐 Globalnie</button>
+          </div>`
             : `<button class="btn-gold" onclick="buyFromMarket('${offer.id}')">Kup</button>`}
         </div>
       `;
@@ -251,7 +254,10 @@ function renderMarket() {
         <div class="mc-footer">
           <span class="mc-price">💰 ${offer.price}</span>
           ${isOwn
-            ? `<button onclick="cancelListing('${offer.id}')" style="border-color:#c94a4a;color:#c94a4a;background:rgba(201,74,74,0.1)">Anuluj</button>`
+            ? `<div style="display:flex;gap:6px;flex-direction:column">
+            <button onclick="cancelListing('${offer.id}')" style="border-color:#c94a4a;color:#c94a4a;background:rgba(201,74,74,0.1);font-size:11px">Anuluj</button>
+            <button onclick="listOnGlobalMarketFromLocal('${offer.id}')" style="border-color:#4a7ec8;color:#4a7ec8;background:rgba(74,126,200,0.1);font-size:10px">🌐 Globalnie</button>
+          </div>`
             : `<button class="btn-gold" onclick="buyFromMarket('${offer.id}')">Kup</button>`}
         </div>
       `;

@@ -12,6 +12,7 @@
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-title">🐎 HAPPY HORSES</div>
+    <div id="firebaseStatus" style="font-size:11px;margin-left:auto"></div>
     <div class="topbar-stats">
       <div class="topbar-stat">💰 Złoto: <span id="goldCount">0</span></div>
       <div class="topbar-stat">🐴 Konie: <span id="horseCount">0</span></div>
@@ -40,6 +41,9 @@
     <div class="menu-item"        id="menu-market"     onclick="showSection('market')">🏪 Rynek</div>
     <div class="menu-item"        id="menu-quests"     onclick="showSection('quests')">🎯 Questy</div>
     <div class="menu-item"        id="menu-encyclopedia" onclick="showSection('encyclopedia')">📖 Encyklopedia</div>
+    <div class="menu-item"        id="menu-tournaments"  onclick="showSection('tournaments')">🏆 Turnieje</div>
+    <div class="menu-item"        id="menu-global-market" onclick="showSection('global-market')">🌐 Rynek Globalny</div>
+    <div class="menu-item"        id="menu-contests"     onclick="showSection('contests')">🏆 Zawody</div>
     <div class="menu-item"        id="menu-drops"        onclick="showSection('drops')">📜 Historia Dropów</div>
   </div>
 
@@ -135,6 +139,35 @@
       <div id="questsList"></div>
     </div>
 
+
+    <!-- TURNIEJE MULTIPLAYER -->
+    <div id="tournamentsSection" style="display:none">
+      <div class="section-title">🏆 Turnieje</div>
+      <div id="tournamentsContent"></div>
+    </div>
+
+    <!-- GLOBALNY RYNEK -->
+    <div id="global-marketSection" style="display:none">
+      <div class="section-title">🌐 Globalny Rynek</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Oferty wszystkich graczy w czasie rzeczywistym.</div>
+      <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">
+        <div id="firebaseStatusMarket"></div>
+      </div>
+      <div id="globalMarketList"></div>
+      <div style="margin-top:20px">
+        <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;color:#8aab84;margin-bottom:10px">🏅 GLOBALNY RANKING</div>
+        <button onclick="renderGlobalRanking()" style="font-size:12px;border-color:#333;color:#666;margin-bottom:10px">Odśwież ranking</button>
+        <div id="globalRankingList"></div>
+      </div>
+    </div>
+
+    <!-- ZAWODY -->
+    <div id="contestsSection" style="display:none">
+      <div class="section-title">🏆 Zawody</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Wyślij konia na zawody i wygraj złoto i XP. Wyższe poziomy odblokowują trudniejsze wyścigi.</div>
+      <button onclick="openContestScreen()" style="border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.1);font-size:14px;padding:10px 20px">🏁 Otwórz zawody</button>
+      <div id="contestHistory" style="margin-top:16px"></div>
+    </div>
 
     <!-- HISTORIA DROPÓW -->
     <div id="dropsSection" style="display:none">
@@ -328,6 +361,7 @@
 <div id="logBox"></div>
 
 <!-- Kolejność ładowania JS jest ważna! -->
+<script type="module" src="js/firebase.js"></script>
 <script src="js/horse_svg.js"></script>
 <script src="js/database.js"></script>
 <script src="js/game.js"></script>
@@ -336,6 +370,8 @@
 <script src="js/animations.js"></script>
 <script src="js/leveling.js"></script>
 <script src="js/breeding.js"></script>
+<script src="js/contests.js"></script>
+<script src="js/firebase_ui.js"></script>
 <script src="js/expedition.js"></script>
 <script src="js/shop.js"></script>
 <script src="js/market.js"></script>

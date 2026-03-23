@@ -97,6 +97,7 @@ function openExpeditionHorsePicker(locIdx) {
         <div style="font-size:10px;color:${hCol};margin-top:2px">🍽️ Głód: ${hunger}% &nbsp; 🎂 ${age} dni</div>
         ${busy ? `<div style="font-size:10px;color:#c97c2a;margin-top:2px">🌍 Już na wyprawie</div>` : ""}
         ${h.injured ? `<div style="font-size:10px;color:#c94a4a;margin-top:2px">🤕 Ranny — wymaga Bandaża!</div>` : ""}
+        ${h.pregnant ? `<div style="font-size:10px;color:#f0a0c8;margin-top:2px">🤰 W ciąży! 50% ryzyko poronienia</div>` : ""}
       </div>
     `;
     let injured2 = !!h.injured;
@@ -231,6 +232,22 @@ function finishExpedition(e) {
     source: `${loc.icon} ${loc.name}`,
     color:  "#c9a84c",
   });
+
+  // Ciąża — 50% szans na poronienie jeśli klacz była na wyprawie
+  let expHorse2 = playerHorses[e.horseIdx];
+  if (expHorse2 && expHorse2.pregnant && expHorse2.gender === "female") {
+    if (Math.random() < 0.5) {
+      expHorse2.pregnant = null;
+      log(`💔 ${expHorse2.name} poroniła podczas wyprawy...`);
+      if (typeof addDropHistory === "function") addDropHistory({
+        icon:"💔", name:"Poronienie",
+        source:`${loc.icon} ${loc.name} · ${expHorse2.name}`,
+        color:"#c94a4a",
+      });
+    } else {
+      log(`🍀 ${expHorse2.name} wróciła z wyprawy — ciąża ocalona!`);
+    }
+  }
 
   // Dodaj XP za wyprawę
   if (typeof addXP === "function") {
