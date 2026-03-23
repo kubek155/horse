@@ -238,6 +238,17 @@ function _doOpenLootBox(itemIdx) {
   }
 
   window._lastLootResult = lootResult;
+
+  // Zapisz do historii dropów
+  if (typeof addDropHistory === "function" && lootResult.name) {
+    addDropHistory({
+      icon:   lootResult.icon || "📦",
+      name:   lootResult.name,
+      source: "📦 Skrzynka z Łupem",
+      color:  lootResult.color || "#c9a84c",
+    });
+  }
+
   inventory.splice(itemIdx, 1);
   trackQuest("lootbox");
   saveGame();

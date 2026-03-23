@@ -18,6 +18,16 @@
       <div class="topbar-stat">🎒 Ekwipunek: <span id="invCount">0</span></div>
       <div class="topbar-stat">📅 Wyprawy dziś: <span id="dailyCount">0</span>/4</div>
     </div>
+    <div class="xp-bar-wrap">
+      <div class="xp-bar-label">
+        <span style="font-family:'Cinzel',serif;color:var(--gold)">Poz. <span id="playerLevel">1</span></span>
+        <span id="playerXP" style="color:var(--text2);font-size:10px">0 / 100 XP</span>
+        <span id="dropBonusDisplay" style="color:#4ab870;font-size:10px"></span>
+      </div>
+      <div class="xp-bar-track">
+        <div id="xpBar" class="xp-bar-fill"></div>
+      </div>
+    </div>
   </div>
 
   <!-- SIDEBAR -->
@@ -30,6 +40,7 @@
     <div class="menu-item"        id="menu-market"     onclick="showSection('market')">🏪 Rynek</div>
     <div class="menu-item"        id="menu-quests"     onclick="showSection('quests')">🎯 Questy</div>
     <div class="menu-item"        id="menu-encyclopedia" onclick="showSection('encyclopedia')">📖 Encyklopedia</div>
+    <div class="menu-item"        id="menu-drops"        onclick="showSection('drops')">📜 Historia Dropów</div>
   </div>
 
   <!-- MAIN -->
@@ -124,6 +135,13 @@
       <div id="questsList"></div>
     </div>
 
+
+    <!-- HISTORIA DROPÓW -->
+    <div id="dropsSection" style="display:none">
+      <div class="section-title">📜 Historia Dropów</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Ostatnie 50 dropów ze wszystkich wypraw i skrzynek.</div>
+      <div id="dropHistoryList"></div>
+    </div>
 
     <!-- ENCYKLOPEDIA -->
     <div id="encyclopediaSection" style="display:none">
@@ -316,6 +334,7 @@
 <script src="js/horses.js"></script>
 <script src="js/items.js"></script>
 <script src="js/animations.js"></script>
+<script src="js/leveling.js"></script>
 <script src="js/expedition.js"></script>
 <script src="js/shop.js"></script>
 <script src="js/market.js"></script>

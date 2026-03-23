@@ -154,9 +154,10 @@ function finishExpedition(e) {
   let luckBonus = luck / 10;
   let r     = Math.random() * 100;
 
-  // koń: 7%+luck/20 | skrzynka: 3%+luck/30 | jedzenie: 10% | reszta nic
-  let horseChance = 7  + luckBonus / 2;
-  let boxChance   = horseChance + 3 + luckBonus / 3;
+  // koń: 7%+luck/20 | skrzynka: 3%+luck/30 | bonus z poziomu
+  let lvlBonus    = (typeof getDropBonus === "function") ? getDropBonus() : 0;
+  let horseChance = 7  + luckBonus / 2 + lvlBonus;
+  let boxChance   = horseChance + 3 + luckBonus / 3 + lvlBonus * 0.5;
   let foodChance  = boxChance   + 10;
 
   if (r < horseChance) {
@@ -173,6 +174,11 @@ function finishExpedition(e) {
           let tier = {common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5}[h.rarity]||0;
           if (tier >= 2) setTimeout(() => showRareHorseEffect(h.name, h.rarity, h.flag), 300);
         }
+        if (typeof addDropHistory === "function") addDropHistory({
+          icon: h.flag||"🐴", name: h.name,
+          source: `${loc.icon} ${loc.name}`,
+          color: RARITY_COLORS[h.rarity]||"#8aab84",
+        });
       }
     }
   } else if (r < boxChance) {
@@ -198,9 +204,16 @@ function finishExpedition(e) {
   let perks    = getActivePerkBonus();
   let locGold  = loc.gold || { min:50, max:200 };
   let baseGold = locGold.min + Math.floor(Math.random() * (locGold.max - locGold.min + 1)) + Math.floor(luck * 0.5);
-  let goldGain = Math.round(baseGold * perks.goldBonus);
+  let lvlGoldMult = (typeof getGoldBonus === "function") ? getGoldBonus() : 1;
+  let goldGain = Math.round(baseGold * perks.goldBonus * lvlGoldMult);
   gold += goldGain;
   log(`💰 +${goldGain} złota z wyprawy!`);
+
+  // Dodaj XP za wyprawę
+  if (typeof addXP === "function") {
+    let xpGain = LOCATION_XP[loc.name] || 20;
+    addXP(xpGain, loc.name);
+  }
 
   e.done = true;
   saveGame();

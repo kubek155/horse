@@ -727,3 +727,37 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   80%  { opacity: 0.6; }
   100% { opacity: 0; }
 }
+
+/* ===================== XP BAR ===================== */
+.topbar {
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 20px;
+}
+
+.xp-bar-wrap {
+  width: 100%;
+}
+
+.xp-bar-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3px;
+  font-size: 11px;
+}
+
+.xp-bar-track {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.xp-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #c9a84c, #f0d080);
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}

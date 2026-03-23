@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderLocations();
   renderEncyclopedia();
+  renderLevelBar();
   renderAll();
 
   setInterval(() => {
