@@ -49,6 +49,7 @@ function renderAll() {
   renderDropHistory();
   renderLevelBar();
   buildRanking();
+  if (typeof renderFirebaseStatus === "function") renderFirebaseStatus();
   saveGame();
 }
 
@@ -62,8 +63,13 @@ function showSection(s) {
   });
   document.getElementById(s + "Section").style.display = "block";
   document.getElementById("menu-" + s).classList.add("active");
-  if (s === "tournaments" && typeof renderTournamentsSection === "function") renderTournamentsSection();
-  if (s === "market") { switchMarketTab("local"); }
+  if (s === "tournaments") {
+    if (typeof renderTournamentsSection === "function") renderTournamentsSection();
+  }
+  if (s === "market") {
+    if (typeof switchMarketTab === "function") switchMarketTab("local");
+    if (typeof renderFirebaseStatus === "function") renderFirebaseStatus();
+  }
 }
 
 // =====================

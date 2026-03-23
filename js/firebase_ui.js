@@ -329,7 +329,7 @@ function openTournamentRegister(tId) {
       gold-=fee; saveGame();
       await window.FB.registerForTournament(h,tId,fee);
       document.getElementById("tournRegModal")?.remove();
-      renderTournamentsSection(); renderAll();
+      setTimeout(()=>{ renderTournamentsSection(); renderAll(); }, 200);
     };
     list.appendChild(div);
   });
@@ -554,3 +554,10 @@ async function doMandatoryGoogle() {
 async function doMandatoryAnon() {
   // Legacy — nie używana
 }
+
+// Auto-sync profilu co 30s
+setInterval(()=>{
+  if (window.FB && window.FB.isLoggedIn()) {
+    window.FB.savePlayerProfile();
+  }
+}, 30000);

@@ -1,4 +1,23 @@
+// Czekaj na Firebase zanim odpalasz grę
+function waitForFirebase(callback) {
+  if (window.FB) { callback(); return; }
+  let tries = 0;
+  let interval = setInterval(() => {
+    tries++;
+    if (window.FB) { clearInterval(interval); callback(); }
+    else if (tries > 50) { // 5s timeout — odpal bez Firebase
+      clearInterval(interval);
+      console.warn("Firebase timeout — uruchamiam grę bez online");
+      callback();
+    }
+  }, 100);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  waitForFirebase(initGame);
+});
+
+function initGame() {
 
   loadGame();
 
@@ -37,4 +56,4 @@ document.addEventListener("DOMContentLoaded", () => {
     renderAll();
   }, 1000);
 
-});
+}

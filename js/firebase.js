@@ -86,6 +86,10 @@ onAuthStateChanged(auth, async (user) => {
     if (typeof initGlobalMarket === "function") initGlobalMarket();
     // Zamknij ekran logowania
     if (typeof closeMandatoryLogin === "function") closeMandatoryLogin();
+    // Odśwież cały UI natychmiast
+    if (typeof renderAll === "function") setTimeout(renderAll, 100);
+    if (typeof renderFirebaseStatus === "function") setTimeout(renderFirebaseStatus, 100);
+    if (typeof initGlobalMarket === "function") setTimeout(initGlobalMarket, 500);
   } else {
     // Wylogowany — pokaż ekran logowania
     if (typeof showMandatoryLogin === "function") {
@@ -155,7 +159,9 @@ async function buyFromGlobalMarket(offerId) {
     inventory.push(offer.item);
     log(`✅ Kupiono: ${offer.item?.name}!`);
   }
-  saveGame(); renderAll();
+  saveGame();
+  if (typeof renderAll === "function") renderAll();
+  if (typeof renderGlobalMarket === "function") setTimeout(renderGlobalMarket, 200);
 }
 
 async function cancelGlobalListing(offerId) {
@@ -167,7 +173,9 @@ async function cancelGlobalListing(offerId) {
   if (offer.type==="horse") playerHorses.push(offer.horse);
   else inventory.push(offer.item);
   await updateDoc(doc(db,"market",offerId),{active:false});
-  log("✅ Oferta anulowana."); saveGame(); renderAll();
+  log("✅ Oferta anulowana."); saveGame();
+  if (typeof renderAll === "function") renderAll();
+  if (typeof renderGlobalMarket === "function") setTimeout(renderGlobalMarket, 200);
 }
 
 function subscribeGlobalMarket(callback) {
