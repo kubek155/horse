@@ -38,7 +38,7 @@ function renderShop() {
     { label: "🍽️ Jedzenie & Leczenie", filter: i => ITEMS_DATABASE[i.name]?.isFood || i.name==="Bandaż" },
     { label: "🧪 Eliksiry (jednorazowe)", filter: i => ITEMS_DATABASE[i.name]?.isElixir },
     { label: "✨ Przedmioty do slotów", filter: i => i.isSlotShop },
-    { label: "🍏 Hodowla",           filter: i => ITEMS_DATABASE[i.name]?.isBreedItem },
+    { label: "🍏 Hodowla",           filter: i => ITEMS_DATABASE[i.name]?.isBreedItem || ITEMS_DATABASE[i.name]?.isBreedSupport },
     { label: "💎 Specjalne",         filter: i => i.globalLimit },
   ];
 

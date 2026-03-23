@@ -358,7 +358,7 @@ function setInvTab(tab) {
 function getItemCategory(name) {
   let d = ITEMS_DATABASE[name] || {};
   if (d.isFood)      return "food";
-  if (d.isBreedItem) return "breed";
+  if (d.isBreedItem || d.isBreedSupport) return "breed";
   if (d.isPass)      return "pass";
   if (d.isSlotItem)  return "slot";
   if (d.isElixir || name.startsWith("Eliksir")) return "elixir";

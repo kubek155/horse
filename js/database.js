@@ -310,6 +310,11 @@ const ITEMS_DATABASE = {
   "Mroczna Przepustka":  { icon:"🌑", desc:"Odblokuj wyprawę do Mrocznych Ostępów",      rarity:"legendary",isPass:true, location:"Mroczne Ostępy"  },
   // Rozmnażanie
   "Jabłko Sfinksa":      { icon:"🍏", desc:"Magiczny owoc — wymagany do rozmnażania koni", rarity:"rare", isBreedItem:true },
+  // Itemy wspomagające rozmnażanie
+  "Boski Nektar":        { icon:"🌟", desc:"+50% szans na mutację rzadkości", rarity:"epic",     isBreedSupport:true },
+  "Złoty Kompas":        { icon:"🧭", desc:"Wybierz rasę potomka (wkrótce)", rarity:"rare",     isBreedSupport:true },
+  "Eliksir Krwi":        { icon:"🩸", desc:"Potomek dziedziczy krew silniejszego rodzica", rarity:"rare", isBreedSupport:true },
+  "Księżycowy Kamień":   { icon:"🌙", desc:"Pradawny potomek dostaje 2 perki", rarity:"legendary", isBreedSupport:true },
   // Transporter
   "Transporter Konia":   { icon:"🧳", desc:"Koń czeka w transporterze — użyj gdy stajnia ma wolne miejsce", rarity:"rare", isTransporter:true },
   // Bandaż
@@ -349,6 +354,8 @@ const SHOP_ITEMS = [
   { name:"Kowadło",             price:220, icon:"🔨",  desc:"Slot: +0–10 siły (losowy bonus)",              alwaysAvailable:true, isSlotShop:true },
   { name:"Koniczyna",           price:220, icon:"🍀",  desc:"Slot: +0–10 szczęścia (losowy bonus)",         alwaysAvailable:true, isSlotShop:true },
   { name:"Serce",               price:220, icon:"❤️‍🔥", desc:"Slot: +0–10 wytrzymałości (losowy bonus)",   alwaysAvailable:true, isSlotShop:true },
+  { name:"Boski Nektar",         price:800,  icon:"🌟", desc:"+50% szans na mutację przy rozmnażaniu",        alwaysAvailable:true },
+  { name:"Eliksir Krwi",         price:500,  icon:"🩸", desc:"Potomek dziedziczy krew silniejszego rodzica",    alwaysAvailable:true },
   { name:"Jabłko Sfinksa",       price:600, icon:"🍏",  desc:"Wymagane do rozmnażania koni",                alwaysAvailable:true },
   { name:"Eliksir Odmłodzenia", price:800, icon:"🧪",  desc:"Odmładza konia — globalny limit 5 szt.",       rare:true, globalLimit:5 },
 ];
