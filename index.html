@@ -12,7 +12,6 @@
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-title">🐎 HAPPY HORSES</div>
-    <div id="firebaseStatus" style="font-size:11px;margin-left:auto"></div>
     <div class="topbar-stats">
       <div class="topbar-stat">💰 Złoto: <span id="goldCount">0</span></div>
       <div class="topbar-stat">🐴 Konie: <span id="horseCount">0</span></div>
@@ -34,17 +33,16 @@
   <!-- SIDEBAR -->
   <div class="sidebar">
     <h3>Menu</h3>
-    <div class="menu-item active" id="menu-expedition" onclick="showSection('expedition')">🌍 Wyprawy</div>
-    <div class="menu-item"        id="menu-stable"     onclick="showSection('stable')">🐎 Stajnia</div>
-    <div class="menu-item"        id="menu-inventory"  onclick="showSection('inventory')">🎒 Ekwipunek</div>
-    <div class="menu-item"        id="menu-shop"       onclick="showSection('shop')">🛒 Sklep</div>
-    <div class="menu-item"        id="menu-market"     onclick="showSection('market')">🏪 Rynek</div>
-    <div class="menu-item"        id="menu-quests"     onclick="showSection('quests')">🎯 Questy</div>
-    <div class="menu-item"        id="menu-encyclopedia" onclick="showSection('encyclopedia')">📖 Encyklopedia</div>
+    <div class="menu-item active" id="menu-expedition"   onclick="showSection('expedition')">🌍 Wyprawy</div>
+    <div class="menu-item"        id="menu-stable"       onclick="showSection('stable')">🐎 Stajnia</div>
+    <div class="menu-item"        id="menu-inventory"    onclick="showSection('inventory')">🎒 Ekwipunek</div>
+    <div class="menu-item"        id="menu-shop"         onclick="showSection('shop')">🛒 Sklep</div>
+    <div class="menu-item"        id="menu-market"       onclick="showSection('market')">🏪 Rynek</div>
     <div class="menu-item"        id="menu-tournaments"  onclick="showSection('tournaments')">🏆 Turnieje</div>
-    <div class="menu-item"        id="menu-global-market" onclick="showSection('global-market')">🌐 Rynek Globalny</div>
-    <div class="menu-item"        id="menu-contests"     onclick="showSection('contests')">🏆 Zawody</div>
-    <div class="menu-item"        id="menu-drops"        onclick="showSection('drops')">📜 Historia Dropów</div>
+    <div class="menu-item"        id="menu-contests"     onclick="showSection('contests')">⚔️ Zawody</div>
+    <div class="menu-item"        id="menu-quests"       onclick="showSection('quests')">🎯 Questy</div>
+    <div class="menu-item"        id="menu-encyclopedia" onclick="showSection('encyclopedia')">📖 Encyklopedia</div>
+    <div class="menu-item"        id="menu-drops"        onclick="showSection('drops')">📜 Historia</div>
   </div>
 
   <!-- MAIN -->
@@ -146,22 +144,7 @@
       <div id="tournamentsContent"></div>
     </div>
 
-    <!-- GLOBALNY RYNEK -->
-    <div id="global-marketSection" style="display:none">
-      <div class="section-title">🌐 Globalny Rynek</div>
-      <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Oferty wszystkich graczy w czasie rzeczywistym.</div>
-      <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">
-        <div id="firebaseStatusMarket"></div>
-      </div>
-      <div id="globalMarketList"></div>
-      <div style="margin-top:20px">
-        <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;color:#8aab84;margin-bottom:10px">🏅 GLOBALNY RANKING</div>
-        <button onclick="renderGlobalRanking()" style="font-size:12px;border-color:#333;color:#666;margin-bottom:10px">Odśwież ranking</button>
-        <div id="globalRankingList"></div>
-      </div>
-    </div>
-
-    <!-- ZAWODY -->
+<!-- ZAWODY -->
     <div id="contestsSection" style="display:none">
       <div class="section-title">🏆 Zawody</div>
       <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Wyślij konia na zawody i wygraj złoto i XP. Wyższe poziomy odblokowują trudniejsze wyścigi.</div>
@@ -271,6 +254,14 @@
       </div>
 
       <div id="marketListings" class="market-grid"></div>
+      </div><!-- /marketTabLocalContent -->
+      <div id="marketTabGlobalContent" style="display:none">
+        <div id="globalMarketList"></div>
+      </div>
+      <div id="marketTabRankingContent" style="display:none">
+        <button onclick="renderGlobalRanking()" style="font-size:12px;border-color:#333;color:#666;margin-bottom:10px">🔄 Odśwież</button>
+        <div id="globalRankingList"></div>
+      </div>
     </div>
 
   </div>

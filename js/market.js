@@ -222,7 +222,7 @@ function renderMarket() {
         <div class="mc-footer">
           <span class="mc-price">💰 ${offer.price}</span>
           ${isOwn
-            ? `<div style="display:flex;gap:6px;flex-direction:column">
+            ? `<div style="display:flex;flex-direction:column;gap:4px">
             <button onclick="cancelListing('${offer.id}')" style="border-color:#c94a4a;color:#c94a4a;background:rgba(201,74,74,0.1);font-size:11px">Anuluj</button>
             <button onclick="listOnGlobalMarketFromLocal('${offer.id}')" style="border-color:#4a7ec8;color:#4a7ec8;background:rgba(74,126,200,0.1);font-size:10px">🌐 Globalnie</button>
           </div>`
@@ -254,7 +254,7 @@ function renderMarket() {
         <div class="mc-footer">
           <span class="mc-price">💰 ${offer.price}</span>
           ${isOwn
-            ? `<div style="display:flex;gap:6px;flex-direction:column">
+            ? `<div style="display:flex;flex-direction:column;gap:4px">
             <button onclick="cancelListing('${offer.id}')" style="border-color:#c94a4a;color:#c94a4a;background:rgba(201,74,74,0.1);font-size:11px">Anuluj</button>
             <button onclick="listOnGlobalMarketFromLocal('${offer.id}')" style="border-color:#4a7ec8;color:#4a7ec8;background:rgba(74,126,200,0.1);font-size:10px">🌐 Globalnie</button>
           </div>`

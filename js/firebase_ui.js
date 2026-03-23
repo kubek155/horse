@@ -1,19 +1,73 @@
 // =====================
-// FIREBASE UI — Rynek globalny + Turnieje
+// FIREBASE UI
 // =====================
 
-// ── NICK GRACZA ───────────────────────────────────────────
+// ── Modal logowania ───────────────────────────────────────
+function openLoginModal() {
+  let ex = document.getElementById("loginModal");
+  if (ex) { ex.style.display="flex"; return; }
+  let m = document.createElement("div");
+  m.id = "loginModal";
+  m.style.cssText = "position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;font-family:'Crimson Text',serif";
+  m.innerHTML = `
+    <div style="background:#0f1a0f;border:1px solid #c9a84c66;border-radius:16px;padding:28px;width:360px;text-align:center">
+      <div style="font-size:36px;margin-bottom:10px">🐎</div>
+      <div style="font-family:'Cinzel',serif;font-size:15px;color:#c9a84c;margin-bottom:6px">Happy Horses Online</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:20px;line-height:1.5">Zaloguj się aby uczestniczyć<br>w turniejach i globalnym rynku</div>
+
+      <button onclick="doGoogleLogin()" style="
+        width:100%;padding:12px;border-radius:10px;margin-bottom:10px;
+        border:1px solid #4a7ec8;color:#6ab0e0;background:rgba(74,126,200,0.1);
+        font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+      ">
+        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/></svg>
+        Zaloguj przez Google
+      </button>
+
+      <button onclick="doAnonLogin()" style="width:100%;padding:10px;border-radius:10px;border:1px solid #333;color:#666;background:transparent;font-size:13px;cursor:pointer;margin-bottom:12px">
+        👤 Graj jako Gość (anonimowo)
+      </button>
+
+      <div id="loginStatus" style="font-size:11px;color:var(--text2);min-height:16px"></div>
+      <button onclick="document.getElementById('loginModal').style.display='none'" style="margin-top:10px;font-size:11px;border:none;background:transparent;color:#4a5a4a;cursor:pointer">Anuluj</button>
+    </div>
+  `;
+  document.body.appendChild(m);
+}
+
+async function doGoogleLogin() {
+  document.getElementById("loginStatus").textContent = "Logowanie...";
+  let user = await window.FB.loginWithGoogle();
+  if (user) {
+    document.getElementById("loginModal")?.remove();
+    renderFirebaseStatus();
+    if (!localStorage.getItem("hh_nick") && !user.isAnonymous) {
+      localStorage.setItem("hh_nick", user.displayName?.split(" ")[0] || "Gracz");
+    }
+    if (typeof initGlobalMarket==="function") initGlobalMarket();
+  }
+}
+
+async function doAnonLogin() {
+  document.getElementById("loginStatus").textContent = "Logowanie...";
+  let user = await window.FB.loginAnonymous();
+  if (user) {
+    document.getElementById("loginModal")?.remove();
+    openNickModal();
+  }
+}
+
+// ── Nick ──────────────────────────────────────────────────
 function openNickModal() {
-  let existing = document.getElementById("nickModal");
-  if (existing) { existing.style.display="flex"; return; }
+  let ex = document.getElementById("nickModal");
+  if (ex) { ex.style.display="flex"; return; }
   let m = document.createElement("div");
   m.id = "nickModal";
-  m.style.cssText = "position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;font-family:'Crimson Text',serif";
+  m.style.cssText = "position:fixed;inset:0;z-index:9600;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;font-family:'Crimson Text',serif";
   m.innerHTML = `
-    <div style="background:#0f1a0f;border:1px solid #c9a84c66;border-radius:16px;padding:28px;width:340px">
-      <div style="font-family:'Cinzel',serif;font-size:14px;color:#c9a84c;margin-bottom:6px">👤 Twój nick gracza</div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:16px">Widoczny dla innych graczy na rynku i w turniejach</div>
-      <input id="nickInput" type="text" maxlength="20" placeholder="Wpisz nick..."
+    <div style="background:#0f1a0f;border:1px solid #c9a84c66;border-radius:14px;padding:24px;width:320px">
+      <div style="font-family:'Cinzel',serif;font-size:13px;color:#c9a84c;margin-bottom:14px">👤 Ustaw nick gracza</div>
+      <input id="nickInput" type="text" maxlength="20" placeholder="Twój nick..."
         style="width:100%;padding:10px 12px;background:#131f13;border:1px solid #1e3a1e;border-radius:8px;color:#d4e8d0;font-size:14px;margin-bottom:12px"
         value="${localStorage.getItem('hh_nick')||''}">
       <button onclick="saveNick()" style="width:100%;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1);font-family:'Cinzel',serif">Zapisz</button>
@@ -24,30 +78,55 @@ function openNickModal() {
 
 function saveNick() {
   let val = (document.getElementById("nickInput")?.value||"").trim();
-  if (!val) { alert("Wpisz nick!"); return; }
+  if (!val) return;
   localStorage.setItem("hh_nick", val);
   document.getElementById("nickModal")?.remove();
   if (window.FB) window.FB.savePlayerProfile();
-  log(`✅ Nick ustawiony: ${val}`);
+  log(`✅ Nick: ${val}`);
   renderFirebaseStatus();
 }
 
-// ── STATUS POŁĄCZENIA ─────────────────────────────────────
+// ── Status w topbarze / rynku ─────────────────────────────
 function renderFirebaseStatus() {
   let el = document.getElementById("firebaseStatus");
   if (!el) return;
-  let nick = localStorage.getItem("hh_nick");
-  let pid  = window.FB ? window.FB.getPlayerId() : null;
-  el.innerHTML = nick
-    ? `<span style="color:#4ab870">🌐 Online · ${nick}</span> <button onclick="openNickModal()" style="font-size:10px;padding:2px 8px;border-color:#333;color:#666">Zmień</button>`
-    : `<button onclick="openNickModal()" style="font-size:11px;border-color:#c9a84c;color:#c9a84c">👤 Ustaw nick aby grać online</button>`;
+  if (!window.FB) { el.innerHTML=""; return; }
+  let loggedIn = window.FB.isLoggedIn();
+  let nick     = window.FB.getPlayerNick();
+  let anon     = window.FB.getPlayerId().startsWith("p_");
+
+  if (loggedIn) {
+    el.innerHTML = `<span style="color:#4ab870;font-size:11px">🌐 ${nick}</span>
+      <button onclick="openNickModal()" style="font-size:10px;padding:1px 6px;border-color:#333;color:#666;margin-left:4px">✏️</button>
+      <button onclick="window.FB.logout()" style="font-size:10px;padding:1px 6px;border-color:#333;color:#666;margin-left:2px">Wyloguj</button>`;
+  } else {
+    el.innerHTML = `<button onclick="openLoginModal()" style="font-size:11px;padding:3px 10px;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1)">🔑 Zaloguj się</button>`;
+  }
 }
 
-// =====================
-// GLOBALNY RYNEK UI
-// =====================
-let globalMarketOffers  = [];
-let globalMarketUnsub   = null;
+// ── Zakładki rynku ────────────────────────────────────────
+function switchMarketTab(tab) {
+  ["local","global","ranking"].forEach(t => {
+    let content = document.getElementById(`marketTab${t.charAt(0).toUpperCase()+t.slice(1)}Content`);
+    let btn     = document.getElementById(`marketTab${t.charAt(0).toUpperCase()+t.slice(1)}`);
+    if (content) content.style.display = t===tab ? "block" : "none";
+    if (btn) btn.classList.toggle("active", t===tab);
+  });
+  if (tab==="global") { initGlobalMarket(); }
+  if (tab==="ranking") { renderGlobalRanking(); }
+}
+
+// CSS dla zakładek
+if (!document.getElementById("marketTabStyle")) {
+  let s = document.createElement("style");
+  s.id = "marketTabStyle";
+  s.textContent = `.market-tab-btn{padding:6px 14px;font-size:11px;font-family:'Cinzel',serif;letter-spacing:0.5px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);cursor:pointer;transition:all 0.15s}.market-tab-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.1)}.market-tab-btn:hover{border-color:var(--accent2);color:var(--accent2)}`;
+  document.head.appendChild(s);
+}
+
+// ── Globalny rynek render ─────────────────────────────────
+let globalMarketOffers = [];
+let globalMarketUnsub  = null;
 
 function initGlobalMarket() {
   if (!window.FB) return;
@@ -61,198 +140,162 @@ function initGlobalMarket() {
 function renderGlobalMarket() {
   let el = document.getElementById("globalMarketList");
   if (!el) return;
-
   let myId = window.FB ? window.FB.getPlayerId() : null;
 
-  if (globalMarketOffers.length === 0) {
+  if (!window.FB || !window.FB.isLoggedIn()) {
+    el.innerHTML = `<div style="text-align:center;padding:30px"><div style="font-size:13px;color:var(--text2);margin-bottom:12px">Zaloguj się aby zobaczyć oferty innych graczy</div><button onclick="openLoginModal()" style="border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1)">🔑 Zaloguj się</button></div>`;
+    return;
+  }
+  if (!globalMarketOffers.length) {
     el.innerHTML = `<div class="empty"><div class="empty-icon">🌐</div>Brak ofert na globalnym rynku</div>`;
     return;
   }
 
   el.innerHTML = "";
-
-  // Moje oferty pierwsze
-  let sorted = [...globalMarketOffers].sort((a,b) => {
-    let am = a.sellerId===myId?1:0, bm = b.sellerId===myId?1:0;
-    return bm-am;
-  });
-
+  let sorted = [...globalMarketOffers].sort((a,b)=>a.sellerId===myId?-1:b.sellerId===myId?1:0);
   sorted.forEach(offer => {
-    let isOwn = offer.sellerId === myId;
-    let rc    = offer.type==="horse"
-      ? (RARITY_COLORS[offer.horse?.rarity]||"#8aab84")
-      : "#8aab84";
-
+    let isOwn = offer.sellerId===myId;
+    let rc = offer.type==="horse" ? (RARITY_COLORS[offer.horse?.rarity]||"#8aab84") : "#8aab84";
     let div = document.createElement("div");
-    div.style.cssText = `
-      background:var(--panel2);border:1px solid ${isOwn?"#c9a84c44":rc+"33"};
-      border-radius:10px;padding:12px;margin-bottom:8px;
-    `;
+    div.className = "market-card" + (isOwn?" market-own":"");
+    div.style.borderColor = rc+"44";
 
     if (offer.type==="horse") {
-      let h = offer.horse;
+      let h = offer.horse||{};
       div.innerHTML = `
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:22px">${h.flag||"🐴"}</span>
+        <div class="mc-header">
+          <span class="mc-icon">${h.flag||"🐴"}</span>
           <div style="flex:1">
-            <div style="font-family:'Cinzel',serif;font-size:13px;color:${rc}">${h.name} ${isOwn?'<span style="font-size:10px;color:#c9a84c">· Twoja oferta</span>':''}</div>
-            <div style="font-size:11px;color:var(--text2)">${RARITY_LABELS[h.rarity]||h.rarity} · ⚡${h.stats?.speed} 💪${h.stats?.strength} ❤️${h.stats?.stamina}</div>
-            <div style="font-size:10px;color:var(--text2);margin-top:2px">👤 ${offer.sellerNick||"Gracz"}</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-family:'Cinzel',serif;font-size:16px;color:#c9a84c">💰 ${offer.price}</div>
-            ${isOwn
-              ? `<button onclick="window.FB.cancelGlobalListing('${offer.id}')" style="font-size:10px;border-color:#c94a4a;color:#c94a4a;margin-top:4px">Anuluj</button>`
-              : `<button onclick="window.FB.buyFromGlobalMarket('${offer.id}')" class="btn-gold" style="font-size:11px;margin-top:4px">Kup</button>`}
+            <div class="mc-name" style="color:${rc}">${h.name||"?"} ${isOwn?'<span style="font-size:10px;color:#c9a84c">· Twoja</span>':''}</div>
+            <div class="mc-sub">${RARITY_LABELS[h.rarity]||h.rarity} · 👤 ${offer.sellerNick||"Gracz"}</div>
           </div>
         </div>
-      `;
+        <div class="mc-stats">⚡${h.stats?.speed} 💪${h.stats?.strength} ❤️${h.stats?.stamina} 🍀${h.stats?.luck}</div>
+        <div class="mc-footer">
+          <span class="mc-price">💰 ${offer.price}</span>
+          ${isOwn
+            ? `<button onclick="window.FB.cancelGlobalListing('${offer.id}')" style="border-color:#c94a4a;color:#c94a4a;background:rgba(201,74,74,0.1);font-size:11px">Anuluj</button>`
+            : `<button class="btn-gold" onclick="window.FB.buyFromGlobalMarket('${offer.id}')" style="font-size:11px">Kup</button>`}
+        </div>`;
     } else {
-      let d = ITEMS_DATABASE[offer.item?.name]||{icon:"📦",desc:""};
+      let item = offer.item||{};
+      let d    = ITEMS_DATABASE[item.name]||{icon:"📦",desc:""};
       div.innerHTML = `
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:22px">${d.icon}</span>
+        <div class="mc-header">
+          <span class="mc-icon">${d.icon}</span>
           <div style="flex:1">
-            <div style="font-size:13px;color:var(--text)">${offer.item?.name||"Przedmiot"} ${isOwn?'<span style="font-size:10px;color:#c9a84c">· Twoja oferta</span>':''}</div>
-            <div style="font-size:11px;color:var(--text2)">${d.desc}${offer.item?.bonus!==undefined?` · +${offer.item.bonus}`:""}</div>
-            <div style="font-size:10px;color:var(--text2);margin-top:2px">👤 ${offer.sellerNick||"Gracz"}</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-family:'Cinzel',serif;font-size:16px;color:#c9a84c">💰 ${offer.price}</div>
-            ${isOwn
-              ? `<button onclick="window.FB.cancelGlobalListing('${offer.id}')" style="font-size:10px;border-color:#c94a4a;color:#c94a4a;margin-top:4px">Anuluj</button>`
-              : `<button onclick="window.FB.buyFromGlobalMarket('${offer.id}')" class="btn-gold" style="font-size:11px;margin-top:4px">Kup</button>`}
+            <div class="mc-name">${item.name||"?"} ${isOwn?'<span style="font-size:10px;color:#c9a84c">· Twoja</span>':''}</div>
+            <div class="mc-sub">${d.desc}${item.bonus!==undefined?` · +${item.bonus}`:""} · 👤 ${offer.sellerNick||"Gracz"}</div>
           </div>
         </div>
-      `;
+        <div class="mc-footer">
+          <span class="mc-price">💰 ${offer.price}</span>
+          ${isOwn
+            ? `<button onclick="window.FB.cancelGlobalListing('${offer.id}')" style="border-color:#c94a4a;color:#c94a4a;background:rgba(201,74,74,0.1);font-size:11px">Anuluj</button>`
+            : `<button class="btn-gold" onclick="window.FB.buyFromGlobalMarket('${offer.id}')" style="font-size:11px">Kup</button>`}
+        </div>`;
     }
     el.appendChild(div);
   });
 }
 
-// Wystaw na globalny rynek (integracja z istniejącym rynkiem)
+// Wystaw lokalną ofertę na globalny rynek
 async function listOnGlobalMarketFromLocal(offerId) {
   if (!window.FB) { log("⚠️ Firebase niedostępny"); return; }
-  if (!localStorage.getItem("hh_nick")) { openNickModal(); return; }
+  if (!window.FB.isLoggedIn()) { openLoginModal(); return; }
   let offer = market.find(o=>o.id===offerId);
   if (!offer) return;
-  let fbOffer = {
-    type:  offer.type,
-    price: offer.price,
-    horse: offer.horse || null,
-    item:  offer.item  || null,
-  };
-  await window.FB.listOnGlobalMarket(fbOffer);
+  await window.FB.listOnGlobalMarket({ type:offer.type, price:offer.price, horse:offer.horse||null, item:offer.item||null });
+  log("🌐 Wystawiono na globalny rynek!");
 }
 
-// =====================
-// TURNIEJE UI
-// =====================
-let tournamentEntries  = [];
-let tournamentUnsub    = null;
-let currentTournamentId = null;
+// ── Turnieje UI ───────────────────────────────────────────
+let tournamentEntries=[], tournamentUnsub=null, currentTournamentId=null;
 
 function renderTournamentsSection() {
   let el = document.getElementById("tournamentsContent");
   if (!el) return;
-
-  if (!window.FB) {
-    el.innerHTML = `<div style="color:#c94a4a;font-size:13px;padding:20px;text-align:center">⚠️ Firebase niedostępny — sprawdź połączenie</div>`;
-    return;
-  }
-  if (!localStorage.getItem("hh_nick")) {
-    el.innerHTML = `<div style="text-align:center;padding:20px"><div style="font-size:13px;color:var(--text2);margin-bottom:12px">Ustaw nick aby dołączyć do turniejów</div><button onclick="openNickModal()" style="border-color:#c9a84c;color:#c9a84c">👤 Ustaw nick</button></div>`;
+  if (!window.FB) { el.innerHTML=`<div style="color:#c94a4a;padding:20px;text-align:center">⚠️ Firebase niedostępny</div>`; return; }
+  if (!window.FB.isLoggedIn()) {
+    el.innerHTML=`<div style="text-align:center;padding:30px"><div style="font-size:13px;color:var(--text2);margin-bottom:12px">Zaloguj się aby dołączyć do turniejów</div><button onclick="openLoginModal()" style="border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1)">🔑 Zaloguj się</button></div>`;
     return;
   }
 
   let next = window.FB.getNextTournament();
-  let msLeft = next.msLeft;
-  let h = Math.floor(msLeft/3600000), m = Math.floor((msLeft%3600000)/60000), s = Math.floor((msLeft%60000)/1000);
-  let tId = `${next.type}_${new Date(next.nextTime).toISOString().slice(0,10)}_${next.hour}`;
+  let tId  = `${next.type}_${new Date(next.nextTime).toISOString().slice(0,10)}_${next.hour}`;
+  let ct   = typeof CONTEST_TYPES!=="undefined" ? CONTEST_TYPES.find(c=>c.id===next.type) : null;
 
-  if (tId !== currentTournamentId) {
-    currentTournamentId = tId;
-    if (tournamentUnsub) tournamentUnsub();
-    tournamentUnsub = window.FB.subscribeTournamentEntries(tId, entries => {
-      tournamentEntries = entries;
+  if (tId!==currentTournamentId) {
+    currentTournamentId=tId;
+    if(tournamentUnsub) tournamentUnsub();
+    tournamentUnsub=window.FB.subscribeTournamentEntries(tId,entries=>{
+      tournamentEntries=entries;
       renderTournamentEntries();
+      let cnt=document.getElementById("entryCount"); if(cnt)cnt.textContent=entries.length;
     });
   }
 
-  let contestType = typeof CONTEST_TYPES!=="undefined"
-    ? CONTEST_TYPES.find(c=>c.id===next.type) : null;
-  let myId   = window.FB.getPlayerId();
+  let myId    = window.FB.getPlayerId();
   let myEntry = tournamentEntries.find(e=>e.playerId===myId);
+  let ms=next.msLeft, h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000), s=Math.floor((ms%60000)/1000);
 
-  el.innerHTML = `
+  el.innerHTML=`
     <div style="background:#131f13;border:1px solid #c9a84c44;border-radius:12px;padding:16px;margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px">
         <div>
-          <div style="font-family:'Cinzel',serif;font-size:15px;color:#c9a84c">${contestType?.icon||"🏆"} ${next.name}</div>
-          <div style="font-size:11px;color:var(--text2);margin-top:3px">${contestType?.desc||""}</div>
+          <div style="font-family:'Cinzel',serif;font-size:15px;color:#c9a84c">${ct?.icon||"🏆"} ${next.name}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:3px">${ct?.desc||""}</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:10px;color:var(--text2)">Start za</div>
           <div id="tourneyCountdown" style="font-family:'Cinzel',serif;font-size:18px;color:#c9a84c">${h}h ${m}m ${s}s</div>
         </div>
       </div>
-
-      <div style="display:flex;gap:10px;margin-bottom:12px">
+      <div style="display:flex;gap:8px;margin-bottom:12px">
         <div style="flex:1;background:#0a140a;border-radius:8px;padding:8px;text-align:center">
           <div style="font-size:10px;color:var(--text2)">Wpisowe</div>
-          <div style="font-size:14px;color:#c97c2a">💰 ${contestType?.entryFee||0}</div>
+          <div style="font-size:14px;color:#c97c2a">💰 ${ct?.entryFee||0}</div>
         </div>
         <div style="flex:1;background:#0a140a;border-radius:8px;padding:8px;text-align:center">
           <div style="font-size:10px;color:var(--text2)">1. miejsce</div>
-          <div style="font-size:14px;color:#c9a84c">💰 ${contestType?.prizes?.[0]||0}</div>
+          <div style="font-size:14px;color:#c9a84c">💰 ${ct?.prizes?.[0]||0}</div>
         </div>
         <div style="flex:1;background:#0a140a;border-radius:8px;padding:8px;text-align:center">
           <div style="font-size:10px;color:var(--text2)">Zapisani</div>
           <div style="font-size:14px;color:#4ab870" id="entryCount">${tournamentEntries.length}</div>
         </div>
       </div>
-
       ${myEntry
-        ? `<div style="margin-bottom:10px;padding:8px;background:rgba(74,171,112,0.1);border:1px solid rgba(74,171,112,0.3);border-radius:8px;font-size:12px;color:#4ab870">
-            ✅ Zapisany: ${myEntry.horse?.flag||"🐴"} ${myEntry.horse?.name||""} · <button onclick="unregisterTournament()" style="font-size:10px;border-color:#c94a4a;color:#c94a4a;padding:2px 8px">Wypisz</button>
-           </div>`
-        : `<button onclick="openTournamentRegister('${tId}')" style="width:100%;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1);font-family:'Cinzel',serif">🏁 Zapisz konia · 💰 ${contestType?.entryFee||0}</button>`
+        ?`<div style="padding:8px;background:rgba(74,171,112,0.1);border:1px solid rgba(74,171,112,0.3);border-radius:8px;font-size:12px;color:#4ab870;display:flex;justify-content:space-between;align-items:center">
+            <span>✅ ${myEntry.horse?.flag||"🐴"} ${myEntry.horse?.name}</span>
+            <button onclick="unregisterTournament()" style="font-size:10px;border-color:#c94a4a;color:#c94a4a;padding:2px 8px">Wypisz +💰${ct?.entryFee||0}</button>
+          </div>`
+        :`<button onclick="openTournamentRegister('${tId}')" style="width:100%;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1);font-family:'Cinzel',serif">🏁 Zapisz konia · 💰 ${ct?.entryFee||0}</button>`
       }
     </div>
-
-    <div>
-      <div style="font-size:10px;letter-spacing:2px;color:#8aab84;margin-bottom:8px">LOBBY — ZAPISANI GRACZE</div>
-      <div id="tournamentEntriesList"></div>
-    </div>
+    <div style="font-size:10px;letter-spacing:2px;color:#8aab84;margin-bottom:8px">LOBBY</div>
+    <div id="tournamentEntriesList"></div>
   `;
 
   renderTournamentEntries();
 
-  // Odliczanie
-  let cdInterval = setInterval(() => {
-    let el2 = document.getElementById("tourneyCountdown");
-    if (!el2) { clearInterval(cdInterval); return; }
-    let diff = Math.max(0, next.nextTime - Date.now());
-    let h2=Math.floor(diff/3600000), m2=Math.floor((diff%3600000)/60000), s2=Math.floor((diff%60000)/1000);
-    el2.textContent = `${h2}h ${m2}m ${s2}s`;
-    if (diff <= 0) { clearInterval(cdInterval); renderTournamentsSection(); }
-  }, 1000);
+  let cd=setInterval(()=>{
+    let el2=document.getElementById("tourneyCountdown");
+    if(!el2){clearInterval(cd);return;}
+    let diff=Math.max(0,next.nextTime-Date.now());
+    let h2=Math.floor(diff/3600000),m2=Math.floor((diff%3600000)/60000),s2=Math.floor((diff%60000)/1000);
+    el2.textContent=`${h2}h ${m2}m ${s2}s`;
+    if(diff<=0){clearInterval(cd);renderTournamentsSection();}
+  },1000);
 }
 
 function renderTournamentEntries() {
-  let el = document.getElementById("tournamentEntriesList");
-  if (!el) return;
-  let myId = window.FB ? window.FB.getPlayerId() : null;
-  let countEl = document.getElementById("entryCount");
-  if (countEl) countEl.textContent = tournamentEntries.length;
-
-  if (tournamentEntries.length === 0) {
-    el.innerHTML = `<div style="font-size:12px;color:#4a5a4a;text-align:center;padding:16px">Brak zapisanych graczy. Bądź pierwszy!</div>`;
-    return;
-  }
-  el.innerHTML = tournamentEntries.map((e,i) => {
-    let isMe = e.playerId === myId;
-    let rc   = RARITY_COLORS[e.horse?.rarity]||"#8aab84";
+  let el=document.getElementById("tournamentEntriesList");
+  if(!el) return;
+  let myId=window.FB?window.FB.getPlayerId():null;
+  if(!tournamentEntries.length){el.innerHTML=`<div style="font-size:12px;color:#4a5a4a;text-align:center;padding:16px">Brak zapisanych graczy. Bądź pierwszy!</div>`;return;}
+  el.innerHTML=tournamentEntries.map(e=>{
+    let isMe=e.playerId===myId, rc=RARITY_COLORS[e.horse?.rarity]||"#8aab84";
     return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#131f13;border:1px solid ${isMe?"#c9a84c44":"#1e3a1e"};border-radius:8px;margin-bottom:6px">
       <span style="font-size:18px">${e.horse?.flag||"🐴"}</span>
       <div style="flex:1">
@@ -265,96 +308,161 @@ function renderTournamentEntries() {
 }
 
 function openTournamentRegister(tId) {
-  if (!window.FB) return;
-  if (gold < (typeof CONTEST_TYPES!=="undefined" ? (CONTEST_TYPES.find(c=>c.id===window.FB.getNextTournament()?.type)?.entryFee||0) : 0)) {
-    log("⚠️ Za mało złota na wpisowe!");
-    return;
-  }
-
-  let m = document.createElement("div");
-  m.id = "tournRegModal";
-  m.style.cssText = "position:fixed;inset:0;z-index:9200;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;font-family:'Crimson Text',serif";
-  m.innerHTML = `
-    <div style="background:#0f1a0f;border:1px solid #1e3a1e;border-radius:14px;padding:22px;width:340px;max-height:80vh;overflow-y:auto">
-      <div style="font-family:'Cinzel',serif;font-size:13px;color:#c9a84c;margin-bottom:14px">🏁 Wybierz konia do turnieju</div>
-      <div id="tournRegList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px"></div>
-      <button onclick="document.getElementById('tournRegModal').remove()" style="width:100%;border-color:#333;color:#666">Anuluj</button>
-    </div>
-  `;
+  let next=window.FB.getNextTournament(), ct=typeof CONTEST_TYPES!=="undefined"?CONTEST_TYPES.find(c=>c.id===next?.type):null, fee=ct?.entryFee||0;
+  if(gold<fee){log("⚠️ Za mało złota!");return;}
+  let m=document.createElement("div");
+  m.id="tournRegModal";
+  m.style.cssText="position:fixed;inset:0;z-index:9200;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center";
+  m.innerHTML=`<div style="background:#0f1a0f;border:1px solid #1e3a1e;border-radius:14px;padding:22px;width:340px;max-height:80vh;overflow-y:auto">
+    <div style="font-family:'Cinzel',serif;font-size:13px;color:#c9a84c;margin-bottom:14px">🏁 Wybierz konia</div>
+    <div id="tournRegList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px"></div>
+    <button onclick="document.getElementById('tournRegModal').remove()" style="width:100%;border-color:#333;color:#666">Anuluj</button>
+  </div>`;
   document.body.appendChild(m);
-
-  let list = document.getElementById("tournRegList");
-  let next = window.FB.getNextTournament();
-  let contestType = typeof CONTEST_TYPES!=="undefined" ? CONTEST_TYPES.find(c=>c.id===next?.type) : null;
-  let fee = contestType?.entryFee || 0;
-
-  playerHorses.forEach((h,i) => {
-    let blocked = !!h.injured || !!h.pregnant;
-    let rc = RARITY_COLORS[h.rarity]||"#8aab84";
-    let div = document.createElement("div");
-    div.style.cssText = `display:flex;align-items:center;gap:8px;padding:10px;background:#131f13;border:1px solid ${blocked?"#333":rc+"33"};border-radius:8px;cursor:${blocked?"not-allowed":"pointer"};opacity:${blocked?0.4:1}`;
-    div.innerHTML = `
-      <span style="font-size:18px">${h.flag||"🐴"}</span>
-      <div style="flex:1">
-        <div style="font-size:12px;color:${rc}">${h.name}</div>
-        <div style="font-size:10px;color:var(--text2)">⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck}</div>
-        ${blocked?`<div style="font-size:10px;color:#c94a4a">${h.injured?"🤕 Ranny":h.pregnant?"🤰 W ciąży":""}</div>`:""}
-      </div>
-    `;
-    if (!blocked) div.onclick = async () => {
-      if (gold < fee) { log("⚠️ Za mało złota!"); return; }
-      gold -= fee;
-      saveGame();
-      await window.FB.registerForTournament(h, tId);
+  let list=document.getElementById("tournRegList");
+  playerHorses.forEach((h,i)=>{
+    let blocked=!!h.injured||!!h.pregnant, rc=RARITY_COLORS[h.rarity]||"#8aab84";
+    let div=document.createElement("div");
+    div.style.cssText=`display:flex;align-items:center;gap:8px;padding:10px;background:#131f13;border:1px solid ${blocked?"#333":rc+"33"};border-radius:8px;cursor:${blocked?"not-allowed":"pointer"};opacity:${blocked?0.4:1}`;
+    div.innerHTML=`<span style="font-size:18px">${h.flag||"🐴"}</span><div style="flex:1"><div style="font-size:12px;color:${rc}">${h.name}</div><div style="font-size:10px;color:var(--text2)">⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck}</div></div>`;
+    if(!blocked) div.onclick=async()=>{
+      gold-=fee; saveGame();
+      await window.FB.registerForTournament(h,tId,fee);
       document.getElementById("tournRegModal")?.remove();
-      renderTournamentsSection();
-      renderAll();
+      renderTournamentsSection(); renderAll();
     };
     list.appendChild(div);
   });
 }
 
 async function unregisterTournament() {
-  if (!window.FB || !currentTournamentId) return;
-  let next = window.FB.getNextTournament();
-  let contestType = typeof CONTEST_TYPES!=="undefined" ? CONTEST_TYPES.find(c=>c.id===next?.type) : null;
-  let fee = contestType?.entryFee || 0;
-  gold += fee; // zwrot wpisowego
-  saveGame();
+  if(!currentTournamentId) return;
+  let next=window.FB.getNextTournament(), ct=typeof CONTEST_TYPES!=="undefined"?CONTEST_TYPES.find(c=>c.id===next?.type):null, fee=ct?.entryFee||0;
+  gold+=fee; saveGame();
   await window.FB.unregisterFromTournament(currentTournamentId);
-  renderTournamentsSection();
-  renderAll();
+  renderTournamentsSection(); renderAll();
 }
 
-// =====================
-// GLOBALNY RANKING UI
-// =====================
 async function renderGlobalRanking() {
-  let el = document.getElementById("globalRankingList");
-  if (!el || !window.FB) return;
-  el.innerHTML = `<div style="font-size:12px;color:var(--text2);text-align:center;padding:16px">Ładowanie...</div>`;
-  let players = await window.FB.fetchGlobalRanking();
-  let myId    = window.FB.getPlayerId();
-  el.innerHTML = players.map((p,i)=>{
-    let medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":`#${i+1}`;
-    let isMe  = p.id===myId;
-    let rc    = RARITY_COLORS[p.bestHorse?.rarity]||"#8aab84";
-    return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#131f13;border:1px solid ${isMe?"#c9a84c44":"#1e3a1e"};border-radius:8px;margin-bottom:6px">
-      <span style="width:28px;text-align:center;font-size:14px">${medal}</span>
+  let el=document.getElementById("globalRankingList");
+  if(!el||!window.FB) return;
+  el.innerHTML=`<div style="font-size:12px;color:var(--text2);text-align:center;padding:16px">Ładowanie...</div>`;
+  let players=await window.FB.fetchGlobalRanking();
+  let myId=window.FB.getPlayerId();
+  el.innerHTML=players.map((p,i)=>{
+    let medal=i===0?"🥇":i===1?"🥈":i===2?"🥉":`#${i+1}`, isMe=p.id===myId, rc=RARITY_COLORS[p.bestHorse?.rarity]||"#8aab84";
+    return `<div style="display:flex;align-items:center;gap:8px;padding:10px;background:#131f13;border:1px solid ${isMe?"#c9a84c44":"#1e3a1e"};border-radius:8px;margin-bottom:6px">
+      <span style="width:24px;text-align:center;font-size:14px">${medal}</span>
       <div style="flex:1">
-        <div style="font-size:13px;color:${isMe?"#c9a84c":"var(--text)"};">${p.nick||"Gracz"}${isMe?' <span style="font-size:10px">(Ty)</span>':''}</div>
-        <div style="font-size:10px;color:var(--text2)">Poziom ${p.level||1} · ${p.horseCount||0} koni</div>
-        ${p.bestHorse?`<div style="font-size:10px;color:${rc};margin-top:1px">${p.bestHorse.flag||"🐴"} ${p.bestHorse.name} · ⚡${p.bestHorse.stats?.speed}</div>`:""}
+        <div style="font-size:13px;color:${isMe?"#c9a84c":"var(--text)"}">${p.nick||"Gracz"}${isMe?' <span style="font-size:10px">(Ty)</span>':''}</div>
+        <div style="font-size:10px;color:var(--text2)">Poz. ${p.level||1} · ${p.horseCount||0} koni</div>
+        ${p.bestHorse?`<div style="font-size:10px;color:${rc}">${p.bestHorse.flag||"🐴"} ${p.bestHorse.name}</div>`:""}
       </div>
-      <div style="text-align:right;font-size:11px;color:var(--text2)">💰 ${p.gold||0}</div>
+      <div style="font-size:11px;color:var(--text2)">💰 ${p.gold||0}</div>
     </div>`;
   }).join("");
 }
 
-// Auto-init gdy Firebase gotowy
-document.addEventListener("DOMContentLoaded", () => {
-  setTimeout(() => {
-    renderFirebaseStatus();
-    initGlobalMarket();
-  }, 2000);
+// Auto-init — logowanie obowiązkowe
+document.addEventListener("DOMContentLoaded",()=>{
+  // Czekaj na Firebase Auth — jeśli niezalogowany pokaż modal
+  setTimeout(()=>{
+    if (!window.FB) return;
+    // onAuthStateChanged w firebase.js obsługuje redirect
+    // Jeśli po 2s nadal brak usera — pokaż modal
+    setTimeout(()=>{
+      if (!window.FB.isLoggedIn() && !window.FB.getPlayerId().startsWith("p_anon")) {
+        showMandatoryLogin();
+      }
+      renderFirebaseStatus();
+    }, 2000);
+  }, 500);
 });
+
+function showMandatoryLogin() {
+  let ex = document.getElementById("mandatoryLoginOverlay");
+  if (ex) return;
+
+  // Zablokuj grę overlayem
+  let overlay = document.createElement("div");
+  overlay.id  = "mandatoryLoginOverlay";
+  overlay.style.cssText = `
+    position:fixed;inset:0;z-index:99999;
+    background:rgba(0,0,0,0.97);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Crimson Text',serif;
+  `;
+  overlay.innerHTML = `
+    <div style="text-align:center;max-width:380px;width:90%;padding:20px">
+      <div style="font-size:64px;margin-bottom:16px">🐎</div>
+      <div style="font-family:'Cinzel',serif;font-size:22px;color:#c9a84c;letter-spacing:3px;margin-bottom:8px">HAPPY HORSES</div>
+      <div style="font-size:14px;color:#8aab84;margin-bottom:28px">Zaloguj się aby zagrać</div>
+
+      <div style="background:#0f1a0f;border:1px solid #1e3a1e;border-radius:16px;padding:24px">
+        <button onclick="doMandatoryGoogle()" style="
+          width:100%;padding:13px;border-radius:10px;margin-bottom:10px;
+          border:1px solid #4a7ec8;color:#6ab0e0;background:rgba(74,126,200,0.12);
+          font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+        ">
+          <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/></svg>
+          Zaloguj przez Google
+        </button>
+
+        <div style="display:flex;align-items:center;gap:10px;margin:14px 0">
+          <div style="flex:1;height:1px;background:#1e3a1e"></div>
+          <span style="font-size:11px;color:#4a5a4a">lub</span>
+          <div style="flex:1;height:1px;background:#1e3a1e"></div>
+        </div>
+
+        <div style="margin-bottom:10px">
+          <input id="mandatoryNickInput" type="text" maxlength="20" placeholder="Wpisz swój nick..."
+            style="width:100%;padding:10px 12px;background:#131f13;border:1px solid #1e3a1e;border-radius:8px;color:#d4e8d0;font-size:14px;margin-bottom:8px">
+          <button onclick="doMandatoryAnon()" style="
+            width:100%;padding:11px;border-radius:10px;
+            border:1px solid #2e4a2e;color:#7ec870;background:rgba(74,140,63,0.1);
+            font-size:13px;cursor:pointer;
+          ">👤 Graj jako Gość</button>
+        </div>
+
+        <div id="mandatoryLoginStatus" style="font-size:11px;color:var(--text2);min-height:16px;text-align:center"></div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  // Enter na inpucie = gość
+  setTimeout(()=>{
+    let inp = document.getElementById("mandatoryNickInput");
+    if (inp) inp.addEventListener("keydown", e=>{ if(e.key==="Enter") doMandatoryAnon(); });
+  }, 100);
+}
+
+function closeMandatoryLogin() {
+  document.getElementById("mandatoryLoginOverlay")?.remove();
+  renderFirebaseStatus();
+}
+
+async function doMandatoryGoogle() {
+  let statusEl = document.getElementById("mandatoryLoginStatus");
+  if (statusEl) statusEl.textContent = "Logowanie...";
+  try {
+    await window.FB.loginWithGoogle();
+    // onAuthStateChanged w firebase.js zamknie overlay
+  } catch(e) {
+    if (statusEl) statusEl.textContent = "Błąd logowania — spróbuj ponownie";
+  }
+}
+
+async function doMandatoryAnon() {
+  let nick = (document.getElementById("mandatoryNickInput")?.value||"").trim();
+  if (!nick) {
+    let statusEl = document.getElementById("mandatoryLoginStatus");
+    if (statusEl) statusEl.textContent = "⚠️ Wpisz nick aby zagrać jako Gość";
+    return;
+  }
+  localStorage.setItem("hh_nick", nick);
+  let statusEl = document.getElementById("mandatoryLoginStatus");
+  if (statusEl) statusEl.textContent = "Logowanie...";
+  await window.FB.loginAnonymous();
+  // onAuthStateChanged zamknie overlay
+}
