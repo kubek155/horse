@@ -8,7 +8,9 @@ import { getFirestore, collection, doc, setDoc, getDoc, getDocs,
          serverTimestamp, deleteDoc, updateDoc, addDoc }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, signInAnonymously, signInWithPopup,
-         GoogleAuthProvider, onAuthStateChanged, signOut }
+         GoogleAuthProvider, onAuthStateChanged, signOut,
+         createUserWithEmailAndPassword, signInWithEmailAndPassword,
+         updateProfile, sendPasswordResetEmail }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -42,6 +44,22 @@ async function loginWithGoogle() {
 async function loginAnonymous() {
   let result = await signInAnonymously(auth);
   return result.user;
+}
+
+async function registerWithEmail(email, password, nick) {
+  let result = await createUserWithEmailAndPassword(auth, email, password);
+  await updateProfile(result.user, { displayName: nick });
+  localStorage.setItem("hh_nick", nick);
+  return result.user;
+}
+
+async function loginWithEmail(email, password) {
+  let result = await signInWithEmailAndPassword(auth, email, password);
+  return result.user;
+}
+
+async function resetPassword(email) {
+  await sendPasswordResetEmail(auth, email);
 }
 
 async function logout() {
@@ -249,7 +267,7 @@ async function fetchGlobalRanking() {
 // ── Eksport ───────────────────────────────────────────────
 window.FB = {
   getPlayerId, getPlayerNick, isLoggedIn, savePlayerProfile,
-  loginWithGoogle, loginAnonymous, logout,
+  loginWithGoogle, loginAnonymous, loginWithEmail, registerWithEmail, resetPassword, logout,
   listOnGlobalMarket, buyFromGlobalMarket, cancelGlobalListing, subscribeGlobalMarket,
   registerForTournament, unregisterFromTournament, subscribeTournamentEntries,
   getNextTournament, runTournament, startTournamentWatcher,

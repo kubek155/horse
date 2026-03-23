@@ -380,61 +380,159 @@ document.addEventListener("DOMContentLoaded",()=>{
 });
 
 function showMandatoryLogin() {
-  let ex = document.getElementById("mandatoryLoginOverlay");
-  if (ex) return;
+  if (document.getElementById("mandatoryLoginOverlay")) return;
 
-  // Zablokuj grę overlayem
   let overlay = document.createElement("div");
   overlay.id  = "mandatoryLoginOverlay";
-  overlay.style.cssText = `
-    position:fixed;inset:0;z-index:99999;
-    background:rgba(0,0,0,0.97);
-    display:flex;align-items:center;justify-content:center;
-    font-family:'Crimson Text',serif;
-  `;
+  overlay.style.cssText = "position:fixed;inset:0;z-index:99999;background:#0a0e0a;display:flex;align-items:center;justify-content:center;font-family:'Crimson Text',serif;overflow-y:auto;padding:20px";
+
   overlay.innerHTML = `
-    <div style="text-align:center;max-width:380px;width:90%;padding:20px">
-      <div style="font-size:64px;margin-bottom:16px">🐎</div>
-      <div style="font-family:'Cinzel',serif;font-size:22px;color:#c9a84c;letter-spacing:3px;margin-bottom:8px">HAPPY HORSES</div>
-      <div style="font-size:14px;color:#8aab84;margin-bottom:28px">Zaloguj się aby zagrać</div>
-
-      <div style="background:#0f1a0f;border:1px solid #1e3a1e;border-radius:16px;padding:24px">
-        <button onclick="doMandatoryGoogle()" style="
-          width:100%;padding:13px;border-radius:10px;margin-bottom:10px;
-          border:1px solid #4a7ec8;color:#6ab0e0;background:rgba(74,126,200,0.12);
-          font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
-        ">
-          <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/></svg>
-          Zaloguj przez Google
-        </button>
-
-        <div style="display:flex;align-items:center;gap:10px;margin:14px 0">
-          <div style="flex:1;height:1px;background:#1e3a1e"></div>
-          <span style="font-size:11px;color:#4a5a4a">lub</span>
-          <div style="flex:1;height:1px;background:#1e3a1e"></div>
-        </div>
-
-        <div style="margin-bottom:10px">
-          <input id="mandatoryNickInput" type="text" maxlength="20" placeholder="Wpisz swój nick..."
-            style="width:100%;padding:10px 12px;background:#131f13;border:1px solid #1e3a1e;border-radius:8px;color:#d4e8d0;font-size:14px;margin-bottom:8px">
-          <button onclick="doMandatoryAnon()" style="
-            width:100%;padding:11px;border-radius:10px;
-            border:1px solid #2e4a2e;color:#7ec870;background:rgba(74,140,63,0.1);
-            font-size:13px;cursor:pointer;
-          ">👤 Graj jako Gość</button>
-        </div>
-
-        <div id="mandatoryLoginStatus" style="font-size:11px;color:var(--text2);min-height:16px;text-align:center"></div>
+    <div style="width:100%;max-width:420px">
+      <!-- Logo -->
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:56px;margin-bottom:8px">🐎</div>
+        <div style="font-family:'Cinzel',serif;font-size:24px;color:#c9a84c;letter-spacing:4px">HAPPY HORSES</div>
+        <div style="font-size:13px;color:#8aab84;margin-top:4px">Zaloguj się aby zagrać</div>
       </div>
+
+      <!-- Google -->
+      <button onclick="doMandatoryGoogle()" style="
+        width:100%;padding:13px;border-radius:10px;margin-bottom:16px;
+        border:1px solid #4a7ec8;color:#6ab0e0;background:rgba(74,126,200,0.12);
+        font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+      ">
+        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/></svg>
+        Kontynuuj przez Google
+      </button>
+
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <div style="flex:1;height:1px;background:#1e3a1e"></div>
+        <span style="font-size:11px;color:#4a5a4a">lub przez email</span>
+        <div style="flex:1;height:1px;background:#1e3a1e"></div>
+      </div>
+
+      <!-- Zakładki -->
+      <div style="display:flex;gap:0;margin-bottom:16px;background:#131f13;border-radius:10px;padding:4px;border:1px solid #1e3a1e">
+        <button id="authTabLogin" onclick="switchAuthTab('login')" style="
+          flex:1;padding:8px;border:none;border-radius:7px;
+          background:#1e3a1e;color:#7ec870;font-family:'Cinzel',serif;font-size:12px;cursor:pointer;
+        ">Logowanie</button>
+        <button id="authTabRegister" onclick="switchAuthTab('register')" style="
+          flex:1;padding:8px;border:none;border-radius:7px;
+          background:transparent;color:#4a5a4a;font-family:'Cinzel',serif;font-size:12px;cursor:pointer;
+        ">Rejestracja</button>
+      </div>
+
+      <!-- LOGOWANIE -->
+      <div id="authFormLogin" style="background:#0f1a0f;border:1px solid #1e3a1e;border-radius:12px;padding:18px">
+        <input id="loginEmail" type="email" placeholder="Email"
+          style="width:100%;padding:10px 12px;background:#131f13;border:1px solid #1e3a1e;border-radius:8px;color:#d4e8d0;font-size:14px;margin-bottom:8px">
+        <input id="loginPassword" type="password" placeholder="Hasło"
+          style="width:100%;padding:10px 12px;background:#131f13;border:1px solid #1e3a1e;border-radius:8px;color:#d4e8d0;font-size:14px;margin-bottom:12px">
+        <button onclick="doEmailLogin()" style="
+          width:100%;padding:11px;border-radius:8px;margin-bottom:8px;
+          border:1px solid #c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1);
+          font-family:'Cinzel',serif;font-size:13px;cursor:pointer;
+        ">Zaloguj się</button>
+        <button onclick="doResetPassword()" style="width:100%;border:none;background:transparent;font-size:11px;color:#4a5a4a;cursor:pointer;padding:4px">Zapomniałem hasła</button>
+      </div>
+
+      <!-- REJESTRACJA -->
+      <div id="authFormRegister" style="display:none;background:#0f1a0f;border:1px solid #1e3a1e;border-radius:12px;padding:18px">
+        <input id="regNick" type="text" maxlength="20" placeholder="Nick gracza (widoczny dla innych)"
+          style="width:100%;padding:10px 12px;background:#131f13;border:1px solid #1e3a1e;border-radius:8px;color:#d4e8d0;font-size:14px;margin-bottom:8px">
+        <input id="regEmail" type="email" placeholder="Email"
+          style="width:100%;padding:10px 12px;background:#131f13;border:1px solid #1e3a1e;border-radius:8px;color:#d4e8d0;font-size:14px;margin-bottom:8px">
+        <input id="regPassword" type="password" placeholder="Hasło (min. 6 znaków)"
+          style="width:100%;padding:10px 12px;background:#131f13;border:1px solid #1e3a1e;border-radius:8px;color:#d4e8d0;font-size:14px;margin-bottom:8px">
+        <input id="regPassword2" type="password" placeholder="Powtórz hasło"
+          style="width:100%;padding:10px 12px;background:#131f13;border:1px solid #1e3a1e;border-radius:8px;color:#d4e8d0;font-size:14px;margin-bottom:12px">
+        <button onclick="doEmailRegister()" style="
+          width:100%;padding:11px;border-radius:8px;
+          border:1px solid #4ab870;color:#4ab870;background:rgba(74,184,112,0.1);
+          font-family:'Cinzel',serif;font-size:13px;cursor:pointer;
+        ">Utwórz konto</button>
+      </div>
+
+      <div id="mandatoryLoginStatus" style="font-size:12px;min-height:20px;text-align:center;margin-top:10px;color:#c94a4a"></div>
     </div>
   `;
   document.body.appendChild(overlay);
 
-  // Enter na inpucie = gość
+  // Enter = submit
   setTimeout(()=>{
-    let inp = document.getElementById("mandatoryNickInput");
-    if (inp) inp.addEventListener("keydown", e=>{ if(e.key==="Enter") doMandatoryAnon(); });
-  }, 100);
+    ["loginPassword","regPassword2"].forEach(id=>{
+      let el = document.getElementById(id);
+      if(el) el.addEventListener("keydown", e=>{ if(e.key==="Enter") id.startsWith("login")?doEmailLogin():doEmailRegister(); });
+    });
+  },100);
+}
+
+function switchAuthTab(tab) {
+  let isLogin = tab==="login";
+  document.getElementById("authTabLogin").style.background    = isLogin ? "#1e3a1e" : "transparent";
+  document.getElementById("authTabLogin").style.color         = isLogin ? "#7ec870" : "#4a5a4a";
+  document.getElementById("authTabRegister").style.background = !isLogin ? "#1e3a1e" : "transparent";
+  document.getElementById("authTabRegister").style.color      = !isLogin ? "#7ec870" : "#4a5a4a";
+  document.getElementById("authFormLogin").style.display      = isLogin ? "block" : "none";
+  document.getElementById("authFormRegister").style.display   = !isLogin ? "block" : "none";
+  document.getElementById("mandatoryLoginStatus").textContent = "";
+}
+
+function setAuthStatus(msg, isError=true) {
+  let el = document.getElementById("mandatoryLoginStatus");
+  if (el) { el.textContent=msg; el.style.color=isError?"#c94a4a":"#4ab870"; }
+}
+
+async function doEmailLogin() {
+  let email = document.getElementById("loginEmail")?.value?.trim();
+  let pass  = document.getElementById("loginPassword")?.value;
+  if (!email||!pass) { setAuthStatus("Wypełnij wszystkie pola"); return; }
+  setAuthStatus("Logowanie...", false);
+  try {
+    await window.FB.loginWithEmail(email, pass);
+  } catch(e) {
+    let msg = e.code==="auth/user-not-found"?"Nie znaleziono konta"
+      : e.code==="auth/wrong-password"?"Złe hasło"
+      : e.code==="auth/invalid-email"?"Nieprawidłowy email"
+      : e.code==="auth/invalid-credential"?"Błędny email lub hasło"
+      : "Błąd logowania";
+    setAuthStatus(msg);
+  }
+}
+
+async function doEmailRegister() {
+  let nick  = document.getElementById("regNick")?.value?.trim();
+  let email = document.getElementById("regEmail")?.value?.trim();
+  let pass  = document.getElementById("regPassword")?.value;
+  let pass2 = document.getElementById("regPassword2")?.value;
+  if (!nick)            { setAuthStatus("Wpisz nick"); return; }
+  if (nick.length < 3)  { setAuthStatus("Nick za krótki (min. 3 znaki)"); return; }
+  if (!email)           { setAuthStatus("Wpisz email"); return; }
+  if (!pass)            { setAuthStatus("Wpisz hasło"); return; }
+  if (pass.length < 6)  { setAuthStatus("Hasło za krótkie (min. 6 znaków)"); return; }
+  if (pass !== pass2)   { setAuthStatus("Hasła się nie zgadzają"); return; }
+  setAuthStatus("Tworzenie konta...", false);
+  try {
+    await window.FB.registerWithEmail(email, pass, nick);
+  } catch(e) {
+    let msg = e.code==="auth/email-already-in-use"?"Ten email jest już zarejestrowany"
+      : e.code==="auth/invalid-email"?"Nieprawidłowy email"
+      : e.code==="auth/weak-password"?"Hasło za słabe"
+      : "Błąd rejestracji";
+    setAuthStatus(msg);
+  }
+}
+
+async function doResetPassword() {
+  let email = document.getElementById("loginEmail")?.value?.trim();
+  if (!email) { setAuthStatus("Wpisz email żeby zresetować hasło"); return; }
+  try {
+    await window.FB.resetPassword(email);
+    setAuthStatus("Link resetujący wysłany na email!", false);
+  } catch(e) {
+    setAuthStatus("Nie znaleziono konta z tym emailem");
+  }
 }
 
 function closeMandatoryLogin() {
@@ -454,15 +552,5 @@ async function doMandatoryGoogle() {
 }
 
 async function doMandatoryAnon() {
-  let nick = (document.getElementById("mandatoryNickInput")?.value||"").trim();
-  if (!nick) {
-    let statusEl = document.getElementById("mandatoryLoginStatus");
-    if (statusEl) statusEl.textContent = "⚠️ Wpisz nick aby zagrać jako Gość";
-    return;
-  }
-  localStorage.setItem("hh_nick", nick);
-  let statusEl = document.getElementById("mandatoryLoginStatus");
-  if (statusEl) statusEl.textContent = "Logowanie...";
-  await window.FB.loginAnonymous();
-  // onAuthStateChanged zamknie overlay
+  // Legacy — nie używana
 }
