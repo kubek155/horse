@@ -310,6 +310,8 @@ const ITEMS_DATABASE = {
   "Mroczna Przepustka":  { icon:"🌑", desc:"Odblokuj wyprawę do Mrocznych Ostępów",      rarity:"legendary",isPass:true, location:"Mroczne Ostępy"  },
   // Rozmnażanie
   "Jabłko Sfinksa":      { icon:"🍏", desc:"Magiczny owoc — wymagany do rozmnażania koni", rarity:"rare", isBreedItem:true },
+  // Transporter
+  "Transporter Konia":   { icon:"🧳", desc:"Koń czeka w transporterze — użyj gdy stajnia ma wolne miejsce", rarity:"rare", isTransporter:true },
   // Bandaż
   "Bandaż":              { icon:"🩹", desc:"Leczy rannego konia — pozwala mu wrócić na wyprawy", rarity:"uncommon" },
   // Specjalne

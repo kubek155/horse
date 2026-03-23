@@ -17,6 +17,20 @@ function openHorsePicker(itemIdx) {
     return;
   }
 
+  // Transporter Konia — odbiór kosztuje
+  if (itemData.isTransporter) {
+    let transporterItem = inventory[itemIdx];
+    if (!transporterItem || !transporterItem.horse) { log("⚠️ Pusty transporter!"); return; }
+    if (playerHorses.length >= STABLE_LIMIT) {
+      log(`⚠️ Stajnia nadal pełna! Zwolnij miejsce dla ${transporterItem.horse.name}.`);
+      return;
+    }
+    let h    = transporterItem.horse;
+    let fee  = calcTransporterFee(h);
+    openTransporterModal(itemIdx, h, fee);
+    return;
+  }
+
   // Jabłko Sfinksa — przejdź do hodowli
   if (itemData.isBreedItem) {
     log(`🍏 Jabłko Sfinksa — przejdź do Stajni i wybierz Rozmnóż konie.`);
@@ -153,21 +167,39 @@ function _doOpenLootBox(itemIdx) {
   let lootResult = { icon:"✨", name:"Nagroda!", desc:"", color:"#c9a84c" };
 
   if (r < 66) {
-    if (playerHorses.length >= STABLE_LIMIT) {
-      log(`📦 Skrzynka: Znaleziono konia, ale stajnia pełna!`);
-      lootResult = { icon:"🐴", name:"Stajnia pełna!", desc:"Zwolnij miejsce na konia", color:"#c97c2a" };
-    } else {
-      let h = generateHorse();
-      playerHorses.push(h);
+    {
+      let h  = generateHorse();
       let rc = RARITY_COLORS[h.rarity]||"#8aab84";
-      log(`📦 Skrzynka: Nowy koń — ${h.name}!`);
-      // Generuj SVG konia dla wyniku loot boxa
       let horseSvgStr = (typeof drawHorseSVG === "function")
-        ? drawHorseSVG(h.breedKey||h.name, h.rarity, h.stars)
-        : null;
-      lootResult = { svg: horseSvgStr, icon: h.flag||"🐴", name: h.name, desc: RARITY_LABELS[h.rarity]||h.rarity, color: rc };
-      // Efekt rzadkości pokazany po zamknięciu loot box animacji
-      lootResult._showRareEffect = { name: h.name, rarity: h.rarity, flag: h.flag };
+        ? drawHorseSVG(h.breedKey||h.name, h.rarity, h.stars) : null;
+
+      if (playerHorses.length >= STABLE_LIMIT) {
+        // Stajnia pełna — koń trafia do transportera w ekwipunku
+        inventory.push({
+          name:        "Transporter Konia",
+          obtained:    Date.now(),
+          horse:       h,   // koń zapisany w środku
+        });
+        log(`🧳 Stajnia pełna! ${h.flag} ${h.name} czeka w Transporterze w Ekwipunku.`);
+        lootResult = {
+          svg:   horseSvgStr,
+          icon:  "🧳",
+          name:  `${h.name} (w transporterze)`,
+          desc:  `${RARITY_LABELS[h.rarity]||h.rarity} · Zwolnij miejsce w stajni!`,
+          color: "#c97c2a"
+        };
+      } else {
+        playerHorses.push(h);
+        log(`📦 Skrzynka: Nowy koń — ${h.name}!`);
+        lootResult = {
+          svg:  horseSvgStr,
+          icon: h.flag||"🐴",
+          name: h.name,
+          desc: RARITY_LABELS[h.rarity]||h.rarity,
+          color: rc
+        };
+        lootResult._showRareEffect = { name: h.name, rarity: h.rarity, flag: h.flag };
+      }
     }
   } else if (r < 80) {
     inventory.push({ name: "Eliksir Odmłodzenia", obtained: Date.now() });
@@ -213,6 +245,92 @@ function _doOpenLootBox(itemIdx) {
 }
 
 // =====================
+// TRANSPORTER — opłata za odbiór
+// =====================
+function calcTransporterFee(h) {
+  // Opłata zależna od rzadkości + statystyki
+  const baseFee = { common:80, uncommon:150, rare:300, epic:600, legendary:1200, mythic:2500 };
+  let fee = baseFee[h.rarity] || 200;
+  // Dodatkowa opłata za wysokie staty
+  let statSum = (h.stats.speed||0)+(h.stats.strength||0)+(h.stats.stamina||0)+(h.stats.luck||0);
+  fee += Math.floor(statSum * 0.8);
+  // Gwiazdki
+  fee += (h.stars||0) * 200;
+  return fee;
+}
+
+function openTransporterModal(itemIdx, h, fee) {
+  let existing = document.getElementById("transporterModal");
+  if (existing) existing.remove();
+
+  let rc  = RARITY_COLORS[h.rarity] || "#8aab84";
+  let lbl = RARITY_LABELS[h.rarity] || h.rarity;
+  let canAfford = gold >= fee;
+
+  let modal = document.createElement("div");
+  modal.id = "transporterModal";
+  modal.style.cssText = "position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;font-family:'Crimson Text',serif";
+
+  modal.innerHTML = `
+    <div style="background:var(--panel);border:1px solid ${rc}66;border-radius:16px;padding:24px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.6)">
+      <div style="font-family:'Cinzel',serif;font-size:14px;color:${rc};margin-bottom:4px">🧳 Odbiór z Transportera</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:16px">Koń czekał w transporterze — opłata za przechowywanie:</div>
+
+      <div style="background:var(--panel2);border-radius:10px;padding:12px;margin-bottom:14px;border:1px solid ${rc}33">
+        <div id="transporterSVGSlot" style="border-radius:8px;overflow:hidden;margin-bottom:8px;border:1px solid ${rc}22"></div>
+        <div style="font-family:'Cinzel',serif;font-size:14px;color:${rc}">${h.flag||"🐴"} ${h.name}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">${lbl} · ${h.type||""} · ${h.gender==="male"?"♂ Ogier":"♀ Klacz"}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:4px">⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck}</div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:10px 12px;border-radius:8px;background:${canAfford?"rgba(201,168,76,0.08)":"rgba(201,74,74,0.08)"};border:1px solid ${canAfford?"rgba(201,168,76,0.3)":"rgba(201,74,74,0.3)"}">
+        <span style="font-size:13px;color:var(--text2)">Opłata za transport:</span>
+        <span style="font-family:'Cinzel',serif;font-size:16px;color:${canAfford?"var(--gold2)":"#c94a4a"}">💰 ${fee}</span>
+      </div>
+      ${!canAfford ? `<div style="font-size:11px;color:#c94a4a;margin-bottom:12px;text-align:center">Brak złota! Potrzebujesz jeszcze ${fee-gold} 💰</div>` : ""}
+
+      <div style="display:flex;gap:8px">
+        <button id="transporterConfirmBtn" style="flex:2;${canAfford?"border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.1)":"opacity:0.4"}" ${canAfford?"":"disabled"} onclick="confirmTransporter(${itemIdx},${fee})">
+          💰 Zapłać i odbierz
+        </button>
+        <button style="flex:1" onclick="document.getElementById('transporterModal').remove()">Anuluj</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Wstaw SVG konia
+  setTimeout(() => {
+    let slot = document.getElementById("transporterSVGSlot");
+    if (slot && typeof drawHorseSVG === "function") {
+      slot.innerHTML = drawHorseSVG(h.breedKey||h.name, h.rarity, h.stars||0);
+    }
+  }, 30);
+}
+
+function confirmTransporter(itemIdx, fee) {
+  let transporterItem = inventory[itemIdx];
+  if (!transporterItem || !transporterItem.horse) return;
+  if (playerHorses.length >= STABLE_LIMIT) { log("⚠️ Stajnia nadal pełna!"); return; }
+  if (gold < fee) { log("⚠️ Za mało złota!"); return; }
+
+  gold -= fee;
+  let h = transporterItem.horse;
+  playerHorses.push(h);
+  inventory.splice(itemIdx, 1);
+
+  document.getElementById("transporterModal")?.remove();
+  saveGame(); renderAll();
+  log(`🧳 Zapłacono ${fee}💰 — ${h.flag} ${h.name} odebrany z transportera!`);
+
+  let tier = {common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5}[h.rarity]||0;
+  if (tier >= 2 && typeof showRareHorseEffect === "function") {
+    setTimeout(() => showRareHorseEffect(h.name, h.rarity, h.flag), 200);
+  }
+}
+
+// =====================
 // RENDER INVENTORY — zakładki
 // =====================
 let invTab = "all";
@@ -230,6 +348,7 @@ function getItemCategory(name) {
   if (d.isPass)      return "pass";
   if (d.isSlotItem)  return "slot";
   if (d.isElixir || name.startsWith("Eliksir")) return "elixir";
+  if (d.isTransporter) return "transport";
   if (name === "Bandaż") return "other";
   if (name === "Skrzynka z Łupem") return "other";
   return "other";
@@ -242,6 +361,7 @@ const INV_TABS = [
   { id:"elixir", label:"Eliksiry",   icon:"🧪" },
   { id:"slot",   label:"Sloty",      icon:"✨" },
   { id:"pass",   label:"Przepustki", icon:"🎫" },
+  { id:"transport", label:"Transportery", icon:"🧳" },
   { id:"other",  label:"Inne",       icon:"📦" },
 ];
 
@@ -308,16 +428,41 @@ function renderInventory() {
     let div = document.createElement("div");
     div.className = "inv-item";
     div.style.borderColor = rc;
-    div.innerHTML = `
-      <span class="inv-icon">${data.icon}</span>
-      <span class="inv-name">${item.name}</span>
-      ${bonusHtml}
-      <div class="inv-actions">
-        <button onclick="openHorsePicker(${idx})">${useLabel}</button>
-        <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1)" onclick="openListItem(${idx})">🏪</button>
-      </div>
-    `;
-    el.appendChild(div);
+
+    if (data.isTransporter && item.horse) {
+      // Transporter — pokaż miniaturę konia w środku
+      let h2   = item.horse;
+      let hrc  = RARITY_COLORS[h2.rarity]||"#8aab84";
+      let hlbl = RARITY_LABELS[h2.rarity]||h2.rarity;
+      div.style.borderColor = hrc;
+      div.innerHTML = `
+        <div style="font-size:11px;font-family:'Cinzel',serif;color:var(--text2);margin-bottom:4px;text-align:center">🧳 TRANSPORTER</div>
+        <div style="background:var(--panel);border-radius:6px;overflow:hidden;margin-bottom:6px;border:1px solid ${hrc}44"></div>
+        <span class="inv-name" style="color:${hrc}">${h2.flag||"🐴"} ${h2.name}</span>
+        <div style="font-size:10px;color:var(--text2);margin:2px 0 4px">${hlbl} · ${h2.type||""}</div>
+        <div class="inv-actions">
+          <button onclick="openHorsePicker(${idx})" style="border-color:${hrc};color:${hrc}">🧳 Do stajni</button>
+          <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1)" onclick="openListItem(${idx})">🏪</button>
+        </div>
+      `;
+      // Wstaw SVG konia po appendChild
+      el.appendChild(div);
+      let svgSlot = div.querySelector("div[style*='overflow:hidden']");
+      if (svgSlot && typeof drawHorseSVG === "function") {
+        svgSlot.innerHTML = drawHorseSVG(h2.breedKey||h2.name, h2.rarity, h2.stars||0);
+      }
+    } else {
+      div.innerHTML = `
+        <span class="inv-icon">${data.icon}</span>
+        <span class="inv-name">${item.name}</span>
+        ${bonusHtml}
+        <div class="inv-actions">
+          <button onclick="openHorsePicker(${idx})">${useLabel}</button>
+          <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1)" onclick="openListItem(${idx})">🏪</button>
+        </div>
+      `;
+      el.appendChild(div);
+    }
   });
 }
 

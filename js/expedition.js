@@ -160,15 +160,19 @@ function finishExpedition(e) {
   let foodChance  = boxChance   + 10;
 
   if (r < horseChance) {
-    if (playerHorses.length >= STABLE_LIMIT) {
-      log(`🐴 Znaleziono konia, ale stajnia pełna!`);
-    } else {
+    {
       let h = generateHorse(loc.reward);
-      playerHorses.push(h);
-      log(`🐴 Nowy koń: ${h.name} (${HORSE_DATABASE[h.group].name})!`);
-      // Efekt wizualny dla rzadkich+
-      if (typeof showRareHorseEffect === "function") {
-        setTimeout(() => showRareHorseEffect(h.name, h.rarity, h.flag), 300);
+      if (playerHorses.length >= STABLE_LIMIT) {
+        // Koń trafia do transportera
+        inventory.push({ name:"Transporter Konia", obtained:Date.now(), horse:h });
+        log(`🧳 Stajnia pełna! ${h.flag} ${h.name} czeka w Transporterze w Ekwipunku.`);
+      } else {
+        playerHorses.push(h);
+        log(`🐴 Nowy koń: ${h.name} (${HORSE_DATABASE[h.group]?.name||h.rarity})!`);
+        if (typeof showRareHorseEffect === "function") {
+          let tier = {common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5}[h.rarity]||0;
+          if (tier >= 2) setTimeout(() => showRareHorseEffect(h.name, h.rarity, h.flag), 300);
+        }
       }
     }
   } else if (r < boxChance) {
