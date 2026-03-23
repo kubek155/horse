@@ -436,20 +436,23 @@ function renderInventory() {
       let hlbl = RARITY_LABELS[h2.rarity]||h2.rarity;
       div.style.borderColor = hrc;
       div.innerHTML = `
-        <div style="font-size:11px;font-family:'Cinzel',serif;color:var(--text2);margin-bottom:4px;text-align:center">🧳 TRANSPORTER</div>
-        <div style="background:var(--panel);border-radius:6px;overflow:hidden;margin-bottom:6px;border:1px solid ${hrc}44"></div>
-        <span class="inv-name" style="color:${hrc}">${h2.flag||"🐴"} ${h2.name}</span>
-        <div style="font-size:10px;color:var(--text2);margin:2px 0 4px">${hlbl} · ${h2.type||""}</div>
+        <div style="font-size:10px;font-family:'Cinzel',serif;color:var(--text2);margin-bottom:4px;text-align:center;letter-spacing:1px">🧳 TRANSPORTER</div>
+        <div class="transport-svg-slot" style="background:var(--panel);border-radius:6px;overflow:hidden;margin-bottom:6px;border:1px solid ${hrc}44;max-height:90px"></div>
+        <span class="inv-name" style="color:${hrc};font-size:11px;word-break:break-word;display:block;text-align:center">${h2.flag||"🐴"} ${h2.name}</span>
+        <div style="font-size:10px;color:var(--text2);margin:2px 0 4px;text-align:center">${hlbl}</div>
         <div class="inv-actions">
-          <button onclick="openHorsePicker(${idx})" style="border-color:${hrc};color:${hrc}">🧳 Do stajni</button>
-          <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1)" onclick="openListItem(${idx})">🏪</button>
+          <button onclick="openHorsePicker(${idx})" style="border-color:${hrc};color:${hrc};font-size:10px">🧳 Odbierz</button>
+          <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1);font-size:10px" onclick="openListItem(${idx})">🏪</button>
         </div>
       `;
-      // Wstaw SVG konia po appendChild
       el.appendChild(div);
-      let svgSlot = div.querySelector("div[style*='overflow:hidden']");
+      // Wstaw SVG — ogranicz wysokość
+      let svgSlot = div.querySelector(".transport-svg-slot");
       if (svgSlot && typeof drawHorseSVG === "function") {
-        svgSlot.innerHTML = drawHorseSVG(h2.breedKey||h2.name, h2.rarity, h2.stars||0);
+        let svgStr = drawHorseSVG(h2.breedKey||h2.name, h2.rarity, h2.stars||0);
+        svgSlot.innerHTML = svgStr;
+        let svgEl = svgSlot.querySelector("svg");
+        if (svgEl) { svgEl.setAttribute("width","100%"); svgEl.setAttribute("height","90"); }
       }
     } else {
       div.innerHTML = `
