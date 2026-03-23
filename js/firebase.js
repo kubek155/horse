@@ -91,9 +91,9 @@ onAuthStateChanged(auth, async (user) => {
     if (typeof renderFirebaseStatus === "function") setTimeout(renderFirebaseStatus, 100);
     if (typeof initGlobalMarket === "function") setTimeout(initGlobalMarket, 500);
   } else {
-    // Wylogowany — pokaż ekran logowania
+    // Wylogowany — pokaż ekran logowania (z opóźnieniem żeby gra zdążyła się załadować)
     if (typeof showMandatoryLogin === "function") {
-      setTimeout(showMandatoryLogin, 200);
+      setTimeout(showMandatoryLogin, 800);
     }
   }
   if (typeof renderFirebaseStatus === "function") renderFirebaseStatus();

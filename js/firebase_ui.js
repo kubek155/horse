@@ -363,19 +363,15 @@ async function renderGlobalRanking() {
   }).join("");
 }
 
-// Auto-init — logowanie obowiązkowe
+// Auto-init — firebase.js sam obsługuje logowanie przez onAuthStateChanged
+// Tutaj tylko renderujemy status gdy gra jest gotowa
 document.addEventListener("DOMContentLoaded",()=>{
-  // Czekaj na Firebase Auth — jeśli niezalogowany pokaż modal
-  setTimeout(()=>{
-    if (!window.FB) return;
-    // onAuthStateChanged w firebase.js obsługuje redirect
-    // Jeśli po 2s nadal brak usera — pokaż modal
-    setTimeout(()=>{
-      if (!window.FB.isLoggedIn() && !window.FB.getPlayerId().startsWith("p_anon")) {
-        showMandatoryLogin();
-      }
-      renderFirebaseStatus();
-    }, 2000);
+  // Status Firebase w UI — odśwież co sekundę przez chwilę
+  let statusChecks = 0;
+  let statusInterval = setInterval(()=>{
+    statusChecks++;
+    if (typeof renderFirebaseStatus === "function") renderFirebaseStatus();
+    if (statusChecks > 10) clearInterval(statusInterval);
   }, 500);
 });
 

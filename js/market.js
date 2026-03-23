@@ -53,7 +53,7 @@ function openListHorse(horseIdx) {
   listingTarget = { type:"horse", idx:horseIdx };
   let h = playerHorses[horseIdx];
   document.getElementById("listModalTitle").textContent    = `🐴 Wystaw: ${h.name}`;
-  document.getElementById("listModalSubtitle").textContent = `${HORSE_DATABASE[h.group]?.name} · ⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck||0}`;
+  document.getElementById("listModalSubtitle").textContent = `${RARITY_LABELS[h.rarity]||h.rarity} · ⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck||0}`;
   document.getElementById("listPriceInput").value          = calcHorsePrice(h);
   document.getElementById("listModal").style.display       = "flex";
 }

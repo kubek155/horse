@@ -53,6 +53,7 @@ function startExpedition(i, horseIdx) {
   closeExpeditionHorsePicker();
   saveGame();
   log(`🌍 ${h?.flag||"🐴"} ${h?.name||"Koń"} wyruszył na wyprawę do ${LOCATIONS[i].name}!`);
+  renderExpeditions(); // Natychmiast pokaż kartę wyprawy
 
   // Animacja jest w karcie wyprawy (bez popup)
 }
