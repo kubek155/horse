@@ -427,24 +427,43 @@ function showLootBoxAnimation(callback) {
           nameEl.textContent = name;
           descEl.textContent = desc;
           resultEl.style.display = "flex";
+
+          // Dodaj przycisk zamknij — gracz sam decyduje kiedy zamknąć
+          let closeBtn = document.createElement("button");
+          closeBtn.textContent = "✓ Zamknij";
+          closeBtn.style.cssText = `
+            margin-top:16px;padding:8px 24px;border-radius:8px;
+            border:1px solid var(--gold,#c9a84c);color:#c9a84c;
+            background:rgba(201,168,76,0.12);font-size:13px;cursor:pointer;
+          `;
+          closeBtn.onclick = (ev) => {
+            ev.stopPropagation();
+            closeLootBox(overlay);
+          };
+          resultEl.appendChild(closeBtn);
         }, 200);
 
-        // Zamknij po chwili, potem pokaż efekt rzadkości jeśli koń
+        // Auto-zamknij po 4s jeśli gracz nie kliknie
         setTimeout(() => {
-          overlay.style.animation = "sceneFadeOut 0.5s ease forwards";
-          setTimeout(() => {
-            overlay.remove();
-            let r2 = window._lastLootResult;
-            if (r2 && r2._showRareEffect && typeof showRareHorseEffect === "function") {
-              let s = r2._showRareEffect;
-              let tier = { common:0, uncommon:1, rare:2, epic:3, legendary:4, mythic:5 }[s.rarity]||0;
-              if (tier >= 2) showRareHorseEffect(s.name, s.rarity, s.flag);
-            }
-          }, 500);
-        }, 2200);
+          if (document.body.contains(overlay)) closeLootBox(overlay);
+        }, 4200);
       }, 100);
     }, 400);
   };
+}
+
+function closeLootBox(overlay) {
+  if (!overlay || !document.body.contains(overlay)) return;
+  overlay.style.animation = "sceneFadeOut 0.5s ease forwards";
+  setTimeout(() => {
+    overlay.remove();
+    let r2 = window._lastLootResult;
+    if (r2 && r2._showRareEffect && typeof showRareHorseEffect === "function") {
+      let s = r2._showRareEffect;
+      let tier = { common:0, uncommon:1, rare:2, epic:3, legendary:4, mythic:5 }[s.rarity]||0;
+      if (tier >= 2) showRareHorseEffect(s.name, s.rarity, s.flag);
+    }
+  }, 500);
 }
 
 function lighten3(hex, pct) {

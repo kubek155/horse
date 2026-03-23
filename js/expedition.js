@@ -442,18 +442,29 @@ function renderLocations() {
 }
 
 function renderExpeditions() {
-  let el     = document.getElementById("expeditionsDiv");
+  let el = document.getElementById("expeditionsDiv");
+  if (!el) return;
+
   let active = expeditions.filter(e => !e.done);
 
-  // Sprawdź czy są jakieś po zakończeniu
-  active.forEach(e => { if (Date.now() >= e.end) finishExpedition(e); });
-  active = expeditions.filter(e => !e.done);
+  // Zakończ dojrzałe wyprawy
+  let toFinish = active.filter(e => Date.now() >= e.end);
+  if (toFinish.length > 0) {
+    toFinish.forEach(e => finishExpedition(e));
+    active = expeditions.filter(e => !e.done);
+  }
 
   if (active.length === 0) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">🗺️</div>Brak aktywnych wypraw</div>`;
+    // Tylko wyczyść jeśli nie ma kart
+    let cards = el.querySelectorAll(".exp-card-anim");
+    cards.forEach(c2 => c2.remove());
+    if (!el.querySelector(".empty")) {
+      el.innerHTML = `<div class="empty"><div class="empty-icon">🗺️</div>Brak aktywnych wypraw</div>`;
+    }
     return;
   }
-  // Upewnij się że nie ma "brak" komunikatu gdy są aktywne
+
+  // Usuń komunikat "brak" jeśli są aktywne
   let emptyEl = el.querySelector(".empty");
   if (emptyEl) emptyEl.remove();
 
@@ -468,16 +479,17 @@ function renderExpeditions() {
     let existing   = document.getElementById(existingId);
 
     if (existing) {
+      // Aktualizuj istniejącą kartę
       let timerEl = existing.querySelector(".exp-card-timer");
       let barEl   = existing.querySelector(".exp-card-bar");
       let horseEl = existing.querySelector(".exp-card-horse");
       let dustEl  = existing.querySelector(".exp-card-dust");
       let newLeft = Math.max(2, Math.min(88, pct)) + "%";
       if (timerEl) timerEl.textContent = Math.ceil(t/1000) + "s";
-      if (barEl)   { barEl.style.width = pct + "%"; }
-      if (horseEl) { horseEl.style.left = newLeft; }
-      if (dustEl)  { dustEl.style.left  = newLeft; }
-      return;
+      if (barEl)   barEl.style.width   = pct + "%";
+      if (horseEl) horseEl.style.left  = newLeft;
+      if (dustEl)  dustEl.style.left   = newLeft;
+      return; // Nie twórz nowej karty
     }
 
     // Stwórz nową kartę wyprawy z animowanym koniem
