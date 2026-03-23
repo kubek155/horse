@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Happy Horses</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title">🐎 HAPPY HORSES</div>
+    <div class="topbar-stats">
+      <div class="topbar-stat">💰 Złoto: <span id="goldCount">0</span></div>
+      <div class="topbar-stat">🐴 Konie: <span id="horseCount">0</span></div>
+      <div class="topbar-stat">🎒 Ekwipunek: <span id="invCount">0</span></div>
+      <div class="topbar-stat">📅 Wyprawy dziś: <span id="dailyCount">0</span>/4</div>
+    </div>
+    <div class="xp-bar-wrap">
+      <div class="xp-bar-label">
+        <span style="font-family:'Cinzel',serif;color:var(--gold)">Poz. <span id="playerLevel">1</span></span>
+        <span id="playerXP" style="color:var(--text2);font-size:10px">0 / 100 XP</span>
+        <span id="dropBonusDisplay" style="color:#4ab870;font-size:10px"></span>
+      </div>
+      <div class="xp-bar-track">
+        <div id="xpBar" class="xp-bar-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h3>Menu</h3>
+    <div class="menu-item active" id="menu-expedition"   onclick="showSection('expedition')">🌍 Wyprawy</div>
+    <div class="menu-item"        id="menu-stable"       onclick="showSection('stable')">🐎 Stajnia</div>
+    <div class="menu-item"        id="menu-inventory"    onclick="showSection('inventory')">🎒 Ekwipunek</div>
+    <div class="menu-item"        id="menu-shop"         onclick="showSection('shop')">🛒 Sklep</div>
+    <div class="menu-item"        id="menu-market"       onclick="showSection('market')">🏪 Rynek</div>
+    <div class="menu-item"        id="menu-tournaments"  onclick="showSection('tournaments')">🏆 Turnieje</div>
+    <div class="menu-item"        id="menu-contests"     onclick="showSection('contests')">⚔️ Zawody</div>
+    <div class="menu-item"        id="menu-quests"       onclick="showSection('quests')">🎯 Questy</div>
+    <div class="menu-item"        id="menu-encyclopedia" onclick="showSection('encyclopedia')">📖 Encyklopedia</div>
+    <div class="menu-item"        id="menu-drops"        onclick="showSection('drops')">📜 Historia</div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- WYPRAWY -->
+    <div id="expeditionSection">
+      <div class="section-title">🌍 Wyprawy</div>
+
+      <div class="card">
+        <h4>DZIENNY LIMIT</h4>
+        <div class="limit-bar" id="limitBar"></div>
+        <div style="font-size:13px; color:var(--text2)">Pozostało wypraw: <span id="remainingExp" style="color:var(--gold2)">4</span></div>
+        <div id="luckBonus" style="font-size:12px;color:#4ab870;margin-top:6px"></div>
+      </div>
+
+      <div class="card">
+        <h4>WYBIERZ KRAINĘ</h4>
+        <div class="location-grid" id="locations"></div>
+      </div>
+
+
+      <div class="card" style="border-color:#333">
+        <h4 style="color:#555">🔧 NARZĘDZIA TESTOWE</h4>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="resetExpeditions()" style="font-size:12px;border-color:#555;color:#888">🔄 Reset wypraw</button>
+          <button onclick="addDebugGold()" style="font-size:12px;border-color:#555;color:#888">💰 +10 000 złota</button>
+          <button onclick="addDebugLootbox()" style="font-size:12px;border-color:#555;color:#888">📦 +5 Skrzynek</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>AKTYWNE WYPRAWY</h4>
+        <div id="expeditionsDiv">
+          <div class="empty"><div class="empty-icon">🗺️</div>Brak aktywnych wypraw</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAJNIA -->
+    <div id="stableSection" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+        <div class="section-title" style="margin:0;border:none;padding:0">🐎 Stajnia</div>
+        <div style="font-family:'Cinzel',serif;font-size:14px;color:var(--text2)">
+          Miejsca: <span id="stableCountDisplay" style="color:var(--gold2)">0 / 8</span>
+        </div>
+      </div>
+      <div style="margin-bottom:14px"><button id="breedBtn" onclick="openBreedScreen()" style="border-color:#b090e0;color:#b090e0;background:rgba(176,144,224,0.1)">🧬 Rozmnóż konie</button></div>
+      <div id="horsesGrid" class="horse-grid"></div>
+    </div>
+
+    <!-- EKWIPUNEK -->
+    <div id="inventorySection" style="display:none">
+      <div class="section-title">🎒 Ekwipunek</div>
+      <div id="invTabBar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+      <div id="inventoryGrid" class="inv-grid"></div>
+    </div>
+
+    <!-- SKLEP -->
+    <div id="shopSection" style="display:none">
+      <div class="section-title">🛒 Sklep</div>
+
+      <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center">
+        <div class="card" style="margin:0;flex:1;padding:12px 16px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">💰</span>
+          <div>
+            <div style="font-size:11px;color:var(--text2);font-family:'Cinzel',serif;letter-spacing:1px">TWOJE ZŁOTO</div>
+            <div style="font-size:22px;color:var(--gold2);font-family:'Cinzel',serif" id="shopGoldDisplay">0</div>
+          </div>
+        </div>
+        <div class="card" style="margin:0;flex:2;padding:12px 16px;font-size:13px;color:var(--text2)">
+          💡 Złoto zdobywasz wysyłając konie na wyprawy (50–200 💰 za wyprawę). Konie zdobywaj na wyprawach, ze skrzynek lub na rynku.
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>PRZEDMIOTY</h4>
+        <div id="shopItemsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px"></div>
+      </div>
+
+
+    </div>
+
+
+    <!-- QUESTY -->
+    <div id="questsSection" style="display:none">
+      <div class="section-title">🎯 Dzienne Questy</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:13px;color:var(--text2)">Ukończ zadania, odbierz złoto. Resetują się każdego dnia.</div>
+        <div id="questReset" style="font-size:12px;color:var(--text2);font-family:'Cinzel',serif"></div>
+      </div>
+      <div id="questsList"></div>
+    </div>
+
+
+    <!-- TURNIEJE MULTIPLAYER -->
+    <div id="tournamentsSection" style="display:none">
+      <div class="section-title">🏆 Turnieje</div>
+      <div id="tournamentsContent"></div>
+    </div>
+
+<!-- ZAWODY -->
+    <div id="contestsSection" style="display:none">
+      <div class="section-title">🏆 Zawody</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Wyślij konia na zawody i wygraj złoto i XP. Wyższe poziomy odblokowują trudniejsze wyścigi.</div>
+      <button onclick="openContestScreen()" style="border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.1);font-size:14px;padding:10px 20px">🏁 Otwórz zawody</button>
+      <div id="contestHistory" style="margin-top:16px"></div>
+    </div>
+
+    <!-- HISTORIA DROPÓW -->
+    <div id="dropsSection" style="display:none">
+      <div class="section-title">📜 Historia Dropów</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Ostatnie 50 dropów ze wszystkich wypraw i skrzynek.</div>
+      <div id="dropHistoryList"></div>
+    </div>
+
+    <!-- ENCYKLOPEDIA -->
+    <div id="encyclopediaSection" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+        <div class="section-title" style="margin:0;border:none;padding:0">📖 Encyklopedia Koni</div>
+        <div id="encyclopediaCount" style="font-size:13px;color:var(--text2);font-family:'Cinzel',serif"></div>
+      </div>
+
+      <input id="encyclopediaSearch" type="text" placeholder="🔍 Szukaj rasy lub kraju..." oninput="encyFilter.search=this.value;renderEncyclopedia()">
+
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px">
+
+        <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:1px;margin-bottom:8px">RZADKOŚĆ</div>
+        <div class="ency-filters" style="margin-bottom:12px">
+          <button data-ency="rarity" data-val="all"       class="active" onclick="setEncyFilter('rarity','all')">Wszystkie</button>
+          <button data-ency="rarity" data-val="mythic"    style="color:#c94a6a;border-color:#c94a6a"   onclick="setEncyFilter('rarity','mythic')">Pradawny</button>
+          <button data-ency="rarity" data-val="legendary" style="color:#c9a84c;border-color:#c9a84c"   onclick="setEncyFilter('rarity','legendary')">Mityczny</button>
+          <button data-ency="rarity" data-val="epic"      style="color:#7b5ea7;border-color:#7b5ea7"   onclick="setEncyFilter('rarity','epic')">Legendarny</button>
+          <button data-ency="rarity" data-val="rare"      style="color:#4a7ec8;border-color:#4a7ec8"   onclick="setEncyFilter('rarity','rare')">Rzadki</button>
+          <button data-ency="rarity" data-val="uncommon"  style="color:#8aab84;border-color:#8aab84"   onclick="setEncyFilter('rarity','uncommon')">Pospolity</button>
+          <button data-ency="rarity" data-val="common"    style="color:#909090;border-color:#909090"   onclick="setEncyFilter('rarity','common')">Zwykły</button>
+        </div>
+
+        <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:1px;margin-bottom:8px">KREW</div>
+        <div class="ency-filters" style="margin-bottom:12px">
+          <button data-ency="bloodline" data-val="all"      class="active" onclick="setEncyFilter('bloodline','all')">Wszystkie</button>
+          <button data-ency="bloodline" data-val="hotblood"  onclick="setEncyFilter('bloodline','hotblood')">🔴 Gorącokrwisty</button>
+          <button data-ency="bloodline" data-val="coldblood" onclick="setEncyFilter('bloodline','coldblood')">🔵 Zimnokrwisty</button>
+          <button data-ency="bloodline" data-val="warmblood" onclick="setEncyFilter('bloodline','warmblood')">🟡 Ciepłokrwisty</button>
+          <button data-ency="bloodline" data-val="oriental"  onclick="setEncyFilter('bloodline','oriental')">🟠 Orientalny</button>
+          <button data-ency="bloodline" data-val="gaited"    onclick="setEncyFilter('bloodline','gaited')">🟢 Chodzący</button>
+        </div>
+
+        <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:1px;margin-bottom:8px">TYP</div>
+        <div class="ency-filters">
+          <button data-ency="type" data-val="all"           class="active" onclick="setEncyFilter('type','all')">Wszystkie</button>
+          <button data-ency="type" data-val="Wyścigowy"     onclick="setEncyFilter('type','Wyścigowy')">🏇 Wyścigowy</button>
+          <button data-ency="type" data-val="Sportowy"      onclick="setEncyFilter('type','Sportowy')">🏅 Sportowy</button>
+          <button data-ency="type" data-val="Barokowy"      onclick="setEncyFilter('type','Barokowy')">🎠 Barokowy</button>
+          <button data-ency="type" data-val="Pociągowy"     onclick="setEncyFilter('type','Pociągowy')">🐎 Pociągowy</button>
+          <button data-ency="type" data-val="Chód"          onclick="setEncyFilter('type','Chód')">🟢 Chód</button>
+          <button data-ency="type" data-val="Kucyk"         onclick="setEncyFilter('type','Kucyk')">🐴 Kucyk</button>
+          <button data-ency="type" data-val="Prymitywny"    onclick="setEncyFilter('type','Prymitywny')">🪨 Prymitywny</button>
+          <button data-ency="type" data-val="Mityczny"      onclick="setEncyFilter('type','Mityczny')">✨ Mityczny</button>
+          <button data-ency="type" data-val="Bojowy"        onclick="setEncyFilter('type','Bojowy')">⚔️ Bojowy</button>
+        </div>
+      </div>
+
+      <div id="encyclopediaGrid" class="ency-grid"></div>
+    </div>
+
+    <!-- RYNEK -->
+    <div id="marketSection" style="display:none">
+      <div class="section-title">🏪 Rynek Graczy</div>
+
+      <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center">
+        <div class="card" style="margin:0;flex:1;padding:12px 16px;font-size:13px;color:var(--text2)">
+          💡 Kup i sprzedawaj konie oraz przedmioty. Wystaw z <strong style="color:var(--text)">Stajni</strong> lub <strong style="color:var(--text)">Ekwipunku</strong> przyciskiem 🏪.
+        </div>
+      </div>
+
+      <!-- FILTRY RYNKU -->
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:1px">TYP</div>
+          <div id="myListingsCount" style="font-size:12px;color:#b090e0"></div>
+        </div>
+        <div class="market-filter" style="margin-bottom:12px">
+          <button data-filter="type" data-val="all"   class="active" onclick="setMarketFilter('type','all')">Wszystko</button>
+          <button data-filter="type" data-val="horse"               onclick="setMarketFilter('type','horse')">🐴 Konie</button>
+          <button data-filter="type" data-val="item"                onclick="setMarketFilter('type','item')">🎒 Przedmioty</button>
+        </div>
+
+        <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:1px;margin-bottom:8px">RASA / RZADKOŚĆ</div>
+        <div class="market-filter" style="flex-wrap:wrap;margin-bottom:12px">
+          <button data-filter="rarity" data-val="all"       class="active" onclick="setMarketFilter('rarity','all')">Wszystkie</button>
+          <button data-filter="rarity" data-val="common"    style="color:#909090;border-color:#909090"    onclick="setMarketFilter('rarity','common')">Zwykłe</button>
+          <button data-filter="rarity" data-val="rare"      style="color:#4a7ec8;border-color:#4a7ec8"    onclick="setMarketFilter('rarity','rare')">Rzadkie</button>
+          <button data-filter="rarity" data-val="epic"      style="color:#c97c2a;border-color:#c97c2a"    onclick="setMarketFilter('rarity','epic')">Bojowe</button>
+          <button data-filter="rarity" data-val="legendary" style="color:var(--gold);border-color:var(--gold)" onclick="setMarketFilter('rarity','legendary')">Legendarne</button>
+        </div>
+
+        <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:1px;margin-bottom:8px">SORTUJ WG</div>
+        <div class="market-filter" style="flex-wrap:wrap">
+          <button data-filter="sortBy" data-val="mine"          class="active" onclick="setMarketFilter('sortBy','mine')">Moje pierwsze</button>
+          <button data-filter="sortBy" data-val="price_asc"                    onclick="setMarketFilter('sortBy','price_asc')">Cena ↑</button>
+          <button data-filter="sortBy" data-val="price_desc"                   onclick="setMarketFilter('sortBy','price_desc')">Cena ↓</button>
+          <button data-filter="sortBy" data-val="stat_speed"                   onclick="setMarketFilter('sortBy','stat_speed')">⚡ Szybkość</button>
+          <button data-filter="sortBy" data-val="stat_strength"                onclick="setMarketFilter('sortBy','stat_strength')">💪 Siła</button>
+          <button data-filter="sortBy" data-val="stat_stamina"                 onclick="setMarketFilter('sortBy','stat_stamina')">❤️ Wytrzymałość</button>
+          <button data-filter="sortBy" data-val="stat_luck"                    onclick="setMarketFilter('sortBy','stat_luck')">🍀 Szczęście</button>
+        </div>
+      </div>
+
+      <div id="marketListings" class="market-grid"></div>
+      </div><!-- /marketTabLocalContent -->
+      <div id="marketTabGlobalContent" style="display:none">
+        <div id="globalMarketList"></div>
+      </div>
+      <div id="marketTabRankingContent" style="display:none">
+        <button onclick="renderGlobalRanking()" style="font-size:12px;border-color:#333;color:#666;margin-bottom:10px">🔄 Odśwież</button>
+        <div id="globalRankingList"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHTBAR -->
+  <div class="rightbar">
+    <h3>🏆 Ranking</h3>
+    <div id="rankingList"></div>
+  </div>
+
+</div>
+
+<!-- MODAL WYBORU ITEMU DO SLOTU -->
+<div id="slotPickerModal" class="modal-overlay" style="display:none">
+  <div class="modal" style="min-width:320px;max-width:420px">
+    <div class="modal-title">✨ Wybierz przedmiot do slotu</div>
+    <div class="modal-subtitle" id="slotPickerSubtitle">Wybierz eliksir statystyki z ekwipunku</div>
+    <div id="slotPickerList" class="modal-horse-list" style="max-height:300px;overflow-y:auto;margin:12px 0"></div>
+    <button class="modal-cancel" onclick="closeSlotPicker()">✕ Anuluj</button>
+  </div>
+</div>
+
+<!-- MODAL WYPUSZCZENIA KONIA -->
+<div id="releaseModal" class="modal-overlay" style="display:none">
+  <div class="modal" style="min-width:300px;max-width:380px">
+    <div class="modal-title" style="color:#888">🌿 Wypuść konia</div>
+    <div class="modal-subtitle">Czy na pewno chcesz wypuścić tego konia? Akcja jest nieodwracalna.</div>
+    <div style="margin:14px 0;padding:12px;background:var(--panel2);border-radius:8px;text-align:center">
+      <div id="releaseHorseName" style="font-family:'Cinzel',serif;font-size:15px;color:var(--text);margin-bottom:4px"></div>
+      <div id="releaseHorseDesc" style="font-size:12px;color:var(--text2)"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button id="releaseConfirmBtn" style="flex:2;border-color:#666;color:#aaa;background:rgba(100,100,100,0.15)">🌿 Wypuść</button>
+      <button class="modal-cancel" style="flex:1" onclick="closeReleaseModal()">✕ Anuluj</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL WYBORU KONIA DO WYPRAWY -->
+<div id="expeditionHorsePickerModal" class="modal-overlay" style="display:none">
+  <div class="modal" style="min-width:360px;max-width:460px">
+    <div class="modal-title" id="expPickerTitle">Wybierz konia</div>
+    <div class="modal-subtitle" id="expPickerSubtitle"></div>
+    <div id="expHorseList" class="modal-horse-list" style="max-height:340px;overflow-y:auto;margin:12px 0"></div>
+    <button class="modal-cancel" onclick="closeExpeditionHorsePicker()">✕ Anuluj</button>
+  </div>
+</div>
+
+<!-- MODAL ROZMNAŻANIA -->
+<div id="breedModal" class="modal-overlay" style="display:none">
+  <div class="modal" style="min-width:360px;max-width:480px">
+    <div class="modal-title">🧬 Rozmnażanie koni</div>
+    <div class="modal-subtitle" id="breedStatus">Wybierz pierwszego rodzica</div>
+    <div id="breedHorseList" style="max-height:300px;overflow-y:auto;margin:12px 0"></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button id="breedConfirmBtn" class="btn-gold" style="flex:2" disabled>🧬 Rozmnóż!</button>
+      <button class="modal-cancel" style="flex:1" onclick="closeBreedModal()">✕ Anuluj</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL WYSTAWIANIA NA RYNEK -->
+<div id="listModal" class="modal-overlay" style="display:none">
+  <div class="modal" style="min-width:300px;max-width:400px">
+    <div class="modal-title"    id="listModalTitle">Wystaw na rynek</div>
+    <div class="modal-subtitle" id="listModalSubtitle"></div>
+    <div style="margin:16px 0">
+      <label style="font-size:13px;color:var(--text2);display:block;margin-bottom:6px;font-family:'Cinzel',serif;letter-spacing:1px">CENA (ZŁOTO)</label>
+      <input id="listPriceInput" type="number" min="1" style="width:100%;padding:10px 12px;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--gold2);font-size:18px;font-family:'Cinzel',serif;outline:none">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-gold" style="flex:2" onclick="confirmListing()">✅ Wystaw</button>
+      <button class="modal-cancel" style="flex:1" onclick="closeListModal()">✕ Anuluj</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL WYBORU KONIA -->
+<div id="horsePickerModal" class="modal-overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-title"    id="modalTitle">Użyj przedmiotu</div>
+    <div class="modal-subtitle" id="modalSubtitle">Wybierz konia:</div>
+    <div class="modal-horse-list" id="modalHorseList"></div>
+    <button class="modal-cancel" onclick="closeModal()">✕ Anuluj</button>
+  </div>
+</div>
+
+<div id="logBox"></div>
+
+<!-- Kolejność ładowania JS jest ważna! -->
+<script type="module" src="js/firebase.js"></script>
+<script src="js/horse_svg.js"></script>
+<script src="js/database.js"></script>
+<script src="js/game.js"></script>
+<script src="js/horses.js"></script>
+<script src="js/items.js"></script>
+<script src="js/animations.js"></script>
+<script src="js/leveling.js"></script>
+<script src="js/breeding.js"></script>
+<script src="js/contests.js"></script>
+<script src="js/firebase_ui.js"></script>
+<script src="js/expedition.js"></script>
+<script src="js/shop.js"></script>
+<script src="js/market.js"></script>
+<script src="js/quests.js"></script>
+<script src="js/encyclopedia.js"></script>
+<script src="main.js"></script>
+
+
+</body>
+</html>
