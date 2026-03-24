@@ -313,11 +313,11 @@ function locationBgSVG(bg, w, h) {
                <ellipse cx="20%" cy="55%" rx="8" ry="20" fill="${gr[1]}" opacity="0.8"/>
                <ellipse cx="75%" cy="50%" rx="6" ry="18" fill="${gr[1]}" opacity="0.7"/>`,
     desert:   `<circle cx="75%" cy="20%" r="12" fill="#f0a000" opacity="0.9"/>
-               <polygon points="15%,${h},20%,${h*0.55},25%,${h}" fill="${gr[1]}" opacity="0.7"/>
-               <polygon points="70%,${h},76%,${h*0.5},82%,${h}" fill="${gr[1]}" opacity="0.6"/>`,
+               <polygon points="24,${h},32,${h*0.55},40,${h}" fill="${gr[1]}" opacity="0.7"/>
+               <polygon points="112,${h},122,${h*0.5},131,${h}" fill="${gr[1]}" opacity="0.6"/>`,
     mountain: `<circle cx="20%" cy="30%" r="6" fill="#f0f0ff" opacity="0.8"/>
-               <polygon points="10%,${h},28%,${h*0.25},46%,${h}" fill="#3a3a5a" opacity="0.8"/>
-               <polygon points="50%,${h},65%,${h*0.3},80%,${h}" fill="#4a4a6a" opacity="0.7"/>`,
+               <polygon points="16,${h},45,${h*0.25},74,${h}" fill="#3a3a5a" opacity="0.8"/>
+               <polygon points="80,${h},104,${h*0.3},128,${h}" fill="#4a4a6a" opacity="0.7"/>`,
     tundra:   `<circle cx="30%" cy="25%" r="7" fill="#c0e0ff" opacity="0.7"/>
                <ellipse cx="50%" cy="60%" rx="40%" ry="8" fill="white" opacity="0.15"/>
                <ellipse cx="20%" cy="70%" rx="15%" ry="4" fill="white" opacity="0.2"/>`,

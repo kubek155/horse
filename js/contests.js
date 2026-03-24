@@ -101,14 +101,14 @@ function generateRivals(contest, playerLevel) {
   return rivals;
 }
 
-const NPC_NAMES = [
+const CONTEST_NPC_NAMES = [
   "Burza","Wicher","Błysk","Meteor","Kometa","Grom","Zorza","Struna","Ognik","Mgła",
   "Jaskółka","Sokół","Orzeł","Piorun","Srebro","Złoto","Diament","Księżyc","Słońce","Gwiazda",
   "Arabela","Bellatrix","Cassiopeia","Dafne","Elara","Fawna","Galatea","Hera","Iris","Juno",
 ];
 let npcNameIdx = 0;
 function generateNPCName() {
-  return NPC_NAMES[(npcNameIdx++ + Math.floor(Math.random()*5)) % NPC_NAMES.length];
+  return CONTEST_NPC_NAMES[(npcNameIdx++ + Math.floor(Math.random()*5)) % NPC_NAMES.length];
 }
 
 // Oblicz wynik konia w zawodach

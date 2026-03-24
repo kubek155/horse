@@ -1,4 +1,4 @@
-const NPC_NAMES = ["Marek K.", "Zuzanna P.", "Tomasz W.", "Ania M.", "Bartek S.", "Kasia L."];
+const MARKET_NPC_NAMES = ["Marek K.", "Zuzanna P.", "Tomasz W.", "Ania M.", "Bartek S.", "Kasia L."];
 
 // =====================
 // SEED NPC OFFERS
@@ -6,7 +6,7 @@ const NPC_NAMES = ["Marek K.", "Zuzanna P.", "Tomasz W.", "Ania M.", "Bartek S."
 function seedMarket() {
   const npcItems = ["Jabłko", "Słoma", "Eliksir Szybkości", "Skrzynka z Łupem", "Eliksir Odmłodzenia", "Eliksir Szczęścia"];
   for (let i = 0; i < 5; i++) {
-    let name    = NPC_NAMES[Math.floor(Math.random() * NPC_NAMES.length)];
+    let name    = MARKET_NPC_NAMES[Math.floor(Math.random() * NPC_NAMES.length)];
     let isHorse = Math.random() < 0.5;
     if (isHorse) {
       let h = generateHorse();
