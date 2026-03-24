@@ -410,23 +410,25 @@ function showLootBoxAnimation(callback) {
           let nameEl    = document.getElementById("lootResultName");
           let descEl    = document.getElementById("lootResultDesc");
 
-          // Jeśli koń — wstaw SVG (160x130 skalowane do 120x97)
-          if (result.svg) {
-            iconEl.innerHTML = "";
-            let svgWrap = document.createElement("div");
-            svgWrap.style.cssText = `width:120px;height:97px;background:${col}18;border-radius:10px;overflow:hidden;border:1px solid ${col}44;margin:0 auto`;
-            svgWrap.innerHTML = result.svg;
-            let svgEl2 = svgWrap.querySelector("svg");
-            if (svgEl2) { svgEl2.setAttribute("width","120"); svgEl2.setAttribute("height","97"); }
-            iconEl.appendChild(svgWrap);
-          } else {
-            iconEl.textContent = icon;
-          }
-
           nameEl.style.color = col;
           nameEl.textContent = name;
           descEl.textContent = desc;
           resultEl.style.display = "flex";
+
+          // Wstaw SVG po display:flex (SVG nie renderuje w display:none)
+          setTimeout(() => {
+            if (result.svg) {
+              iconEl.innerHTML = "";
+              let svgWrap = document.createElement("div");
+              svgWrap.style.cssText = `width:120px;height:97px;background:${col}18;border-radius:10px;overflow:hidden;border:1px solid ${col}44;margin:0 auto`;
+              svgWrap.innerHTML = result.svg;
+              let svgEl2 = svgWrap.querySelector("svg");
+              if (svgEl2) { svgEl2.setAttribute("width","120"); svgEl2.setAttribute("height","97"); }
+              iconEl.appendChild(svgWrap);
+            } else {
+              iconEl.textContent = icon;
+            }
+          }, 50);
 
           // Dodaj przycisk zamknij — gracz sam decyduje kiedy zamknąć
           let closeBtn = document.createElement("button");

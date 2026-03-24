@@ -39,7 +39,7 @@ function loadGame() {
 // =====================
 function renderAll() {
   renderLimitBar();
-  renderExpeditions();
+  // renderExpeditions jest w setInterval co 1s — nie przebudowuj co 5s
   renderHorses();
   renderInventory();
   renderShop();
