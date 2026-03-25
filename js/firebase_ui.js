@@ -133,13 +133,15 @@ function initGlobalMarket() {
   if (globalMarketUnsub) { globalMarketUnsub(); globalMarketUnsub = null; }
   globalMarketUnsub = window.FB.subscribeGlobalMarket(offers => {
     globalMarketOffers = offers;
-    // Renderuj zawsze gdy są nowe dane
     renderGlobalMarket();
   });
-  // Pokaż "ładowanie" od razu
   let el = document.getElementById("globalMarketList");
   if (el && !globalMarketOffers.length) {
     el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px">🔄 Ładowanie ofert...</div>`;
+  }
+  // Odbierz zaległe płatności gdy wchodzisz na rynek
+  if (window.FB?.collectPendingPayments) {
+    window.FB.collectPendingPayments();
   }
 }
 
