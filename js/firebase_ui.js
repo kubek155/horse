@@ -129,12 +129,18 @@ let globalMarketOffers = [];
 let globalMarketUnsub  = null;
 
 function initGlobalMarket() {
-  if (!window.FB) return;
-  if (globalMarketUnsub) globalMarketUnsub();
+  if (!window.FB || !window.FB.isLoggedIn()) return;
+  if (globalMarketUnsub) { globalMarketUnsub(); globalMarketUnsub = null; }
   globalMarketUnsub = window.FB.subscribeGlobalMarket(offers => {
     globalMarketOffers = offers;
+    // Renderuj zawsze gdy są nowe dane
     renderGlobalMarket();
   });
+  // Pokaż "ładowanie" od razu
+  let el = document.getElementById("globalMarketList");
+  if (el && !globalMarketOffers.length) {
+    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px">🔄 Ładowanie ofert...</div>`;
+  }
 }
 
 function renderGlobalMarket() {
@@ -365,18 +371,22 @@ async function renderGlobalRanking() {
 
 // Nasłuchuj eventów z firebase.js (moduł ES komunikuje się przez window events)
 window.addEventListener("hh_logged_in", (e) => {
-  // Zalogowano — zamknij overlay i odśwież UI
   closeMandatoryLogin();
   renderFirebaseStatus();
-  initGlobalMarket();
-  setTimeout(renderAll, 200);
+  // Zawsze subskrybuj rynek po zalogowaniu
+  setTimeout(() => {
+    initGlobalMarket();
+    renderAll();
+  }, 300);
   log(`✅ Zalogowano jako ${window.FB?.getPlayerNick()||"Gracz"}!`);
 });
 
 window.addEventListener("hh_logged_out", () => {
-  // Wylogowano — pokaż ekran logowania
   renderFirebaseStatus();
-  setTimeout(showMandatoryLogin, 300);
+  // Pokaż tylko jeśli nie ma już overlay
+  if (!document.getElementById("mandatoryLoginOverlay")) {
+    setTimeout(showMandatoryLogin, 300);
+  }
 });
 
 // Auto-init przy załadowaniu
@@ -554,6 +564,9 @@ async function doResetPassword() {
 function closeMandatoryLogin() {
   document.getElementById("mandatoryLoginOverlay")?.remove();
   renderFirebaseStatus();
+  // Inicjuj rynek po zalogowaniu
+  if (typeof initGlobalMarket === "function") setTimeout(initGlobalMarket, 300);
+  if (typeof renderAll === "function") setTimeout(renderAll, 100);
 }
 
 async function doMandatoryGoogle() {

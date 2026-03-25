@@ -211,11 +211,23 @@
 
     <!-- RYNEK -->
     <div id="marketSection" style="display:none">
-      <div class="section-title">🏪 Rynek Graczy</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+        <div class="section-title" style="margin:0;border:none;padding:0">🏪 Rynek</div>
+        <div id="firebaseStatus" style="font-size:11px"></div>
+      </div>
 
+      <!-- Zakładki -->
+      <div style="display:flex;gap:6px;margin-bottom:16px">
+        <button id="marketTabLocal"   class="market-tab-btn active" onclick="switchMarketTab('local')">🏪 Lokalny</button>
+        <button id="marketTabGlobal"  class="market-tab-btn"        onclick="switchMarketTab('global')">🌐 Globalny</button>
+        <button id="marketTabRanking" class="market-tab-btn"        onclick="switchMarketTab('ranking')">🏅 Ranking</button>
+      </div>
+
+      <!-- Lokalny -->
+      <div id="marketTabLocalContent">
       <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center">
         <div class="card" style="margin:0;flex:1;padding:12px 16px;font-size:13px;color:var(--text2)">
-          💡 Kup i sprzedawaj konie oraz przedmioty. Wystaw z <strong style="color:var(--text)">Stajni</strong> lub <strong style="color:var(--text)">Ekwipunku</strong> przyciskiem 🏪.
+          💡 Kup i sprzedawaj. Wystaw z <strong style="color:var(--text)">Stajni</strong> lub <strong style="color:var(--text)">Ekwipunku</strong> przyciskiem 🏪, potem kliknij 🌐 aby trafić do globalnego rynku.
         </div>
       </div>
 
@@ -254,7 +266,7 @@
       </div>
 
       <div id="marketListings" class="market-grid"></div>
-      </div><!-- /marketTabLocalContent -->
+      </div><!-- /marketTabLocalContent END -->
       <div id="marketTabGlobalContent" style="display:none">
         <div id="globalMarketList"></div>
       </div>
@@ -368,6 +380,10 @@
 <script src="js/quests.js"></script>
 <script src="js/encyclopedia.js"></script>
 <script src="main.js"></script>
+<!-- Firebase SDK przez CDN - szybsze niż dynamic import -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="js/firebase.js"></script>
 
 
