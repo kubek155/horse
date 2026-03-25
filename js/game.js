@@ -5,6 +5,24 @@ let playerHorses = [];
 let expeditions  = [];
 let inventory    = [];
 let gold         = 0;
+
+// Eksportuj gold do window żeby firebase.js mógł go czytać/modyfikować
+// Eksport zmiennych gry do window (dla firebase.js i innych modułów)
+Object.defineProperty(window, 'gold', {
+  get: () => gold,
+  set: (v) => { gold = v; },
+  configurable: true,
+});
+Object.defineProperty(window, 'playerHorses', {
+  get: () => playerHorses,
+  set: (v) => { playerHorses = v; },
+  configurable: true,
+});
+Object.defineProperty(window, 'inventory', {
+  get: () => inventory,
+  set: (v) => { inventory = v; },
+  configurable: true,
+});
 let market       = [];
 let quests       = [];   // aktywne dzienne questy
 
