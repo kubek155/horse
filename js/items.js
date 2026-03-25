@@ -585,3 +585,103 @@ function closeSlotPicker() {
   document.getElementById("slotPickerModal").style.display = "none";
   pendingSlot = null;
 }
+
+// =====================
+// SKRZYNKA STARTOWA
+// =====================
+function openStarterBoxAnimation(itemIdx) {
+  // Losuj konia: 60% uncommon, 35% rare, 5% epic
+  let rarityRoll = Math.random();
+  let rarity = rarityRoll < 0.05 ? "epic" : rarityRoll < 0.40 ? "rare" : "uncommon";
+
+  // Losowe złoto startowe 200-500
+  let bonusGold = 200 + Math.floor(Math.random() * 301);
+
+  // Losowy item startowy
+  let starterItems = ["Jabłko Sfinksa","Eliksir Szybkości","Eliksir Siły","Bandaż","Skrzynka z Łupem"];
+  let bonusItem    = starterItems[Math.floor(Math.random() * starterItems.length)];
+
+  // Generuj konia
+  let pool = BREEDS.filter(b => b.rarity === rarity);
+  if (!pool.length) pool = BREEDS.filter(b => b.rarity === "uncommon");
+  let breed  = pool[Math.floor(Math.random() * pool.length)];
+  let h      = generateHorse(rarity);
+  let rc     = RARITY_COLORS[rarity] || "#4a7ec8";
+  let svgStr = typeof drawHorseSVG === "function" ? drawHorseSVG(h.breedKey||h.name, rarity, h.stars||0) : null;
+
+  // Zużyj skrzynkę
+  inventory.splice(itemIdx, 1);
+
+  // Daj nagrody
+  gold += bonusGold;
+  inventory.push({ name:bonusItem, obtained:Date.now() });
+  if (playerHorses.length < STABLE_LIMIT) {
+    playerHorses.push(h);
+  } else {
+    inventory.push({ name:"Transporter Konia", obtained:Date.now(), horse:h });
+  }
+
+  saveGame(); renderAll();
+
+  // Animacja
+  let overlay = document.createElement("div");
+  overlay.id  = "starterBoxOverlay";
+  overlay.style.cssText = `position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.95);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-family:'Crimson Text',serif;gap:16px;`;
+
+  overlay.innerHTML = `
+    <div style="font-family:'Cinzel',serif;font-size:12px;letter-spacing:4px;color:#c9a84c;margin-bottom:4px">🎁 PAKIET STARTOWY</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:8px">Twój pierwszy koń:</div>
+
+    <div style="background:#0f1a0f;border:2px solid ${rc};border-radius:16px;padding:20px;text-align:center;max-width:280px;width:90%;
+      animation:rareCardPop 0.6s cubic-bezier(0.175,0.885,0.32,1.275) forwards">
+      <div id="starterSVGSlot" style="border-radius:10px;overflow:hidden;margin-bottom:10px;border:1px solid ${rc}44;background:#0a140a"></div>
+      <div style="font-family:'Cinzel',serif;font-size:16px;color:${rc}">${h.flag||"🐴"} ${h.name}</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px">${RARITY_LABELS[rarity]||rarity} · ${h.type||""} · ${h.gender==="male"?"♂":"♀"}</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:6px">⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck}</div>
+    </div>
+
+    <div style="display:flex;gap:12px;margin-top:4px">
+      <div style="background:#131f13;border:1px solid #c9a84c44;border-radius:10px;padding:10px 16px;text-align:center">
+        <div style="font-size:11px;color:var(--text2)">Złoto startowe</div>
+        <div style="font-family:'Cinzel',serif;font-size:18px;color:#c9a84c">💰 +${bonusGold}</div>
+      </div>
+      <div style="background:#131f13;border:1px solid #8aab8444;border-radius:10px;padding:10px 16px;text-align:center">
+        <div style="font-size:11px;color:var(--text2)">Bonus item</div>
+        <div style="font-size:18px">${ITEMS_DATABASE[bonusItem]?.icon||"📦"}</div>
+        <div style="font-size:10px;color:#8aab84">${bonusItem}</div>
+      </div>
+    </div>
+
+    <button onclick="document.getElementById('starterBoxOverlay').remove()" style="
+      margin-top:8px;padding:10px 32px;border-radius:10px;
+      border:1px solid ${rc};color:${rc};background:${rc}18;
+      font-family:'Cinzel',serif;font-size:13px;cursor:pointer;letter-spacing:1px;
+    ">✨ Zacznij przygodę!</button>
+  `;
+  document.body.appendChild(overlay);
+
+  // Wstaw SVG
+  setTimeout(() => {
+    let slot = document.getElementById("starterSVGSlot");
+    if (slot && svgStr) {
+      slot.innerHTML = svgStr;
+      let svgEl = slot.querySelector("svg");
+      if (svgEl) { svgEl.setAttribute("width","100%"); svgEl.setAttribute("height","120"); }
+    }
+    // Cząsteczki
+    for (let i=0; i<30; i++) {
+      let p = document.createElement("div");
+      let angle = Math.random()*360, dist=80+Math.random()*180;
+      let tx = Math.cos(angle*Math.PI/180)*dist, ty = Math.sin(angle*Math.PI/180)*dist;
+      p.style.cssText = `position:fixed;width:${4+Math.random()*8}px;height:${4+Math.random()*8}px;
+        border-radius:50%;background:${rc};top:50%;left:50%;pointer-events:none;
+        animation:particleFly ${0.6+Math.random()*0.8}s ease-out forwards;
+        --tx:${tx}px;--ty:${ty}px;animation-delay:${Math.random()*0.3}s`;
+      overlay.appendChild(p);
+    }
+  }, 100);
+
+  log(`🎁 Pakiet startowy otwarty! ${h.flag} ${h.name} dołączył do stajni! +${bonusGold}💰`);
+}

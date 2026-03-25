@@ -504,11 +504,13 @@ async function doEmailLogin() {
   try {
     await window.FB.loginWithEmail(email, pass);
   } catch(e) {
+    console.error("Login error:", e);
     let msg = e.code==="auth/user-not-found"?"Nie znaleziono konta"
       : e.code==="auth/wrong-password"?"Złe hasło"
       : e.code==="auth/invalid-email"?"Nieprawidłowy email"
       : e.code==="auth/invalid-credential"?"Błędny email lub hasło"
-      : "Błąd logowania";
+      : e.code==="auth/network-request-failed"?"Błąd sieci — sprawdź połączenie"
+      : `Błąd: ${e.message||e.code||"nieznany"}`;
     setAuthStatus(msg);
   }
 }
@@ -528,10 +530,12 @@ async function doEmailRegister() {
   try {
     await window.FB.registerWithEmail(email, pass, nick);
   } catch(e) {
+    console.error("Register error:", e);
     let msg = e.code==="auth/email-already-in-use"?"Ten email jest już zarejestrowany"
       : e.code==="auth/invalid-email"?"Nieprawidłowy email"
       : e.code==="auth/weak-password"?"Hasło za słabe"
-      : "Błąd rejestracji";
+      : e.code==="auth/network-request-failed"?"Błąd sieci — sprawdź połączenie"
+      : `Błąd: ${e.message||e.code||"nieznany"}`;
     setAuthStatus(msg);
   }
 }

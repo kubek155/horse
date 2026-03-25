@@ -120,7 +120,8 @@
       }
       function subscribeGlobalMarket(callback) {
         if (marketUnsub) marketUnsub();
-        const q = query(collection(db,"market"),where("active","==",true),orderBy("listedAt","desc"),limit(100));
+        // Prosty query bez orderBy (nie wymaga indeksu Firestore)
+        const q = query(collection(db,"market"),where("active","==",true),limit(100));
         marketUnsub = onSnapshot(q, snap => callback(snap.docs.map(d=>({id:d.id,...d.data()}))));
         return marketUnsub;
       }
@@ -159,7 +160,7 @@
           snap => callback(snap.docs.map(d=>({id:d.id,...d.data()}))));
       }
       async function fetchGlobalRanking() {
-        const snap = await getDocs(query(collection(db,"players"),orderBy("level","desc"),limit(20)));
+        const snap = await getDocs(query(collection(db,"players"),limit(20)));
         return snap.docs.map(d=>({id:d.id,...d.data()}));
       }
 

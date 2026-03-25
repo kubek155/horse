@@ -321,6 +321,7 @@ const ITEMS_DATABASE = {
   "Bandaż":              { icon:"🩹", desc:"Leczy rannego konia — pozwala mu wrócić na wyprawy", rarity:"uncommon" },
   // Specjalne
   "Eliksir Odmłodzenia":   { icon:"🧪", desc:"Odmładza konia o 30–120 dni",         rarity:"rare"     },
+  "Skrzynka Startowa":   { icon:"🎁", desc:"Startowy pakiet z gwarantowanym koniem + bonus!", rarity:"rare", isStarterBox:true },
   "Skrzynka z Łupem":      { icon:"📦", desc:"Zawiera losowy przedmiot",             rarity:"rare"     },
   // Eliksiry (stałe +5)
   "Eliksir Szybkości":     { icon:"⚡", desc:"+5 do szybkości konia (jednorazowy)", rarity:"uncommon", isElixir:true, stat:"speed"    },

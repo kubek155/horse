@@ -108,7 +108,7 @@ const CONTEST_NPC_NAMES = [
 ];
 let npcNameIdx = 0;
 function generateNPCName() {
-  return CONTEST_NPC_NAMES[(npcNameIdx++ + Math.floor(Math.random()*5)) % NPC_NAMES.length];
+  return CONTEST_NPC_NAMES[(npcNameIdx++ + Math.floor(Math.random()*5)) % CONTEST_NPC_NAMES.length];
 }
 
 // Oblicz wynik konia w zawodach
