@@ -73,35 +73,66 @@ function closeListModal() {
   listingTarget = null;
 }
 
-function confirmListing() {
+async function confirmListing() {
   if (!listingTarget) return;
   let price = parseInt(document.getElementById("listPriceInput").value);
   if (!price || price < 1) { log("⚠️ Podaj prawidłową cenę!"); return; }
 
+  let offer = null;
+
   if (listingTarget.type === "horse") {
     let h = playerHorses[listingTarget.idx];
     if (!h) return;
-    market.push({ id:`player_${Date.now()}`, sellerId:"player", sellerName:"Ty", type:"horse", horse:JSON.parse(JSON.stringify(h)), price, listedAt:Date.now() });
+    offer = { type:"horse", horse:JSON.parse(JSON.stringify(h)), price };
     playerHorses.splice(listingTarget.idx, 1);
-    log(`🏪 Wystawiono ${h.name} za ${price} złota!`);
+    log(`🌐 ${h.name} wystawiony na globalny rynek za ${price}💰!`);
   } else {
     let item = inventory[listingTarget.idx];
     if (!item) return;
     let data = ITEMS_DATABASE[item.name] || { icon:"📦" };
-    market.push({ id:`player_${Date.now()}`, sellerId:"player", sellerName:"Ty", type:"item", item:JSON.parse(JSON.stringify(item)), price, listedAt:Date.now() });
+    offer = { type:"item", item:JSON.parse(JSON.stringify(item)), price };
     inventory.splice(listingTarget.idx, 1);
-    log(`🏪 Wystawiono ${data.icon} ${item.name} za ${price} złota!`);
+    log(`🌐 ${data.icon} ${item.name} wystawiony na globalny rynek za ${price}💰!`);
   }
 
   closeListModal();
   trackQuest("market");
-  saveGame();
-  renderAll();
+  saveGame(); renderAll();
+
+  // Wystaw bezpośrednio na globalny rynek Firebase
+  if (window.FB && window.FB.isLoggedIn()) {
+    try {
+      await window.FB.listOnGlobalMarket(offer);
+    } catch(e) {
+      log("⚠️ Błąd wystawiania online: " + (e.message||"spróbuj ponownie"));
+    }
+  } else {
+    log("⚠️ Zaloguj się aby wystawić na globalny rynek!");
+  }
 }
 
 // =====================
 // BUY / CANCEL
 // =====================
+// Sprzedaj NPC od razu po cenie systemowej (dla własnych ofert lokalnych)
+function sellInstant(offerId) {
+  let idx = market.findIndex(o => o.id === offerId);
+  if (idx === -1) return;
+  let offer = market[idx];
+  if (offer.sellerId !== "player") return;
+
+  let instant = offer.type === "horse"
+    ? Math.floor(calcHorsePrice(offer.horse) * 0.6)  // 60% wartości rynkowej
+    : Math.floor((offer.price || 100) * 0.5);         // 50% wystawionej ceny
+
+  gold += instant;
+  market.splice(idx, 1);
+
+  let name = offer.type === "horse" ? offer.horse.name : offer.item?.name;
+  log(`💰 Sprzedano ${name} NPC za ${instant}💰 (cena systemowa)`);
+  saveGame(); renderAll();
+}
+
 function buyFromMarket(offerId) {
   let idx   = market.findIndex(o => o.id === offerId);
   if (idx === -1) return;
@@ -222,9 +253,9 @@ function renderMarket() {
         <div class="mc-footer">
           <span class="mc-price">💰 ${offer.price}</span>
           ${isOwn
-            ? `<div style="display:flex;flex-direction:column;gap:4px">
-            <button onclick="cancelListing('${offer.id}')" style="border-color:#c94a4a;color:#c94a4a;background:rgba(201,74,74,0.1);font-size:11px">Anuluj</button>
-            <button onclick="listOnGlobalMarketFromLocal('${offer.id}')" style="border-color:#4a7ec8;color:#4a7ec8;background:rgba(74,126,200,0.1);font-size:10px">🌐 Globalnie</button>
+            ? `<div style="display:flex;gap:4px">
+            <button onclick="sellInstant('${offer.id}')" style="border-color:#4ab870;color:#4ab870;background:rgba(74,184,112,0.1);font-size:11px" title="Sprzedaj NPC po cenie systemowej (60% wartości)">💰 Sprzedaj NPC</button>
+            <button onclick="cancelListing('${offer.id}')" style="border-color:#c94a4a;color:#c94a4a;background:rgba(201,74,74,0.1);font-size:11px">✕</button>
           </div>`
             : `<button class="btn-gold" onclick="buyFromMarket('${offer.id}')">Kup</button>`}
         </div>
@@ -254,9 +285,9 @@ function renderMarket() {
         <div class="mc-footer">
           <span class="mc-price">💰 ${offer.price}</span>
           ${isOwn
-            ? `<div style="display:flex;flex-direction:column;gap:4px">
-            <button onclick="cancelListing('${offer.id}')" style="border-color:#c94a4a;color:#c94a4a;background:rgba(201,74,74,0.1);font-size:11px">Anuluj</button>
-            <button onclick="listOnGlobalMarketFromLocal('${offer.id}')" style="border-color:#4a7ec8;color:#4a7ec8;background:rgba(74,126,200,0.1);font-size:10px">🌐 Globalnie</button>
+            ? `<div style="display:flex;gap:4px">
+            <button onclick="sellInstant('${offer.id}')" style="border-color:#4ab870;color:#4ab870;background:rgba(74,184,112,0.1);font-size:11px" title="Sprzedaj NPC (50% ceny)">💰 Sprzedaj NPC</button>
+            <button onclick="cancelListing('${offer.id}')" style="border-color:#c94a4a;color:#c94a4a;background:rgba(201,74,74,0.1);font-size:11px">✕</button>
           </div>`
             : `<button class="btn-gold" onclick="buyFromMarket('${offer.id}')">Kup</button>`}
         </div>

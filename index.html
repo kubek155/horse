@@ -227,7 +227,7 @@
       <div id="marketTabLocalContent">
       <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center">
         <div class="card" style="margin:0;flex:1;padding:12px 16px;font-size:13px;color:var(--text2)">
-          💡 Kup i sprzedawaj. Wystaw z <strong style="color:var(--text)">Stajni</strong> lub <strong style="color:var(--text)">Ekwipunku</strong> przyciskiem 🏪, potem kliknij 🌐 aby trafić do globalnego rynku.
+          💡 Naciśnij 🏪 w <strong style="color:var(--text)">Stajni</strong> lub <strong style="color:var(--text)">Ekwipunku</strong> — przedmiot trafi od razu na <strong style="color:#6ab0e0">Globalny Rynek</strong>. Lokalna zakładka pokazuje oferty NPC do kupienia lub możesz sprzedać swój wystawiony przedmiot NPC (za 50-60% ceny).
         </div>
       </div>
 
@@ -338,15 +338,18 @@
 <!-- MODAL WYSTAWIANIA NA RYNEK -->
 <div id="listModal" class="modal-overlay" style="display:none">
   <div class="modal" style="min-width:300px;max-width:400px">
-    <div class="modal-title"    id="listModalTitle">Wystaw na rynek</div>
+    <div class="modal-title" id="listModalTitle">Wystaw na rynek</div>
     <div class="modal-subtitle" id="listModalSubtitle"></div>
-    <div style="margin:16px 0">
+    <div style="margin:12px 0 6px;padding:8px 10px;background:rgba(74,126,200,0.08);border:1px solid rgba(74,126,200,0.3);border-radius:8px;font-size:11px;color:#6ab0e0">
+      🌐 Przedmiot trafi od razu na <strong>Globalny Rynek</strong> — widoczny dla wszystkich graczy
+    </div>
+    <div style="margin:12px 0">
       <label style="font-size:13px;color:var(--text2);display:block;margin-bottom:6px;font-family:'Cinzel',serif;letter-spacing:1px">CENA (ZŁOTO)</label>
       <input id="listPriceInput" type="number" min="1" style="width:100%;padding:10px 12px;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--gold2);font-size:18px;font-family:'Cinzel',serif;outline:none">
     </div>
     <div style="display:flex;gap:8px">
-      <button class="btn-gold" style="flex:2" onclick="confirmListing()">✅ Wystaw</button>
-      <button class="modal-cancel" style="flex:1" onclick="closeListModal()">✕ Anuluj</button>
+      <button class="btn-gold" style="flex:2" onclick="confirmListing()">🌐 Wystaw globalnie</button>
+      <button class="modal-cancel" style="flex:1" onclick="closeListModal()">✕</button>
     </div>
   </div>
 </div>
