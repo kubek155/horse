@@ -114,22 +114,49 @@ async function confirmListing() {
 // =====================
 // BUY / CANCEL
 // =====================
-// Sprzedaj NPC od razu po cenie systemowej (dla własnych ofert lokalnych)
+// Wylicz cenę skupu NPC — algorytm niezależny od wystawionej ceny
+function calcNPCBuyPrice(offer) {
+  if (offer.type === "horse") {
+    let h = offer.horse;
+    // Baza od rzadkości
+    const BASE = { common:80, uncommon:160, rare:350, epic:700, legendary:1400, mythic:3000 };
+    let base  = BASE[h.rarity] || 80;
+    // Suma statów (max 800) → bonus 0-400
+    let statSum = (h.stats.speed||0)+(h.stats.strength||0)+(h.stats.stamina||0)+(h.stats.luck||0);
+    let statBonus = Math.floor(statSum * 0.5);
+    // Gwiazdki
+    let starBonus = (h.stars||0) * 50;
+    // Skupuje za 55% wartości
+    return Math.floor((base + statBonus + starBonus) * 0.55);
+  } else {
+    // Item — baza od bazy cenowej
+    const BASE_PRICE = {
+      "Jabłko":20, "Słoma":10, "Bandaż":40,
+      "Eliksir Szybkości":90, "Eliksir Siły":90, "Eliksir Wytrzymałości":90, "Eliksir Szczęścia":90,
+      "Eliksir Odmłodzenia":400,
+      "Jabłko Sfinksa":280, "Boski Nektar":360, "Eliksir Krwi":230,
+      "Piorun":80, "Kowadło":80, "Koniczyna":80, "Serce":80,
+      "Skrzynka z Łupem":60, "Leśna Przepustka":30,
+    };
+    let base = BASE_PRICE[offer.item?.name] || 50;
+    // Slot itemy — dodaj bonus do wyceny
+    if (offer.item?.bonus !== undefined) base += offer.item.bonus * 8;
+    return Math.floor(base * 0.7);
+  }
+}
+
 function sellInstant(offerId) {
   let idx = market.findIndex(o => o.id === offerId);
   if (idx === -1) return;
   let offer = market[idx];
   if (offer.sellerId !== "player") return;
 
-  let instant = offer.type === "horse"
-    ? Math.floor(calcHorsePrice(offer.horse) * 0.6)  // 60% wartości rynkowej
-    : Math.floor((offer.price || 100) * 0.5);         // 50% wystawionej ceny
-
-  gold += instant;
+  let price = calcNPCBuyPrice(offer);
+  gold += price;
   market.splice(idx, 1);
 
   let name = offer.type === "horse" ? offer.horse.name : offer.item?.name;
-  log(`💰 Sprzedano ${name} NPC za ${instant}💰 (cena systemowa)`);
+  log(`💰 Sprzedano ${name} NPC za ${price}💰`);
   saveGame(); renderAll();
 }
 
@@ -253,8 +280,12 @@ function renderMarket() {
         <div class="mc-footer">
           <span class="mc-price">💰 ${offer.price}</span>
           ${isOwn
-            ? `<div style="display:flex;gap:4px">
-            <button onclick="sellInstant('${offer.id}')" style="border-color:#4ab870;color:#4ab870;background:rgba(74,184,112,0.1);font-size:11px" title="Sprzedaj NPC po cenie systemowej (60% wartości)">💰 Sprzedaj NPC</button>
+            ? `<div style="display:flex;gap:4px;align-items:center">
+            <div style="text-align:right;margin-right:4px">
+              <div style="font-size:9px;color:var(--text2)">Skup NPC</div>
+              <div style="font-size:12px;color:#4ab870;font-family:'Cinzel',serif">💰 ${calcNPCBuyPrice(offer)}</div>
+            </div>
+            <button onclick="sellInstant('${offer.id}')" style="border-color:#4ab870;color:#4ab870;background:rgba(74,184,112,0.1);font-size:11px">Sprzedaj</button>
             <button onclick="cancelListing('${offer.id}')" style="border-color:#c94a4a;color:#c94a4a;background:rgba(201,74,74,0.1);font-size:11px">✕</button>
           </div>`
             : `<button class="btn-gold" onclick="buyFromMarket('${offer.id}')">Kup</button>`}
@@ -285,8 +316,12 @@ function renderMarket() {
         <div class="mc-footer">
           <span class="mc-price">💰 ${offer.price}</span>
           ${isOwn
-            ? `<div style="display:flex;gap:4px">
-            <button onclick="sellInstant('${offer.id}')" style="border-color:#4ab870;color:#4ab870;background:rgba(74,184,112,0.1);font-size:11px" title="Sprzedaj NPC (50% ceny)">💰 Sprzedaj NPC</button>
+            ? `<div style="display:flex;gap:4px;align-items:center">
+            <div style="text-align:right;margin-right:4px">
+              <div style="font-size:9px;color:var(--text2)">Skup NPC</div>
+              <div style="font-size:12px;color:#4ab870;font-family:'Cinzel',serif">💰 ${calcNPCBuyPrice(offer)}</div>
+            </div>
+            <button onclick="sellInstant('${offer.id}')" style="border-color:#4ab870;color:#4ab870;background:rgba(74,184,112,0.1);font-size:11px">Sprzedaj</button>
             <button onclick="cancelListing('${offer.id}')" style="border-color:#c94a4a;color:#c94a4a;background:rgba(201,74,74,0.1);font-size:11px">✕</button>
           </div>`
             : `<button class="btn-gold" onclick="buyFromMarket('${offer.id}')">Kup</button>`}

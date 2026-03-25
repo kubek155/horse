@@ -358,6 +358,7 @@ const SHOP_ITEMS = [
   { name:"Boski Nektar",         price:800,  icon:"🌟", desc:"+50% szans na mutację przy rozmnażaniu",        alwaysAvailable:true },
   { name:"Eliksir Krwi",         price:500,  icon:"🩸", desc:"Potomek dziedziczy krew silniejszego rodzica",    alwaysAvailable:true },
   { name:"Jabłko Sfinksa",       price:600, icon:"🍏",  desc:"Wymagane do rozmnażania koni",                alwaysAvailable:true },
+  { name:"Skrzynka z Łupem",    price:300, icon:"📦",  desc:"Losowy koń lub przedmiot!",                   alwaysAvailable:true },
   { name:"Eliksir Odmłodzenia", price:800, icon:"🧪",  desc:"Odmładza konia — globalny limit 5 szt.",       rare:true, globalLimit:5 },
 ];
 
