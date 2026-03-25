@@ -147,6 +147,10 @@ function finishExpedition(e) {
     }
     inventory.push({ name: "Bandaż", obtained: Date.now() });
     log(`🤕 ${expHorse?.name||"Koń"} wrócił ranny z wyprawy! Użyj Bandaża żeby go wyleczyć.`);
+    if (typeof addNotification === "function") addNotification("horse_injured",
+      `${expHorse?.name||"Koń"} wrócił ranny!`,
+      `Użyj Bandaża z Ekwipunku żeby go wyleczyć`,
+    );
     e.done = true;
     saveGame();
     return;
@@ -178,6 +182,11 @@ function finishExpedition(e) {
       } else {
         playerHorses.push(h);
         log(`🐴 Nowy koń: ${h.name} (${HORSE_DATABASE[h.group]?.name||h.rarity})!`);
+        if (typeof addNotification === "function") addNotification("expedition_found",
+          `Znaleziono konia: ${h.name}`,
+          `${RARITY_LABELS[h.rarity]||h.rarity} · ${loc.icon} ${loc.name}`,
+          { sub: `⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck}` }
+        );
         if (typeof showRareHorseEffect === "function") {
           let tier = {common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5}[h.rarity]||0;
           if (tier >= 2) setTimeout(() => showRareHorseEffect(h.name, h.rarity, h.flag), 300);
@@ -225,6 +234,13 @@ function finishExpedition(e) {
   let goldGain = Math.round(baseGold * perks.goldBonus * lvlGoldMult);
   gold += goldGain;
   log(`💰 +${goldGain} złota z wyprawy!`);
+  if (typeof addNotification === "function") {
+    let eName = playerHorses[e.horseIdx]?.name || "Koń";
+    addNotification("expedition_done",
+      `${eName} wrócił z wyprawy`,
+      `${loc.icon} ${loc.name} · +${goldGain}💰`,
+    );
+  }
 
   // Dodaj złoto do historii
   if (typeof addDropHistory === "function") addDropHistory({

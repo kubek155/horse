@@ -43,6 +43,11 @@ function birthFoal(mare) {
   let foal = generateFoalFromPregnancy(p);
   playerHorses.push(foal);
   log(`🐣 ${mare.name} urodziła ${foal.flag} ${foal.name} (${RARITY_LABELS[foal.rarity]})!`);
+  if (typeof addNotification === "function") addNotification("pregnancy_done",
+    `${mare.name} urodziła źrebię!`,
+    `${foal.flag} ${foal.name} · ${RARITY_LABELS[foal.rarity]||foal.rarity}`,
+    { sub: `⚡${foal.stats.speed} 💪${foal.stats.strength} ❤️${foal.stats.stamina} 🍀${foal.stats.luck}` }
+  );
 
   let tier = {common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5}[foal.rarity]||0;
   if (tier >= 2 && typeof showRareHorseEffect === "function") {

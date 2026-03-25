@@ -75,7 +75,7 @@ function renderAll() {
 // UI NAVIGATION
 // =====================
 function showSection(s) {
-  ["expedition","stable","inventory","shop","market","quests","encyclopedia","drops","contests","tournaments"].forEach(sec => {
+  ["expedition","stable","inventory","shop","market","quests","encyclopedia","drops","contests","tournaments","notifications"].forEach(sec => {
     document.getElementById(sec + "Section").style.display = "none";
     document.getElementById("menu-" + sec).classList.remove("active");
   });
@@ -83,6 +83,10 @@ function showSection(s) {
   document.getElementById("menu-" + s).classList.add("active");
   if (s === "tournaments") {
     if (typeof renderTournamentsSection === "function") renderTournamentsSection();
+  }
+  if (s === "notifications") {
+    if (typeof renderNotifications === "function") renderNotifications();
+    markNotificationsRead();
   }
   if (s === "market") {
     if (typeof switchMarketTab === "function") switchMarketTab("local");

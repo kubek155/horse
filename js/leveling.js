@@ -56,6 +56,10 @@ function addXP(amount, source) {
   if (leveled) {
     showLevelUpEffect(level);
     log(`🎉 Poziom ${level}! Bonus drop rate +${getDropBonus()}%`);
+    if (typeof addNotification === "function") addNotification("level_up",
+      `Poziom ${level}!`,
+      `Drop rate: +${getDropBonus()}% · Bonus złota: +${((getGoldBonus()-1)*100).toFixed(0)}%`,
+    );
   }
 
   renderLevelBar();

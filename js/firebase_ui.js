@@ -158,7 +158,30 @@ function renderGlobalMarket() {
   }
 
   el.innerHTML = "";
-  let sorted = [...globalMarketOffers].sort((a,b)=>a.sellerId===myId?-1:b.sellerId===myId?1:0);
+
+  // Zastosuj te same filtry co lokalny rynek
+  let filtered = globalMarketOffers.filter(offer => {
+    let mf = typeof marketFilters !== "undefined" ? marketFilters : {};
+    if (mf.type && mf.type !== "all" && offer.type !== mf.type) return false;
+    if (mf.rarity && mf.rarity !== "all") {
+      let r = offer.type==="horse" ? (offer.horse?.rarity||offer.horse?.group) : null;
+      if (r && r !== mf.rarity) return false;
+    }
+    return true;
+  });
+
+  // Sortowanie
+  let mf2 = typeof marketFilters !== "undefined" ? marketFilters : {};
+  let sorted = [...filtered].sort((a,b) => {
+    if (mf2.sortBy === "mine") return a.sellerId===myId ? -1 : b.sellerId===myId ? 1 : 0;
+    if (mf2.sortBy === "price_asc")  return (a.price||0)-(b.price||0);
+    if (mf2.sortBy === "price_desc") return (b.price||0)-(a.price||0);
+    if (mf2.sortBy === "stat_speed")    return (b.horse?.stats?.speed||0)-(a.horse?.stats?.speed||0);
+    if (mf2.sortBy === "stat_strength") return (b.horse?.stats?.strength||0)-(a.horse?.stats?.strength||0);
+    if (mf2.sortBy === "stat_stamina")  return (b.horse?.stats?.stamina||0)-(a.horse?.stats?.stamina||0);
+    if (mf2.sortBy === "stat_luck")     return (b.horse?.stats?.luck||0)-(a.horse?.stats?.luck||0);
+    return 0;
+  });
   sorted.forEach(offer => {
     let isOwn = offer.sellerId===myId;
     let rc = offer.type==="horse" ? (RARITY_COLORS[offer.horse?.rarity]||"#8aab84") : "#8aab84";

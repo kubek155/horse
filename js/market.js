@@ -37,11 +37,12 @@ let marketFilters = {
 
 function setMarketFilter(key, val) {
   marketFilters[key] = val;
-  // sync button active states
   document.querySelectorAll(`[data-filter="${key}"]`).forEach(b => {
     b.classList.toggle("active", b.dataset.val === val);
   });
   renderMarket();
+  // Też odśwież globalny rynek jeśli jest aktywny
+  if (typeof renderGlobalMarket === "function") renderGlobalMarket();
 }
 
 // =====================
@@ -157,6 +158,10 @@ function sellInstant(offerId) {
 
   let name = offer.type === "horse" ? offer.horse.name : offer.item?.name;
   log(`💰 Sprzedano ${name} NPC za ${price}💰`);
+  if (typeof addNotification === "function") addNotification("item_sold",
+    `Sprzedano: ${name}`,
+    `NPC zapłacił ${price}💰 (cena systemowa)`,
+  );
   saveGame(); renderAll();
 }
 
