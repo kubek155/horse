@@ -141,7 +141,7 @@ function initGlobalMarket() {
   }
   // Odbierz zaległe płatności gdy wchodzisz na rynek
   if (window.FB?.collectPendingPayments) {
-    window.FB.collectPendingPayments();
+    setTimeout(() => window.FB.collectPendingPayments(), 500);
   }
 }
 

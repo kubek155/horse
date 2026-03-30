@@ -104,14 +104,74 @@
       const offer = snap.data();
       if (offer.sellerId === currentUser.uid) { window.log?.("⚠️ To Twoja oferta!"); return; }
       if ((window.gold||0) < offer.price) { window.log?.("⚠️ Za mało złota!"); return; }
+
+      // Odejmij złoto kupującemu i oznacz ofertę
       window.gold -= offer.price;
-      await ref.update({ active:false, buyerId:currentUser.uid });
+      await ref.update({ active:false, buyerId:currentUser.uid, buyerNick:getPlayerNick() });
+
+      // Zapisz należność dla sprzedającego
+      const itemName = offer.type==="horse" ? (offer.horse?.name||"Koń") : (offer.item?.name||"Przedmiot");
+      try {
+        await db.collection("payouts").add({
+          toUid:     offer.sellerId,
+          toNick:    offer.sellerNick || "Gracz",
+          amount:    offer.price,
+          fromNick:  getPlayerNick(),
+          itemName:  itemName,
+          itemType:  offer.type,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          collected: false,
+        });
+      } catch(e) { console.warn("payout write:", e.message); }
+
+      // Daj przedmiot kupującemu
       if (offer.type==="horse") {
         if ((window.playerHorses||[]).length >= (window.STABLE_LIMIT||8))
           window.inventory?.push({name:"Transporter Konia",obtained:Date.now(),horse:offer.horse});
         else window.playerHorses?.push(offer.horse);
       } else { window.inventory?.push(offer.item); }
       window.saveGame?.(); window.renderAll?.();
+
+      // Powiadomienie dla kupującego
+      if (typeof addNotification==="function") addNotification("item_bought",
+        `Kupiono: ${itemName}`,
+        `Za ${offer.price}💰 od ${offer.sellerNick||"Gracza"}`,
+      );
+    }
+
+    // Odbierz należności ze sprzedaży
+    async function collectPendingPayments() {
+      if (!currentUser) return;
+      try {
+        const snap = await db.collection("payouts")
+          .where("toUid","==",currentUser.uid)
+          .where("collected","==",false)
+          .get();
+        if (snap.empty) return;
+
+        let total = 0;
+        const batch = db.batch();
+        snap.docs.forEach(doc => {
+          const d = doc.data();
+          total += d.amount || 0;
+          if (typeof addNotification==="function") addNotification("item_sold",
+            `Sprzedano: ${d.itemName}`,
+            `${d.fromNick||"Gracz"} kupił za ${d.amount}💰`,
+          );
+          batch.update(doc.ref, { collected:true });
+        });
+        await batch.commit();
+
+        if (total > 0) {
+          window.gold = (window.gold||0) + total;
+          window.saveGame?.(); window.renderAll?.();
+          window.log?.(`💰 Odebrano ${total}💰 ze sprzedaży!`);
+          if (typeof addNotification==="function") addNotification("item_sold",
+            `Wypłata: +${total}💰`,
+            `${snap.size} transakcja${snap.size>1?"e":""}`,
+          );
+        }
+      } catch(e) { console.warn("collectPayments:", e.message); }
     }
     async function cancelGlobalListing(offerId) {
       if (!currentUser) return;
@@ -200,6 +260,7 @@
         if (!user.isAnonymous && user.displayName && !localStorage.getItem("hh_nick"))
           localStorage.setItem("hh_nick", user.displayName.split(" ")[0]);
         savePlayerProfile();
+        setTimeout(collectPendingPayments, 2000);
         window.dispatchEvent(new CustomEvent("hh_logged_in"));
       } else {
         window.dispatchEvent(new CustomEvent("hh_logged_out"));

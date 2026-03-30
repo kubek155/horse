@@ -7,8 +7,9 @@ function openHorsePicker(itemIdx) {
   let item = inventory[itemIdx];
   if (!item) return;
 
-  // Skrzynka nie wymaga wyboru konia
-  if (item.name === "Skrzynka z Łupem") { openLootBox(itemIdx); return; }
+  // Skrzynki — nie wymagają konia
+  if (item.name === "Skrzynka z Łupem")   { openLootBox(itemIdx); return; }
+  if (item.name === "Skrzynka Startowa")  { openStarterBoxAnimation(itemIdx); return; }
 
   // Przedmioty do slotów
   let itemData = ITEMS_DATABASE[item.name] || {};
@@ -444,29 +445,46 @@ function renderInventory() {
     div.style.borderColor = rc;
 
     if (data.isTransporter && item.horse) {
-      // Transporter — pokaż miniaturę konia w środku
       let h2   = item.horse;
       let hrc  = RARITY_COLORS[h2.rarity]||"#8aab84";
       let hlbl = RARITY_LABELS[h2.rarity]||h2.rarity;
-      div.style.borderColor = hrc;
+      let fee  = calcTransporterFee(h2);
+
+      // Karta transportera — szeroka, elegancka
+      div.className = "inv-item inv-transport";
+      div.style.cssText = `
+        border:1px solid ${hrc}55;border-radius:12px;background:var(--panel2);
+        display:flex;align-items:center;gap:14px;padding:12px 16px;
+        grid-column: span 2;
+      `;
       div.innerHTML = `
-        <div style="font-size:10px;font-family:'Cinzel',serif;color:var(--text2);margin-bottom:4px;text-align:center;letter-spacing:1px">🧳 TRANSPORTER</div>
-        <div class="transport-svg-slot" style="background:var(--panel);border-radius:6px;overflow:hidden;margin-bottom:6px;border:1px solid ${hrc}44;max-height:90px"></div>
-        <span class="inv-name" style="color:${hrc};font-size:11px;word-break:break-word;display:block;text-align:center">${h2.flag||"🐴"} ${h2.name}</span>
-        <div style="font-size:10px;color:var(--text2);margin:2px 0 4px;text-align:center">${hlbl}</div>
-        <div class="inv-actions">
-          <button onclick="openHorsePicker(${idx})" style="border-color:${hrc};color:${hrc};font-size:10px">🧳 Odbierz</button>
-          <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1);font-size:10px" onclick="openListItem(${idx})">🏪</button>
+        <div class="transport-svg-slot" style="
+          width:100px;height:80px;flex-shrink:0;
+          background:var(--panel);border-radius:8px;overflow:hidden;
+          border:1px solid ${hrc}33;
+        "></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:2px">🧳 TRANSPORTER</div>
+          <div style="font-family:'Cinzel',serif;font-size:14px;color:${hrc}">${h2.flag||"🐴"} ${h2.name}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">${hlbl} · ${h2.type||""} · ${h2.gender==="male"?"♂ Ogier":"♀ Klacz"}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:3px">⚡${h2.stats.speed} 💪${h2.stats.strength} ❤️${h2.stats.stamina} 🍀${h2.stats.luck}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+          <div style="text-align:right">
+            <div style="font-size:10px;color:var(--text2)">Opłata</div>
+            <div style="font-family:'Cinzel',serif;font-size:14px;color:#c9a84c">💰 ${fee}</div>
+          </div>
+          <button onclick="openHorsePicker(${idx})" style="border-color:${hrc};color:${hrc};background:${hrc}11;font-size:11px;white-space:nowrap">🧳 Odbierz</button>
+          <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1);font-size:11px" onclick="openListItem(${idx})">🏪 Sprzedaj</button>
         </div>
       `;
       el.appendChild(div);
-      // Wstaw SVG — ogranicz wysokość
       let svgSlot = div.querySelector(".transport-svg-slot");
       if (svgSlot && typeof drawHorseSVG === "function") {
         let svgStr = drawHorseSVG(h2.breedKey||h2.name, h2.rarity, h2.stars||0);
         svgSlot.innerHTML = svgStr;
         let svgEl = svgSlot.querySelector("svg");
-        if (svgEl) { svgEl.setAttribute("width","100%"); svgEl.setAttribute("height","90"); }
+        if (svgEl) { svgEl.setAttribute("width","100"); svgEl.setAttribute("height","80"); }
       }
     } else {
       div.innerHTML = `
