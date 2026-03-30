@@ -448,3 +448,54 @@ function renderResults(el) {
     </div>
   `;
 }
+
+// ── Render inline (zamiast overlay) ───────────────────────
+function renderContestsInline() {
+  let el = document.getElementById("contestsInlineContent");
+  if (!el) return;
+  let lvl = typeof getPlayerLevel === "function" ? getPlayerLevel() : 1;
+
+  el.innerHTML = "";
+
+  // Siatka typów zawodów
+  let grid = document.createElement("div");
+  grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px";
+
+  CONTEST_TYPES.forEach(type => {
+    let locked = lvl < type.minLevel;
+    let div    = document.createElement("div");
+    div.style.cssText = `
+      background:var(--panel2);border:1px solid ${locked?"#1e2e1e":type.color+"44"};
+      border-radius:12px;padding:16px;opacity:${locked?0.45:1};
+      display:flex;flex-direction:column;gap:6px;
+    `;
+    div.innerHTML = `
+      <div style="font-size:28px">${type.icon}</div>
+      <div style="font-family:'Cinzel',serif;font-size:13px;color:${locked?"#555":type.color}">${type.name}</div>
+      <div style="font-size:11px;color:var(--text2);flex:1;line-height:1.4">${type.desc}</div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2)">
+        <span>Wpisowe: <span style="color:${locked?"#555":"#c97c2a"}">💰${type.entryFee}</span></span>
+        <span>🥇 <span style="color:${locked?"#555":"#c9a84c"}">💰${type.prizes[0]}</span></span>
+      </div>
+      ${locked
+        ? `<div style="font-size:11px;color:#555">🔒 Wymaga poziomu ${type.minLevel}</div>`
+        : `<button onclick="startContestInline('${type.id}')" style="
+            border-color:${type.color};color:${type.color};
+            background:${type.color}11;font-size:12px;
+            font-family:'Cinzel',serif;letter-spacing:0.5px">
+            🏁 Startuj
+          </button>`
+      }
+    `;
+    grid.appendChild(div);
+  });
+
+  el.appendChild(grid);
+}
+
+function startContestInline(typeId) {
+  let type = CONTEST_TYPES.find(t => t.id === typeId);
+  if (!type) return;
+  contestState = { step:"pick_horse", type, horse:null, rivals:[], results:[] };
+  openContestScreen();
+}

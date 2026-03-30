@@ -13,11 +13,24 @@
   <div class="topbar">
     <div class="topbar-title">🐎 HAPPY HORSES</div>
     <div class="topbar-stats">
-      <div class="topbar-stat">💰 Złoto: <span id="goldCount">0</span></div>
-      <div class="topbar-stat">🐴 Konie: <span id="horseCount">0</span></div>
-      <div class="topbar-stat">🎒 Ekwipunek: <span id="invCount">0</span></div>
-      <div class="topbar-stat">📅 Wyprawy dziś: <span id="dailyCount">0</span>/4</div>
+      <div class="topbar-stat">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="#c9a84c22" stroke="#c9a84c" stroke-width="1.2"/><text x="8" y="12" text-anchor="middle" font-size="9" fill="#c9a84c" font-family="serif">💰</text></svg>
+        <span style="color:var(--text2)">Złoto:</span> <span id="goldCount">0</span>
+      </div>
+      <div class="topbar-stat">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 12 C3 8 5 6 8 5 C11 6 13 8 13 12" stroke="#8aab84" stroke-width="1.2" fill="none"/><ellipse cx="8" cy="5" rx="2.5" ry="2" fill="#8aab84" opacity="0.7"/><line x1="5" y1="12" x2="5" y2="14" stroke="#8aab84" stroke-width="1.2"/><line x1="7" y1="12" x2="7" y2="14.5" stroke="#8aab84" stroke-width="1.2"/><line x1="9" y1="12" x2="9" y2="14.5" stroke="#8aab84" stroke-width="1.2"/><line x1="11" y1="12" x2="11" y2="14" stroke="#8aab84" stroke-width="1.2"/></svg>
+        <span style="color:var(--text2)">Konie:</span> <span id="horseCount">0</span>
+      </div>
+      <div class="topbar-stat">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="5" width="10" height="8" rx="1.5" stroke="#7b5ea7" stroke-width="1.2" fill="none"/><path d="M5 5 V3.5 Q8 2 11 3.5 V5" stroke="#7b5ea7" stroke-width="1.2" fill="none"/><line x1="6" y1="8.5" x2="10" y2="8.5" stroke="#7b5ea7" stroke-width="1"/><line x1="6" y1="10.5" x2="9" y2="10.5" stroke="#7b5ea7" stroke-width="1"/></svg>
+        <span style="color:var(--text2)">Eq:</span> <span id="invCount">0</span>
+      </div>
+      <div class="topbar-stat">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="#4a7ec8" stroke-width="1.2" fill="none"/><line x1="2" y1="6" x2="14" y2="6" stroke="#4a7ec8" stroke-width="1"/><line x1="5.5" y1="1" x2="5.5" y2="4" stroke="#4a7ec8" stroke-width="1.2"/><line x1="10.5" y1="1" x2="10.5" y2="4" stroke="#4a7ec8" stroke-width="1.2"/><text x="8" y="13" text-anchor="middle" font-size="6" fill="#4a7ec8">WYP</text></svg>
+        <span style="color:var(--text2)">Dziś:</span> <span id="dailyCount">0</span>/4
+      </div>
     </div>
+    <div id="firebaseStatus" style="font-size:11px;margin-left:auto;margin-right:8px;display:flex;align-items:center;gap:6px"></div>
     <div class="xp-bar-wrap">
       <div class="xp-bar-label">
         <span style="font-family:'Cinzel',serif;color:var(--gold)">Poz. <span id="playerLevel">1</span></span>
@@ -156,10 +169,8 @@
 
 <!-- ZAWODY -->
     <div id="contestsSection" style="display:none">
-      <div class="section-title">🏆 Zawody</div>
-      <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Wyślij konia na zawody i wygraj złoto i XP. Wyższe poziomy odblokowują trudniejsze wyścigi.</div>
-      <button onclick="openContestScreen()" style="border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.1);font-size:14px;padding:10px 20px">🏁 Otwórz zawody</button>
-      <div id="contestHistory" style="margin-top:16px"></div>
+      <div class="section-title">⚔️ Zawody</div>
+      <div id="contestsInlineContent"></div>
     </div>
 
     <!-- POWIADOMIENIA -->
@@ -242,10 +253,7 @@
 
     <!-- RYNEK -->
     <div id="marketSection" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">
-        <div class="section-title" style="margin:0;border:none;padding:0">🏪 Rynek</div>
-        <div id="firebaseStatus" style="font-size:11px"></div>
-      </div>
+      <div class="section-title">🏪 Rynek</div>
 
       <!-- WSPÓLNE FILTRY (dla obu zakładek rynku) -->
       <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px">

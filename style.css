@@ -45,9 +45,10 @@ body {
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: 0 20px;
-  gap: 20px;
-  height: 64px;
+  padding: 0 16px;
+  gap: 12px;
+  height: 56px;
+  flex-wrap: nowrap;
 }
 
 .topbar-title {
@@ -735,8 +736,9 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   display: flex;
   flex-direction: column;
   gap: 3px;
-  min-width: 180px;
-  max-width: 220px;
+  min-width: 140px;
+  max-width: 180px;
+  flex-shrink: 0;
 }
 
 .xp-bar-label {

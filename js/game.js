@@ -96,6 +96,7 @@ function showSection(s) {
     markNotificationsRead();
   }
   if (s === "crafting" && typeof renderCraftingSection === "function") renderCraftingSection();
+  if (s === "contests" && typeof renderContestsInline === "function") renderContestsInline();
   if (s === "market") {
     if (typeof switchMarketTab === "function") switchMarketTab("local");
     if (typeof renderFirebaseStatus === "function") renderFirebaseStatus();
