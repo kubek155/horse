@@ -32,6 +32,12 @@ function openHorsePicker(itemIdx) {
     return;
   }
 
+  // Materiały budowlane — pokaż info
+  if (itemData.isBuildMat) {
+    log(`🪵 ${item.name} — materiał budowlany. Użyj w Rozbudowie Stajni (przycisk w Stajni).`);
+    return;
+  }
+
   // Jabłko Sfinksa — przejdź do hodowli
   if (itemData.isBreedItem) {
     log(`🍏 Jabłko Sfinksa — przejdź do Stajni i wybierz Rozmnóż konie.`);
@@ -370,14 +376,15 @@ function getItemCategory(name) {
 }
 
 const INV_TABS = [
-  { id:"all",    label:"Wszystko",   icon:"🎒" },
-  { id:"food",   label:"Jedzenie",   icon:"🍎" },
-  { id:"breed",  label:"Hodowla",    icon:"🍏" },
-  { id:"elixir", label:"Eliksiry",   icon:"🧪" },
-  { id:"slot",   label:"Sloty",      icon:"✨" },
-  { id:"pass",   label:"Przepustki", icon:"🎫" },
-  { id:"transport", label:"Transportery", icon:"🧳" },
-  { id:"other",  label:"Inne",       icon:"📦" },
+  { id:"all",       label:"Wszystko",    icon:"🎒" },
+  { id:"food",      label:"Jedzenie",    icon:"🍎" },
+  { id:"breed",     label:"Hodowla",     icon:"🍏" },
+  { id:"elixir",    label:"Eliksiry",    icon:"🧪" },
+  { id:"slot",      label:"Sloty",       icon:"✨" },
+  { id:"pass",      label:"Przepustki",  icon:"🎫" },
+  { id:"build",     label:"Budowlane",   icon:"🪵" },
+  { id:"transport", label:"Transportery",icon:"🧳" },
+  { id:"other",     label:"Inne",        icon:"📦" },
 ];
 
 function renderInventory() {

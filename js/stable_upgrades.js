@@ -1,168 +1,344 @@
 // =====================
-// ROZBUDOWA STAJNI
+// ROZBUDOWA STAJNI — zasoby budowlane + ulepszenia per koń
 // =====================
 
+// Zasoby budowlane — dropują na wyprawach
+const BUILD_MATERIALS = {
+  "Deska":       { icon:"🪵", desc:"Drewno budowlane — potrzebne do rozbudowy stajni" },
+  "Cegła":       { icon:"🧱", desc:"Wypalona cegła — fundament każdej stajni" },
+  "Dachówka":    { icon:"🏗️",  desc:"Ceramiczna dachówka — okrywa dach stajni" },
+  "Gwóźdź":      { icon:"📌", desc:"Stalowy gwóźdź — łączy deski i belki" },
+  "Siano":       { icon:"🌾", desc:"Bele siana — wypełnienie i izolacja ścian" },
+  "Kamień":      { icon:"🪨", desc:"Kamień polny — wzmocnienie fundamentów" },
+  "Szkło":       { icon:"🪟", desc:"Szyba okienna — doświetla stajnię" },
+  "Metal":       { icon:"⚙️",  desc:"Okucia metalowe — zawiasy i zamki" },
+};
+
+// Poziomy stajni — wymagają złota + materiałów
 const STABLE_LEVELS = [
-  { level:1, horses:8,  cost:0,     bonus:"Startowa stajnia",               icon:"🏠", passives:[] },
-  { level:2, horses:10, cost:2000,  bonus:"Pastwisko (+10% szczęścia)",      icon:"🌿", passives:[{type:"luck_pct", val:0.10}] },
-  { level:3, horses:12, cost:8000,  bonus:"Kuźnia (-20% kontuzji)",          icon:"⚒️", passives:[{type:"injury_reduce", val:0.20}] },
-  { level:4, horses:15, cost:25000, bonus:"Siłownia (+5% statów)",           icon:"💪", passives:[{type:"stats_pct", val:0.05}] },
-  { level:5, horses:18, cost:80000, bonus:"Gabinet wet (leczenie 1×dzień)",  icon:"🩺", passives:[{type:"free_heal", val:1}] },
+  {
+    level:1, horses:8, cost:0, bonus:"Startowa stajnia", icon:"🏠",
+    materials: {},
+  },
+  {
+    level:2, horses:10, cost:1500, bonus:"Solidna stajnia +2 miejsca", icon:"🏡",
+    materials: { "Deska":20, "Gwóźdź":10, "Siano":5 },
+  },
+  {
+    level:3, horses:13, cost:5000, bonus:"Rozbudowana stajnia +3 miejsca", icon:"🏘️",
+    materials: { "Deska":40, "Cegła":20, "Gwóźdź":25, "Kamień":15 },
+  },
+  {
+    level:4, horses:16, cost:15000, bonus:"Wielka stajnia +3 miejsca", icon:"🏰",
+    materials: { "Cegła":50, "Dachówka":30, "Metal":20, "Szkło":10, "Kamień":30 },
+  },
+  {
+    level:5, horses:20, cost:50000, bonus:"Stadnina +4 miejsca", icon:"🏟️",
+    materials: { "Cegła":80, "Dachówka":60, "Metal":40, "Szkło":25, "Kamień":50, "Deska":60 },
+  },
 ];
 
+// Ulepszenia stajni — per koń (można kupić wielokrotnie)
 const STABLE_UPGRADES = [
-  { id:"pasture",   name:"Pastwisko",        icon:"🌿", desc:"+10% szczęścia wszystkich koni",        cost:1500,  bonus:{type:"luck_pct",    val:0.10}, requires:2 },
-  { id:"forge",     name:"Kuźnia",           icon:"⚒️", desc:"-20% szans na kontuzję",               cost:3000,  bonus:{type:"injury_reduce",val:0.20}, requires:2 },
-  { id:"gym",       name:"Siłownia",         icon:"💪", desc:"+5% do wszystkich statów koni",         cost:10000, bonus:{type:"stats_pct",   val:0.05}, requires:3 },
-  { id:"vet",       name:"Gabinet vet",      icon:"🩺", desc:"Leczenie 1 konia dziennie za darmo",    cost:5000,  bonus:{type:"free_heal",   val:1},    requires:3 },
-  { id:"fountain",  name:"Fontanna Szczęścia",icon:"⛲",desc:"+5% do drop rate na wyprawach",         cost:15000, bonus:{type:"drop_pct",    val:0.05}, requires:4 },
-  { id:"treadmill", name:"Bieżnia",          icon:"🏃", desc:"+10% złota z wypraw",                  cost:12000, bonus:{type:"gold_pct",    val:0.10}, requires:4 },
+  {
+    id:"gym",         name:"Siłownia",          icon:"💪",
+    desc:"+5 do wszystkich statów wybranego konia (jednorazowe, per koń)",
+    cost:3000, materials:{ "Metal":5, "Deska":8 },
+    type:"per_horse", stat:"all", val:5,
+    requires:2,
+  },
+  {
+    id:"track",       name:"Tor wyścigowy",      icon:"🏁",
+    desc:"+8 szybkości wybranego konia",
+    cost:2500, materials:{ "Deska":12, "Gwóźdź":8 },
+    type:"per_horse", stat:"speed", val:8,
+    requires:2,
+  },
+  {
+    id:"pool",        name:"Basen regeneracyjny",icon:"💧",
+    desc:"+8 wytrzymałości wybranego konia",
+    cost:2500, materials:{ "Kamień":10, "Metal":5, "Szkło":3 },
+    type:"per_horse", stat:"stamina", val:8,
+    requires:2,
+  },
+  {
+    id:"arena",       name:"Arena treningowa",   icon:"🏟️",
+    desc:"+8 siły wybranego konia",
+    cost:2500, materials:{ "Cegła":15, "Metal":8 },
+    type:"per_horse", stat:"strength", val:8,
+    requires:3,
+  },
+  {
+    id:"garden",      name:"Ogród ziołowy",      icon:"🌿",
+    desc:"+8 szczęścia wybranego konia",
+    cost:2000, materials:{ "Siano":15, "Kamień":5 },
+    type:"per_horse", stat:"luck", val:8,
+    requires:2,
+  },
+  // Globalne pasywne
+  {
+    id:"vet",         name:"Gabinet weterynarza", icon:"🩺",
+    desc:"Leczenie 1 konia dziennie za darmo",
+    cost:4000, materials:{ "Szkło":15, "Metal":10, "Cegła":20 },
+    type:"global", bonus:{type:"free_heal", val:1},
+    requires:3,
+  },
+  {
+    id:"fountain",    name:"Fontanna Szczęścia",  icon:"⛲",
+    desc:"+5% do drop rate na wszystkich wyprawach",
+    cost:12000, materials:{ "Kamień":40, "Metal":20, "Szkło":15 },
+    type:"global", bonus:{type:"drop_pct", val:0.05},
+    requires:4,
+  },
+  {
+    id:"forge",       name:"Kuźnia",             icon:"⚒️",
+    desc:"-25% szans na kontuzję wszystkich koni",
+    cost:8000, materials:{ "Metal":35, "Cegła":25, "Gwóźdź":30 },
+    type:"global", bonus:{type:"injury_reduce", val:0.25},
+    requires:3,
+  },
+  {
+    id:"treadmill",   name:"Bieżnia",            icon:"🏃",
+    desc:"+10% złota z każdej wyprawy",
+    cost:10000, materials:{ "Metal":30, "Deska":40, "Gwóźdź":20 },
+    type:"global", bonus:{type:"gold_pct", val:0.10},
+    requires:4,
+  },
+  {
+    id:"roof",        name:"Luksusowy dach",     icon:"🏗️",
+    desc:"Konie w stajni regenerują głód +20% szybciej",
+    cost:6000, materials:{ "Dachówka":50, "Deska":30, "Gwóźdź":40 },
+    type:"global", bonus:{type:"hunger_regen", val:0.20},
+    requires:3,
+  },
 ];
 
-function getStableLevel()    { return parseInt(localStorage.getItem("hh_stable_level"))   || 1; }
+// ── Gettery / settery ────────────────────────────────────
+function getStableLevel()    { return parseInt(localStorage.getItem("hh_stable_level"))||1; }
 function setStableLevel(lvl) { localStorage.setItem("hh_stable_level", lvl); }
-function getStableUpgrades() { try { return JSON.parse(localStorage.getItem("hh_stable_upgrades")||"[]"); } catch(e) { return []; } }
-function hasUpgrade(id)      { return getStableUpgrades().includes(id); }
+function getGlobalUpgrades() {
+  try { return JSON.parse(localStorage.getItem("hh_stable_upgrades")||"[]"); } catch(e) { return []; }
+}
+function getHorseUpgrades(horseId) {
+  try {
+    let all = JSON.parse(localStorage.getItem("hh_horse_upgrades")||"{}");
+    return all[horseId] || [];
+  } catch(e) { return []; }
+}
+function addHorseUpgrade(horseId, upgradeId) {
+  let all = JSON.parse(localStorage.getItem("hh_horse_upgrades")||"{}");
+  if (!all[horseId]) all[horseId] = [];
+  all[horseId].push(upgradeId);
+  localStorage.setItem("hh_horse_upgrades", JSON.stringify(all));
+}
 
-// Dynamiczny STABLE_LIMIT na podstawie poziomu stajni
+// Dynamiczny STABLE_LIMIT
 function getStableLimit() {
   return STABLE_LEVELS[Math.min(getStableLevel()-1, STABLE_LEVELS.length-1)].horses;
 }
+function patchStableLimit() {
+  Object.defineProperty(window, 'STABLE_LIMIT', {
+    get: ()=>getStableLimit(), configurable:true,
+  });
+}
 
-// Bonusy pasywne stajni (zebrane z poziomu + ulepszeń)
+// Globalne pasywne bonusy
 function getStablePassives() {
   let passives = {};
-  let upgrades = getStableUpgrades();
-  STABLE_UPGRADES.forEach(u => {
-    if (upgrades.includes(u.id)) {
-      passives[u.bonus.type] = (passives[u.bonus.type]||0) + u.bonus.val;
-    }
+  getGlobalUpgrades().forEach(uid => {
+    let u = STABLE_UPGRADES.find(x=>x.id===uid && x.type==="global");
+    if (u?.bonus) passives[u.bonus.type] = (passives[u.bonus.type]||0) + u.bonus.val;
   });
   return passives;
 }
 
-// Zastąp globalny STABLE_LIMIT
-function patchStableLimit() {
-  Object.defineProperty(window, 'STABLE_LIMIT', {
-    get: () => getStableLimit(),
-    configurable: true,
+// Materiały w ekwipunku — liczba sztuk
+function countMaterial(name) {
+  return (window.inventory||[]).filter(i=>i.name===name).length;
+}
+function hasMaterials(mats) {
+  return Object.entries(mats).every(([name,qty])=>countMaterial(name)>=qty);
+}
+function consumeMaterials(mats) {
+  Object.entries(mats).forEach(([name,qty])=>{
+    let left = qty;
+    window.inventory = (window.inventory||[]).filter(i=>{
+      if (i.name===name && left>0) { left--; return false; }
+      return true;
+    });
   });
-}
-
-// Zastosuj pasywne bonusy koni
-function applyStablePassives(horse) {
-  let p = getStablePassives();
-  let h = JSON.parse(JSON.stringify(horse));
-  if (p.luck_pct)  h.stats.luck     = Math.min(200, Math.round(h.stats.luck    * (1+p.luck_pct)));
-  if (p.stats_pct) {
-    h.stats.speed    = Math.min(200, Math.round(h.stats.speed    * (1+p.stats_pct)));
-    h.stats.strength = Math.min(200, Math.round(h.stats.strength * (1+p.stats_pct)));
-    h.stats.stamina  = Math.min(200, Math.round(h.stats.stamina  * (1+p.stats_pct)));
-    h.stats.luck     = Math.min(200, Math.round(h.stats.luck     * (1+p.stats_pct)));
-  }
-  return h;
-}
-
-// Darmowe leczenie (vet)
-function hasFreeHealToday() {
-  let day = new Date().toDateString();
-  return localStorage.getItem("hh_free_heal_day") === day;
-}
-function useFreeHeal() {
-  localStorage.setItem("hh_free_heal_day", new Date().toDateString());
 }
 
 // ── EKRAN ROZBUDOWY ──────────────────────────────────────
 function openStableUpgradeScreen() {
-  let ex = document.getElementById("stableUpgradeOverlay");
-  if (ex) ex.remove();
-
+  document.getElementById("stableUpgradeOverlay")?.remove();
   let overlay = document.createElement("div");
   overlay.id  = "stableUpgradeOverlay";
   overlay.style.cssText = "position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;font-family:'Crimson Text',serif;overflow-y:auto;padding:20px";
 
-  let lvl    = getStableLevel();
-  let cur    = STABLE_LEVELS[lvl-1];
-  let next   = STABLE_LEVELS[lvl] || null;
-  let upgrades = getStableUpgrades();
+  let lvl      = getStableLevel();
+  let cur      = STABLE_LEVELS[lvl-1];
+  let next     = STABLE_LEVELS[lvl]||null;
   let passives = getStablePassives();
+  let globals  = getGlobalUpgrades();
+
+  // Sprawdź czy mamy materiały na następny poziom
+  let hasNextMats = next ? hasMaterials(next.materials) : false;
+  let hasNextGold = next ? gold>=next.cost : false;
+
+  function matRow(mats) {
+    return Object.entries(mats).map(([name,qty])=>{
+      let have = countMaterial(name);
+      let ok   = have>=qty;
+      let d    = BUILD_MATERIALS[name]||{icon:"📦"};
+      return `<span style="font-size:11px;padding:2px 8px;border-radius:5px;background:${ok?"rgba(74,184,112,0.12)":"rgba(201,74,74,0.12)"};border:1px solid ${ok?"#4ab87044":"#c94a4a44"};color:${ok?"#4ab870":"#c94a4a"}">
+        ${d.icon} ${name} ${have}/${qty}
+      </span>`;
+    }).join(" ");
+  }
 
   overlay.innerHTML = `
-    <div style="width:100%;max-width:660px;background:#0f1a0f;border-radius:16px;padding:24px;border:1px solid #1e3a1e;position:relative">
+    <div style="width:100%;max-width:680px;background:#0f1a0f;border-radius:16px;padding:24px;border:1px solid #1e3a1e;position:relative">
       <button onclick="document.getElementById('stableUpgradeOverlay').remove()" style="position:absolute;top:12px;right:12px;background:transparent;border:none;color:#4a5a4a;font-size:18px;cursor:pointer">✕</button>
-
       <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:#8aab84;margin-bottom:16px">🏠 ROZBUDOWA STAJNI</div>
 
-      <!-- Aktualny poziom -->
-      <div style="background:#131f13;border:1px solid #c9a84c44;border-radius:12px;padding:16px;margin-bottom:16px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <!-- Poziom -->
+      <div style="background:#131f13;border:1px solid #c9a84c44;border-radius:12px;padding:16px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px">
           <div>
-            <div style="font-family:'Cinzel',serif;font-size:16px;color:#c9a84c">${cur.icon} Poziom ${lvl} — ${cur.horses} koni</div>
+            <div style="font-family:'Cinzel',serif;font-size:16px;color:#c9a84c">${cur.icon} Poziom ${lvl} — max ${cur.horses} koni</div>
             <div style="font-size:12px;color:var(--text2);margin-top:3px">${cur.bonus}</div>
           </div>
-          ${next ? `<button onclick="upgradeStable()" style="border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1);font-family:'Cinzel',serif">
-            ⬆️ Poziom ${lvl+1} · 💰${next.cost.toLocaleString()}
-          </button>` : `<div style="font-size:12px;color:#4ab870">✅ Maksymalny poziom</div>`}
+          ${next ? `<div style="text-align:right">
+            <button onclick="upgradeStable()" ${hasNextMats&&hasNextGold?"":"disabled"} style="
+              border-color:${hasNextMats&&hasNextGold?"#c9a84c":"#333"};
+              color:${hasNextMats&&hasNextGold?"#c9a84c":"#555"};
+              background:${hasNextMats&&hasNextGold?"rgba(201,168,76,0.1)":"transparent"};
+              font-family:'Cinzel',serif;font-size:11px;margin-bottom:6px;white-space:nowrap">
+              ⬆️ Poz. ${lvl+1} · 💰${next.cost.toLocaleString()}
+            </button>
+            <div style="font-size:10px;color:var(--text2);margin-bottom:4px">Potrzebne materiały:</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end">${matRow(next.materials)}</div>
+          </div>` : `<div style="color:#4ab870;font-size:13px">✅ Max poziom</div>`}
         </div>
-        <!-- Pasek poziomów -->
-        <div style="display:flex;gap:6px">
-          ${STABLE_LEVELS.map((l,i) => `
+        <!-- Pasek -->
+        <div style="display:flex;gap:4px">
+          ${STABLE_LEVELS.map((l,i)=>`
             <div style="flex:1;text-align:center">
-              <div style="height:4px;border-radius:2px;background:${i<lvl?"#c9a84c":"#1e3a1e"};margin-bottom:4px"></div>
-              <div style="font-size:9px;color:${i<lvl?"#c9a84c":"#4a5a4a"}">${l.icon}</div>
-            </div>
-          `).join("")}
+              <div style="height:5px;border-radius:2px;background:${i<lvl?"#c9a84c":"#1e3a1e"};margin-bottom:3px"></div>
+              <div style="font-size:10px;color:${i<lvl?"#c9a84c":"#4a5a4a"}">${l.icon}</div>
+            </div>`).join("")}
         </div>
       </div>
 
       <!-- Aktywne bonusy -->
-      ${Object.keys(passives).length > 0 ? `
-        <div style="background:#131f13;border:1px solid #4ab87044;border-radius:10px;padding:12px;margin-bottom:16px">
-          <div style="font-size:10px;letter-spacing:2px;color:#4ab870;margin-bottom:8px">AKTYWNE BONUSY</div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px">
-            ${passives.luck_pct    ? `<span style="background:#c9a84c22;border:1px solid #c9a84c44;border-radius:6px;padding:3px 10px;font-size:11px;color:#c9a84c">🍀 +${Math.round(passives.luck_pct*100)}% szczęścia</span>` : ""}
-            ${passives.injury_reduce?`<span style="background:#4a7ec822;border:1px solid #4a7ec844;border-radius:6px;padding:3px 10px;font-size:11px;color:#6ab0e0">⚒️ -${Math.round(passives.injury_reduce*100)}% kontuzji</span>` : ""}
-            ${passives.stats_pct   ? `<span style="background:#7b5ea722;border:1px solid #7b5ea744;border-radius:6px;padding:3px 10px;font-size:11px;color:#b090e0">💪 +${Math.round(passives.stats_pct*100)}% statów</span>` : ""}
-            ${passives.drop_pct    ? `<span style="background:#4ab87022;border:1px solid #4ab87044;border-radius:6px;padding:3px 10px;font-size:11px;color:#4ab870">✨ +${Math.round(passives.drop_pct*100)}% drop rate</span>` : ""}
-            ${passives.gold_pct    ? `<span style="background:#c9a84c22;border:1px solid #c9a84c44;border-radius:6px;padding:3px 10px;font-size:11px;color:#c9a84c">💰 +${Math.round(passives.gold_pct*100)}% złota</span>` : ""}
-            ${passives.free_heal   ? `<span style="background:#c94a4a22;border:1px solid #c94a4a44;border-radius:6px;padding:3px 10px;font-size:11px;color:#e08080">🩺 Darmowe leczenie</span>` : ""}
+      ${Object.keys(passives).length>0?`
+        <div style="background:#131f13;border:1px solid #4ab87044;border-radius:10px;padding:10px 14px;margin-bottom:14px">
+          <div style="font-size:10px;letter-spacing:2px;color:#4ab870;margin-bottom:6px">AKTYWNE BONUSY GLOBALNE</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            ${passives.drop_pct    ?`<span style="font-size:11px;background:#c9a84c18;border:1px solid #c9a84c44;border-radius:6px;padding:2px 10px;color:#c9a84c">✨ +${Math.round(passives.drop_pct*100)}% drop</span>`:""}
+            ${passives.gold_pct    ?`<span style="font-size:11px;background:#c9a84c18;border:1px solid #c9a84c44;border-radius:6px;padding:2px 10px;color:#c9a84c">💰 +${Math.round(passives.gold_pct*100)}% złota</span>`:""}
+            ${passives.injury_reduce?`<span style="font-size:11px;background:#4a7ec818;border:1px solid #4a7ec844;border-radius:6px;padding:2px 10px;color:#6ab0e0">⚒️ -${Math.round(passives.injury_reduce*100)}% kontuzji</span>`:""}
+            ${passives.free_heal   ?`<span style="font-size:11px;background:#c94a4a18;border:1px solid #c94a4a44;border-radius:6px;padding:2px 10px;color:#e08080">🩺 Darmowe leczenie</span>`:""}
+            ${passives.hunger_regen?`<span style="font-size:11px;background:#4ab87018;border:1px solid #4ab87044;border-radius:6px;padding:2px 10px;color:#4ab870">🌾 +${Math.round(passives.hunger_regen*100)}% reg. głodu</span>`:""}
           </div>
-        </div>
-      ` : ""}
+        </div>` : ""}
 
-      <!-- Ulepszenia -->
-      <div style="font-size:10px;letter-spacing:2px;color:#8aab84;margin-bottom:10px">ULEPSZENIA STAJNI</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        ${STABLE_UPGRADES.map(u => {
-          let owned   = upgrades.includes(u.id);
-          let canBuy  = !owned && lvl >= u.requires && gold >= u.cost;
-          let locked  = lvl < u.requires;
-          let color   = owned ? "#4ab870" : locked ? "#333" : "#8aab84";
-          return `<div style="background:#131f13;border:1px solid ${color}44;border-radius:10px;padding:12px;opacity:${locked?0.45:1}">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-              <span style="font-size:20px">${u.icon}</span>
-              <div>
-                <div style="font-size:12px;color:${color};font-family:'Cinzel',serif">${u.name}</div>
-                <div style="font-size:10px;color:var(--text2)">${u.desc}</div>
+      <!-- Zakładki ulepszeń -->
+      <div style="display:flex;gap:6px;margin-bottom:12px">
+        <button id="stUpgTabGlobal" class="market-tab-btn active" onclick="switchStableTab('global')">🏗️ Globalne</button>
+        <button id="stUpgTabHorse"  class="market-tab-btn"        onclick="switchStableTab('horse')">🐴 Per koń</button>
+        <button id="stUpgTabMats"   class="market-tab-btn"        onclick="switchStableTab('mats')">🪵 Materiały</button>
+      </div>
+
+      <!-- Globalne ulepszenia -->
+      <div id="stUpgGlobalContent">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          ${STABLE_UPGRADES.filter(u=>u.type==="global").map(u=>{
+            let owned   = globals.includes(u.id);
+            let locked  = lvl < u.requires;
+            let canMats = hasMaterials(u.materials);
+            let canGold = gold >= u.cost;
+            let canBuy  = !owned && !locked && canMats && canGold;
+            let col     = owned?"#4ab870":locked?"#333":"#8aab84";
+            return `<div style="background:#131f13;border:1px solid ${col}44;border-radius:10px;padding:12px;opacity:${locked?0.4:1}">
+              <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+                <span style="font-size:22px">${u.icon}</span>
+                <div>
+                  <div style="font-size:12px;color:${col};font-family:'Cinzel',serif">${u.name}</div>
+                  <div style="font-size:10px;color:var(--text2)">${u.desc}</div>
+                </div>
               </div>
-            </div>
-            ${owned
-              ? `<div style="font-size:11px;color:#4ab870">✅ Zakupione</div>`
-              : locked
-              ? `<div style="font-size:11px;color:#555">🔒 Wymaga poz. ${u.requires} stajni</div>`
-              : `<button onclick="buyStableUpgrade('${u.id}')" ${canBuy?"":"disabled"} style="
-                  width:100%;border-color:${canBuy?"#c9a84c":"#333"};
-                  color:${canBuy?"#c9a84c":"#555"};
-                  background:${canBuy?"rgba(201,168,76,0.1)":"transparent"};
-                  font-size:11px;cursor:${canBuy?"pointer":"not-allowed"}">
+              <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px">${matRow(u.materials)}</div>
+              ${owned?`<div style="font-size:11px;color:#4ab870">✅ Aktywne</div>`
+              :locked?`<div style="font-size:11px;color:#555">🔒 Wymaga poz. ${u.requires}</div>`
+              :`<button onclick="buyGlobalUpgrade('${u.id}')" ${canBuy?"":"disabled"} style="
+                  width:100%;border-color:${canBuy?"#c9a84c":"#333"};color:${canBuy?"#c9a84c":"#555"};
+                  background:${canBuy?"rgba(201,168,76,0.1)":"transparent"};font-size:11px">
                   💰 ${u.cost.toLocaleString()}
                 </button>`}
-          </div>`;
-        }).join("")}
+            </div>`;
+          }).join("")}
+        </div>
+      </div>
+
+      <!-- Per koń ulepszenia -->
+      <div id="stUpgHorseContent" style="display:none">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Wybierz ulepszenie, potem konia. Można dokupić wielokrotnie dla różnych koni.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          ${STABLE_UPGRADES.filter(u=>u.type==="per_horse").map(u=>{
+            let locked  = lvl < u.requires;
+            let canMats = hasMaterials(u.materials);
+            let canGold = gold >= u.cost;
+            let canBuy  = !locked && canMats && canGold;
+            let col     = locked?"#333":"#8aab84";
+            return `<div style="background:#131f13;border:1px solid ${col}44;border-radius:10px;padding:12px;opacity:${locked?0.4:1}">
+              <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+                <span style="font-size:22px">${u.icon}</span>
+                <div>
+                  <div style="font-size:12px;color:${col};font-family:'Cinzel',serif">${u.name}</div>
+                  <div style="font-size:10px;color:var(--text2)">${u.desc}</div>
+                </div>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px">${matRow(u.materials)}</div>
+              ${locked?`<div style="font-size:11px;color:#555">🔒 Wymaga poz. ${u.requires}</div>`
+              :`<button onclick="openHorseUpgradePicker('${u.id}')" ${canBuy?"":"disabled"} style="
+                  width:100%;border-color:${canBuy?"#6ab0e0":"#333"};color:${canBuy?"#6ab0e0":"#555"};
+                  background:${canBuy?"rgba(74,176,224,0.1)":"transparent"};font-size:11px">
+                  🐴 Wybierz konia · 💰${u.cost.toLocaleString()}
+                </button>`}
+            </div>`;
+          }).join("")}
+        </div>
+      </div>
+
+      <!-- Materiały -->
+      <div id="stUpgMatsContent" style="display:none">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Materiały budowlane — dropują na wyprawach lub można zdobyć w questach.</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+          ${Object.entries(BUILD_MATERIALS).map(([name,d])=>{
+            let have = countMaterial(name);
+            return `<div style="background:#131f13;border:1px solid ${have>0?"#c9a84c44":"#1e3a1e"};border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:28px;margin-bottom:4px">${d.icon}</div>
+              <div style="font-family:'Cinzel',serif;font-size:11px;color:${have>0?"#c9a84c":"#4a5a4a"}">${name}</div>
+              <div style="font-size:18px;color:${have>0?"#d4e8d0":"#4a5a4a"};margin:4px 0">${have}</div>
+              <div style="font-size:10px;color:var(--text2);line-height:1.3">${d.desc}</div>
+            </div>`;
+          }).join("")}
+        </div>
       </div>
     </div>
   `;
   document.body.appendChild(overlay);
+}
+
+function switchStableTab(tab) {
+  ["global","horse","mats"].forEach(t=>{
+    let el = document.getElementById(`stUpg${t.charAt(0).toUpperCase()+t.slice(1)}Content`);
+    let btn= document.getElementById(`stUpgTab${t.charAt(0).toUpperCase()+t.slice(1)}`);
+    if(el)  el.style.display  = t===tab?"block":"none";
+    if(btn) btn.classList.toggle("active", t===tab);
+  });
 }
 
 function upgradeStable() {
@@ -170,30 +346,97 @@ function upgradeStable() {
   let next = STABLE_LEVELS[lvl];
   if (!next) { log("✅ Stajnia na maksymalnym poziomie!"); return; }
   if (gold < next.cost) { log(`⚠️ Za mało złota! Potrzebujesz ${next.cost}💰`); return; }
+  if (!hasMaterials(next.materials)) { log("⚠️ Brak materiałów budowlanych!"); return; }
   gold -= next.cost;
+  consumeMaterials(next.materials);
   setStableLevel(lvl+1);
   saveGame(); renderAll();
   document.getElementById("stableUpgradeOverlay")?.remove();
   openStableUpgradeScreen();
   log(`🏠 Stajnia rozbudowana do poziomu ${lvl+1}! Limit: ${getStableLimit()} koni.`);
   if (typeof addNotification==="function") addNotification("level_up",
-    `Stajnia — Poziom ${lvl+1}!`, `Nowy limit: ${getStableLimit()} koni · ${STABLE_LEVELS[lvl].bonus}`);
+    `Stajnia — Poziom ${lvl+1}!`, `Nowy limit: ${getStableLimit()} koni`);
 }
 
-function buyStableUpgrade(id) {
-  let u = STABLE_UPGRADES.find(x=>x.id===id);
+function buyGlobalUpgrade(id) {
+  let u = STABLE_UPGRADES.find(x=>x.id===id&&x.type==="global");
   if (!u) return;
-  if (gold < u.cost) { log("⚠️ Za mało złota!"); return; }
-  let upgrades = getStableUpgrades();
-  if (upgrades.includes(id)) return;
+  if (gold<u.cost) { log("⚠️ Za mało złota!"); return; }
+  if (!hasMaterials(u.materials)) { log("⚠️ Brak materiałów!"); return; }
+  let ups = getGlobalUpgrades();
+  if (ups.includes(id)) return;
   gold -= u.cost;
-  upgrades.push(id);
-  localStorage.setItem("hh_stable_upgrades", JSON.stringify(upgrades));
+  consumeMaterials(u.materials);
+  ups.push(id);
+  localStorage.setItem("hh_stable_upgrades", JSON.stringify(ups));
   saveGame(); renderAll();
   document.getElementById("stableUpgradeOverlay")?.remove();
   openStableUpgradeScreen();
-  log(`${u.icon} ${u.name} zakupiona! ${u.desc}`);
+  log(`${u.icon} ${u.name} zakupiona!`);
 }
 
-// Inicjalizacja — podmień STABLE_LIMIT na dynamiczny
+function openHorseUpgradePicker(upgradeId) {
+  let u = STABLE_UPGRADES.find(x=>x.id===upgradeId);
+  if (!u || playerHorses.length===0) return;
+
+  let modal = document.createElement("div");
+  modal.id  = "horseUpgradePicker";
+  modal.style.cssText = "position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center";
+  modal.innerHTML = `
+    <div style="background:#0f1a0f;border:1px solid #6ab0e044;border-radius:14px;padding:20px;width:340px;max-height:70vh;overflow-y:auto">
+      <div style="font-family:'Cinzel',serif;font-size:12px;color:#6ab0e0;margin-bottom:4px">${u.icon} ${u.name}</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:14px">${u.desc}</div>
+      <div id="horseUpgradePickerList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
+      <button onclick="document.getElementById('horseUpgradePicker').remove()" style="width:100%;border-color:#333;color:#666">Anuluj</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  let list = document.getElementById("horseUpgradePickerList");
+  playerHorses.forEach((h,i)=>{
+    let rc    = RARITY_COLORS[h.rarity]||"#8aab84";
+    let times = getHorseUpgrades(h.id).filter(x=>x===upgradeId).length;
+    let div   = document.createElement("div");
+    div.style.cssText = `display:flex;align-items:center;gap:10px;padding:10px;background:#131f13;border:1px solid ${rc}33;border-radius:8px;cursor:pointer`;
+    div.innerHTML = `
+      <span style="font-size:20px">${h.flag||"🐴"}</span>
+      <div style="flex:1">
+        <div style="font-size:12px;color:${rc}">${h.name}</div>
+        <div style="font-size:10px;color:var(--text2)">⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck}</div>
+        ${times>0?`<div style="font-size:10px;color:#6ab0e0">Ulepszony ${times}×</div>`:""}
+      </div>
+      <div style="font-size:11px;color:#6ab0e0">+${u.val||u.stat}</div>
+    `;
+    div.onclick = ()=>{
+      applyHorseUpgrade(i, upgradeId);
+      document.getElementById("horseUpgradePicker").remove();
+    };
+    list.appendChild(div);
+  });
+}
+
+function applyHorseUpgrade(horseIdx, upgradeId) {
+  let u = STABLE_UPGRADES.find(x=>x.id===upgradeId);
+  let h = playerHorses[horseIdx];
+  if (!u||!h) return;
+  if (gold<u.cost) { log("⚠️ Za mało złota!"); return; }
+  if (!hasMaterials(u.materials)) { log("⚠️ Brak materiałów!"); return; }
+  gold -= u.cost;
+  consumeMaterials(u.materials);
+  const cap = 200;
+  if (u.stat==="all") {
+    h.stats.speed    = Math.min(cap, h.stats.speed    + u.val);
+    h.stats.strength = Math.min(cap, h.stats.strength + u.val);
+    h.stats.stamina  = Math.min(cap, h.stats.stamina  + u.val);
+    h.stats.luck     = Math.min(cap, h.stats.luck     + u.val);
+  } else {
+    h.stats[u.stat] = Math.min(cap, (h.stats[u.stat]||0) + u.val);
+  }
+  addHorseUpgrade(h.id, upgradeId);
+  saveGame(); renderAll();
+  log(`${u.icon} ${h.name} ulepszony! ${u.desc}`);
+  document.getElementById("stableUpgradeOverlay")?.remove();
+  openStableUpgradeScreen();
+}
+
 patchStableLimit();
