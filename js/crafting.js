@@ -3,55 +3,62 @@
 // =====================
 
 const RECIPES = [
-  // Jedzenie
+  // Hodowla — rzadkie, wymagają wielu materiałów
   {
     id:"jabłko_sfinksa",
     result:"Jabłko Sfinksa", qty:1, icon:"🍏",
     desc:"Wymagane do rozmnażania koni",
-    ingredients:[ {name:"Jabłko",qty:3}, {name:"Siano",qty:2} ],
+    ingredients:[ {name:"Jabłko",qty:8}, {name:"Siano",qty:6}, {name:"Kamień",qty:4}, {name:"Gwóźdź",qty:3} ],
     category:"hodowla",
   },
   {
     id:"boski_nektar",
     result:"Boski Nektar", qty:1, icon:"🌟",
-    desc:"+50% szans na mutację",
-    ingredients:[ {name:"Jabłko Sfinksa",qty:2}, {name:"Eliksir Szczęścia",qty:1} ],
+    desc:"+50% szans na mutację (hodowla)",
+    ingredients:[ {name:"Jabłko Sfinksa",qty:3}, {name:"Eliksir Szczęścia",qty:2}, {name:"Metal",qty:5}, {name:"Szkło",qty:3} ],
     category:"hodowla",
   },
   {
     id:"eliksir_krwi",
     result:"Eliksir Krwi", qty:1, icon:"🩸",
     desc:"Potomek dziedziczy krew silniejszego",
-    ingredients:[ {name:"Jabłko Sfinksa",qty:1}, {name:"Eliksir Siły",qty:1}, {name:"Eliksir Wytrzymałości",qty:1} ],
+    ingredients:[ {name:"Jabłko Sfinksa",qty:2}, {name:"Eliksir Siły",qty:2}, {name:"Eliksir Wytrzymałości",qty:2}, {name:"Metal",qty:8} ],
     category:"hodowla",
   },
-  // Sloty
+  {
+    id:"ksiezycowy_kamien",
+    result:"Księżycowy Kamień", qty:1, icon:"🌙",
+    desc:"Pradawny potomek dostaje 2 perki",
+    ingredients:[ {name:"Szkło",qty:10}, {name:"Metal",qty:10}, {name:"Jabłko Sfinksa",qty:3}, {name:"Boski Nektar",qty:1} ],
+    category:"hodowla",
+  },
+  // Sloty — wymagają rzadkich materiałów
   {
     id:"piorun_craft",
     result:"Piorun", qty:1, icon:"⚡️",
     desc:"Slot: +1–10 szybkości",
-    ingredients:[ {name:"Metal",qty:5}, {name:"Gwóźdź",qty:3} ],
+    ingredients:[ {name:"Metal",qty:12}, {name:"Gwóźdź",qty:8}, {name:"Szkło",qty:4} ],
     category:"sloty",
   },
   {
     id:"kowadlo_craft",
     result:"Kowadło", qty:1, icon:"🔨",
     desc:"Slot: +1–10 siły",
-    ingredients:[ {name:"Metal",qty:5}, {name:"Cegła",qty:3} ],
+    ingredients:[ {name:"Metal",qty:12}, {name:"Cegła",qty:8}, {name:"Gwóźdź",qty:6} ],
     category:"sloty",
   },
   {
     id:"koniczyna_craft",
     result:"Koniczyna", qty:1, icon:"🍀",
     desc:"Slot: +1–10 szczęścia",
-    ingredients:[ {name:"Siano",qty:5}, {name:"Kamień",qty:3} ],
+    ingredients:[ {name:"Siano",qty:12}, {name:"Kamień",qty:8}, {name:"Metal",qty:4} ],
     category:"sloty",
   },
   {
     id:"serce_craft",
     result:"Serce", qty:1, icon:"❤️‍🔥",
     desc:"Slot: +1–10 wytrzymałości",
-    ingredients:[ {name:"Siano",qty:3}, {name:"Metal",qty:3}, {name:"Gwóźdź",qty:2} ],
+    ingredients:[ {name:"Siano",qty:10}, {name:"Metal",qty:8}, {name:"Kamień",qty:6}, {name:"Gwóźdź",qty:4} ],
     category:"sloty",
   },
   // Skrzynki
@@ -144,27 +151,29 @@ function canCraft(recipe) {
 }
 
 function openCraftingScreen() {
-  document.getElementById("craftingOverlay")?.remove();
-  let overlay = document.createElement("div");
-  overlay.id  = "craftingOverlay";
-  overlay.style.cssText = "position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;font-family:'Crimson Text',serif;overflow-y:auto;padding:20px";
+  renderCraftingSection();
+}
 
-  overlay.innerHTML = `
-    <div style="width:100%;max-width:680px;background:#0f1a0f;border-radius:16px;padding:24px;border:1px solid #1e3a1e;position:relative">
-      <button onclick="document.getElementById('craftingOverlay').remove()" style="position:absolute;top:12px;right:12px;background:transparent;border:none;color:#4a5a4a;font-size:18px;cursor:pointer">✕</button>
-      <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:#8aab84;margin-bottom:16px">⚗️ CRAFTING</div>
-
-      <!-- Kategorie -->
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
-        ${Object.entries(CRAFT_CAT_LABELS).map(([id,label])=>`
-          <button id="craftCat_${id}" class="market-tab-btn ${id===craftCat?"active":""}" onclick="setCraftCat('${id}')">${label}</button>
-        `).join("")}
-      </div>
-
-      <div id="craftingGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
-    </div>
-  `;
-  document.body.appendChild(overlay);
+function renderCraftingSection() {
+  // Kategorie
+  let catBar = document.getElementById("craftCatBar");
+  if (catBar) {
+    catBar.innerHTML = "";
+    Object.entries(CRAFT_CAT_LABELS).forEach(([id,label]) => {
+      let btn = document.createElement("button");
+      btn.id = `craftCat_${id}`;
+      btn.className = `market-tab-btn${id===craftCat?" active":""}`;
+      btn.textContent = label;
+      btn.onclick = () => setCraftCat(id);
+      catBar.appendChild(btn);
+    });
+  }
+  // Pasek materiałów
+  let matsBar = document.getElementById("craftMatsBar");
+  if (matsBar) {
+    let mats = Object.entries(BUILD_MATERIALS||{}).map(([name,d])=>`${d.icon}${countInv(name)}`).join(" ");
+    matsBar.innerHTML = mats;
+  }
   renderCraftingGrid();
 }
 
@@ -175,6 +184,8 @@ function setCraftCat(cat) {
   });
   renderCraftingGrid();
 }
+
+function renderCrafting() { renderCraftingSection(); }
 
 function renderCraftingGrid() {
   let el = document.getElementById("craftingGrid");
@@ -246,5 +257,5 @@ function doCraft(recipeId) {
 
   log(`⚗️ Wytworzono: ${recipe.icon} ${recipe.result}${recipe.qty>1?` ×${recipe.qty}`:""}!`);
   saveGame(); renderAll();
-  renderCraftingGrid(); // Odśwież dostępność
+  renderCraftingSection();
 }

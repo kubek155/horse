@@ -140,6 +140,30 @@ function rollLocationDrop(loc) {
   return null;
 }
 
+// Konie z wypraw — RARITY_WEIGHTS jak lootbox + małe bonus od krainy
+function rollExpeditionHorseRarity(loc) {
+  // Bazowe wagi jak lootbox
+  let weights = { common:58, uncommon:24, rare:11, epic:4.5, legendary:2, mythic:0.5 };
+  // Kraina przeszkuwa wagi w górę
+  const BOOST = {
+    0: {},                                                   // Las — bez boost
+    1: { uncommon:2.5, rare:1.5 },                           // Pustynia
+    2: { rare:2.5, epic:1.5, uncommon:-1.5 },                // Góry
+    3: { epic:2,   legendary:1.5, rare:1.5, common:-5 },     // Tundra
+    4: { legendary:2.5, mythic:1, epic:2, common:-7.5, uncommon:-4 }, // Mrok
+  };
+  let boost = BOOST[loc.index] || {};
+  Object.entries(boost).forEach(([r,v]) => {
+    if (weights[r] !== undefined) weights[r] = Math.max(0.1, weights[r] + v);
+  });
+  let total = Object.values(weights).reduce((a,b)=>a+b,0);
+  let r = Math.random() * total;
+  for (let [key,w] of Object.entries(weights)) {
+    r -= w; if (r <= 0) return key;
+  }
+  return "common";
+}
+
 function finishExpedition(e) {
   let loc   = LOCATIONS[e.locationIndex];
 
@@ -165,15 +189,22 @@ function finishExpedition(e) {
   let luckBonus = luck / 10;
   let r     = Math.random() * 100;
 
-  // koń: 7%+luck/20 | skrzynka: 3%+luck/30 | bonus z poziomu
-  let lvlBonus    = (typeof getDropBonus === "function") ? getDropBonus() : 0;
-  let horseChance = 7  + luckBonus / 2 + lvlBonus;
-  let boxChance   = horseChance + 3 + luckBonus / 3 + lvlBonus * 0.5;
-  let foodChance  = boxChance   + 10;
+  // Szanse jak lootbox — koń 8%, eliksir odm. 14%, eliksir stat. 7%, slot 7%, drop lokacji 6%
+  let lvlBonus     = (typeof getDropBonus === "function") ? getDropBonus() : 0;
+  let horseChance  = 8  + luckBonus / 2 + lvlBonus;           // ~8-12%
+  let elixirOld    = horseChance + 14;                          // Eliksir Odmłodzenia
+  let elixirStat   = elixirOld   + 7;                           // Eliksir statystyki
+  let slotChance   = elixirStat  + 7;                           // Slot item
+  let dropChance   = slotChance  + 6 + luckBonus / 3 + lvlBonus * 0.5; // Drop lokacji
+  // boxChance używane w history
+  let boxChance    = dropChance;
 
   if (r < horseChance) {
     {
-      let h = generateHorse(loc.reward);
+      // Rzadkość konia jak w lootboxie — losowana z RARITY_WEIGHTS
+      // Ale wyższe krainy lekko boost wyższych rzadkości
+      let horseRarity = rollExpeditionHorseRarity(loc);
+      let h = generateHorse(horseRarity);
       if (playerHorses.length >= STABLE_LIMIT) {
         // Koń trafia do transportera
         inventory.push({ name:"Transporter Konia", obtained:Date.now(), horse:h });
@@ -204,26 +235,49 @@ function finishExpedition(e) {
         });
       }
     }
-  } else if (r < boxChance) {
-    // Drop z tabeli lokacji
+  } else if (r < elixirOld) {
+    // Eliksir Odmłodzenia (14% — jak lootbox)
+    inventory.push({ name:"Eliksir Odmłodzenia", obtained:Date.now() });
+    log(`✨ Znaleziono: 🧪 Eliksir Odmłodzenia!`);
+    if (typeof flashRareDrop==="function") setTimeout(()=>flashRareDrop("🧪","Eliksir Odmłodzenia"),300);
+    if (typeof addDropHistory==="function") addDropHistory({ icon:"🧪", name:"Eliksir Odmłodzenia",
+      source:`${loc.icon} ${loc.name}`, color:"#7b5ea7", chance:"14%" });
+
+  } else if (r < elixirStat) {
+    // Eliksir statystyki (7% — jak lootbox)
+    let statItems = ["Eliksir Szybkości","Eliksir Siły","Eliksir Wytrzymałości","Eliksir Szczęścia"];
+    let picked = statItems[Math.floor(Math.random()*statItems.length)];
+    inventory.push({ name:picked, obtained:Date.now() });
+    let dEl = ITEMS_DATABASE[picked]||{icon:"⚡"};
+    log(`✨ Znaleziono: ${dEl.icon} ${picked}!`);
+    if (typeof addDropHistory==="function") addDropHistory({ icon:dEl.icon, name:picked,
+      source:`${loc.icon} ${loc.name}`, color:"#4a7ec8", chance:"7%" });
+
+  } else if (r < slotChance) {
+    // Slot item (7% — jak lootbox)
+    let slotItems = ["Piorun","Kowadło","Koniczyna","Serce"];
+    let picked = slotItems[Math.floor(Math.random()*slotItems.length)];
+    let generated = generateSlotItem(picked);
+    inventory.push(generated);
+    let dSl = ITEMS_DATABASE[picked]||{icon:"✨"};
+    log(`✨ Znaleziono: ${dSl.icon} ${picked} (+${generated.bonus})!`);
+    if (typeof addDropHistory==="function") addDropHistory({ icon:dSl.icon,
+      name:`${picked} +${generated.bonus}`, source:`${loc.icon} ${loc.name}`, color:"#c97c2a", chance:"7%" });
+
+  } else if (r < dropChance) {
+    // Drop z tabeli lokacji (przepustka, materiał, jabłko sfinksa itp.)
     let dropped = rollLocationDrop(loc);
     if (dropped) {
-      let item = dropped.isSlot ? generateSlotItem(dropped.name) : { name: dropped.name, obtained: Date.now() };
+      let item = dropped.isSlot ? generateSlotItem(dropped.name) : { name:dropped.name, obtained:Date.now() };
       inventory.push(item);
-      let d = ITEMS_DATABASE[dropped.name] || { icon:"📦" };
-      let isRareDrop = ["Jabłko Sfinksa","Eliksir Odmłodzenia"].includes(dropped.name) ||
-                       dropped.name.includes("Przepustka");
-      if (isRareDrop && typeof flashRareDrop === "function") {
-        setTimeout(() => flashRareDrop(d.icon, dropped.name), 300);
-      }
+      let d = ITEMS_DATABASE[dropped.name]||{icon:"📦"};
+      let isRare = ["Jabłko Sfinksa"].includes(dropped.name)||dropped.name.includes("Przepustka");
+      if (isRare && typeof flashRareDrop==="function") setTimeout(()=>flashRareDrop(d.icon,dropped.name),300);
       log(`✨ Znaleziono: ${d.icon} ${dropped.name}${item.bonus!==undefined?" (+"+item.bonus+")":""}!`);
-      if (typeof addDropHistory === "function") addDropHistory({
-        icon:   d.icon || "📦",
-        name:   dropped.name + (item.bonus !== undefined ? ` +${item.bonus}` : ""),
-        source: `${loc.icon} ${loc.name}`,
-        color:  RARITY_COLORS[d.rarity] || "#8aab84",
-        bonus:  item.bonus,
-        chance: `~${(boxChance - horseChance).toFixed(1)}% szans`,
+      if (typeof addDropHistory==="function") addDropHistory({
+        icon:d.icon||"📦", name:dropped.name+(item.bonus!==undefined?` +${item.bonus}`:""),
+        source:`${loc.icon} ${loc.name}`, color:RARITY_COLORS[d.rarity]||"#8aab84",
+        bonus:item.bonus, chance:"6%",
       });
     } else {
       log(`📜 Wyprawa do ${loc.name} — nic nie znaleziono.`);

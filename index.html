@@ -230,9 +230,14 @@
 
     <!-- CRAFTING -->
     <div id="craftingSection" style="display:none">
-      <div class="section-title">⚗️ Crafting</div>
-      <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Wytwarzaj przedmioty z materiałów zdobytych na wyprawach.</div>
-      <button onclick="openCraftingScreen()" style="border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1);font-size:14px;padding:10px 24px">⚗️ Otwórz warsztat</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+        <div class="section-title" style="margin:0;border:none;padding:0">⚗️ Warsztat</div>
+        <div id="craftMatsBar" style="font-size:11px;color:var(--text2)"></div>
+      </div>
+      <!-- Kategorie -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px" id="craftCatBar"></div>
+      <!-- Siatka przepisów -->
+      <div id="craftingGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px"></div>
     </div>
 
     <!-- RYNEK -->

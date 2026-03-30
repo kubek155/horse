@@ -222,7 +222,7 @@ BREEDS.forEach(b => {
 
 const LOCATIONS = [
   {
-    name: "Las Zielony",
+    name: "Las Zielony", index: 0,
     icon: "🌲",
     desc: "Spokojne ostępy leśne — idealne dla młodych koni stawiających pierwsze kroki.",
     lore: "Stare dęby szepcą legendy o pierwszych dzikich koniach. Tu każdy może zacząć swoją przygodę.",
@@ -237,7 +237,7 @@ const LOCATIONS = [
     ambiance: ["🌿","🍄","🦋","🐦","🌸"],
   },
   {
-    name: "Złota Pustynia",
+    name: "Złota Pustynia", index: 1,
     icon: "🏜️",
     desc: "Rozpalony piasek i skwarne słońce — wytrzymałość ponad wszystko.",
     lore: "Karawany arabskich koni przemierzały te piaski od tysięcy lat. Tylko najsilniejsi przeżywają.",
@@ -252,7 +252,7 @@ const LOCATIONS = [
     ambiance: ["🌵","🦂","🐍","☀️","💨"],
   },
   {
-    name: "Górskie Szczyty",
+    name: "Górskie Szczyty", index: 2,
     icon: "⛰️",
     desc: "Strome zbocza i rozrzedzone powietrze — tylko silne konie dają radę.",
     lore: "Noriker i Fjord znają te ścieżki na pamięć. Dla innych to wyzwanie życia.",
@@ -267,7 +267,7 @@ const LOCATIONS = [
     ambiance: ["🦅","🌨️","🏔️","🪨","❄️"],
   },
   {
-    name: "Wieczna Tundra",
+    name: "Wieczna Tundra", index: 3,
     icon: "❄️",
     desc: "Mroźne stepy bez końca — wyprawa dla prawdziwych legend.",
     lore: "Tylko nieliczni wracają z Wiecznej Tundry. Ci co wracają — wracają ze skarbami.",
@@ -282,7 +282,7 @@ const LOCATIONS = [
     ambiance: ["🐺","🦌","🌌","🌨️","🧊"],
   },
   {
-    name: "Mroczne Ostępy",
+    name: "Mroczne Ostępy", index: 4,
     icon: "🌑",
     desc: "Zakazane rubieże — kraina cieni i pradawnej magii.",
     lore: "Mówią że konie które tu wchodzą zmieniają się na zawsze. Wchodzisz własnym ryzykiem.",
