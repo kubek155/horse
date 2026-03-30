@@ -2,25 +2,60 @@ function getElixirSold() { return parseInt(localStorage.getItem("hh_elixir_sold"
 function addElixirSold()  { localStorage.setItem("hh_elixir_sold", getElixirSold()+1); }
 const ELIXIR_AVAILABLE = Math.random() < 0.10 && getElixirSold() < 5;
 
+// Klucz limitu dla itemu — reset co limitHours godzin
+function getShopLimitKey(itemName) {
+  return `hh_shop_${itemName.replace(/ /g,"_")}`;
+}
+function getShopBought(item) {
+  if (!item.limitHours && !item.dailyLimit) return { count:0, resetsAt:0 };
+  let key  = getShopLimitKey(item.name);
+  let data = JSON.parse(localStorage.getItem(key)||"null");
+  if (!data) return { count:0, resetsAt:0 };
+  let hours = item.limitHours || 24;
+  if (Date.now() > data.resetsAt) return { count:0, resetsAt:0 };
+  return data;
+}
+function incShopBought(item) {
+  let key   = getShopLimitKey(item.name);
+  let hours = item.limitHours || 24;
+  let data  = getShopBought(item);
+  if (data.count === 0) data.resetsAt = Date.now() + hours*3600000;
+  data.count++;
+  localStorage.setItem(key, JSON.stringify(data));
+}
+function getShopLimit(item) {
+  if (item.limitQty)   return item.limitQty;
+  if (item.dailyLimit) return item.dailyLimit;
+  return Infinity;
+}
+function shopTimeLeft(item) {
+  let data = getShopBought(item);
+  if (!data.resetsAt || Date.now() > data.resetsAt) return "";
+  let ms = data.resetsAt - Date.now();
+  let h  = Math.floor(ms/3600000), m = Math.floor((ms%3600000)/60000);
+  return `${h}h ${m}m`;
+}
+
 function buyItem(idx) {
   let item = SHOP_ITEMS[idx];
-  if (item.globalLimit) {
-    if (!ELIXIR_AVAILABLE)                   { log("⚠️ Eliksir Odmłodzenia niedostępny dziś!"); return; }
-    if (getElixirSold() >= item.globalLimit) { log("⚠️ Globalny limit sprzedaży wyczerpany!"); return; }
+  // Sprawdź limit czasowy
+  let limit   = getShopLimit(item);
+  let bought  = getShopBought(item);
+  if (bought.count >= limit) {
+    let tl = shopTimeLeft(item);
+    log(`⚠️ Limit zakupów wyczerpany! Odnowi się za ${tl}.`);
+    return;
   }
   if (gold < item.price) { log("⚠️ Za mało złota!"); return; }
   gold -= item.price;
-
-  // Slot items — generuj z losowym bonusem
   if (item.isSlotShop) {
     inventory.push(generateSlotItem(item.name));
-    log(`✅ Kupiono: ${item.icon} ${item.name} (bonus losowany)!`);
+    log(`✅ Kupiono: ${item.icon} ${item.name}!`);
   } else {
     inventory.push({ name: item.name, obtained: Date.now() });
     log(`✅ Kupiono: ${item.icon} ${item.name}!`);
   }
-
-  if (item.globalLimit) addElixirSold();
+  if (limit < Infinity) incShopBought(item);
   trackQuest("buy");
   saveGame(); renderAll();
 }
@@ -72,7 +107,12 @@ function renderShop() {
         }
       }
 
-      let canAfford = gold >= item.price && available;
+      let limit     = getShopLimit(item);
+      let bought    = getShopBought(item);
+      let limitLeft = limit - bought.count;
+      let timeLeft  = shopTimeLeft(item);
+      let available2= limitLeft > 0;
+      let canAfford = gold >= item.price && available && available2;
       let div = document.createElement("div");
       div.className = "shop-item";
       if (borderOverride) div.style.borderColor = borderOverride;

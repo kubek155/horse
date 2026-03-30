@@ -80,15 +80,20 @@ function openExpeditionHorsePicker(locIdx) {
     expeditions.filter(e => !e.done).map(e => e.horseIdx)
   );
 
+  let expLoc = LOCATIONS[pendingExpLocation];
+
   playerHorses.forEach((h, hi) => {
     let col    = RARITY_COLORS[h.rarity] || "#8aab84";
     let hunger = getHunger(h);
     let hCol   = hunger > 70 ? "#c94a4a" : hunger > 40 ? "#c97c2a" : "#7ec870";
     let age    = getHorseAgeDays(h);
     let busy   = busyHorseIdxs.has(hi);
+    // Sprawdź wymagania krainy dla tego konkretnego konia
+    let req    = expLoc ? checkLocationRequirements(expLoc, h) : { ok: true };
+    let blocked = busy || !!h.injured || !req.ok;
+
     let btn    = document.createElement("button");
     btn.className = "modal-horse-btn";
-    if (busy) btn.style.opacity = "0.45";
     btn.innerHTML = `
       <span style="font-size:22px">${h.flag||"🐴"}</span>
       <div style="flex:1">
@@ -99,13 +104,13 @@ function openExpeditionHorsePicker(locIdx) {
         ${busy ? `<div style="font-size:10px;color:#c97c2a;margin-top:2px">🌍 Już na wyprawie</div>` : ""}
         ${h.injured ? `<div style="font-size:10px;color:#c94a4a;margin-top:2px">🤕 Ranny — wymaga Bandaża!</div>` : ""}
         ${h.pregnant ? `<div style="font-size:10px;color:#f0a0c8;margin-top:2px">🤰 W ciąży! 50% ryzyko poronienia</div>` : ""}
+        ${!req.ok && !busy && !h.injured ? `<div style="font-size:10px;color:#c94a4a;margin-top:2px">🔒 ${req.label} (masz: ${req.val||0})</div>` : ""}
       </div>
     `;
-    let injured2 = !!h.injured;
-    if (busy || injured2) {
+    if (blocked) {
       btn.disabled = true;
       btn.style.cursor = "not-allowed";
-      if (injured2) btn.style.opacity = "0.35";
+      btn.style.opacity = (!req.ok && !busy && !h.injured) ? "0.3" : "0.45";
     } else {
       btn.onclick = () => startExpedition(pendingExpLocation, hi);
     }

@@ -37,6 +37,7 @@
     <div class="menu-item"        id="menu-stable"       onclick="showSection('stable')">🐎 Stajnia</div>
     <div class="menu-item"        id="menu-inventory"    onclick="showSection('inventory')">🎒 Ekwipunek</div>
     <div class="menu-item"        id="menu-shop"         onclick="showSection('shop')">🛒 Sklep</div>
+    <div class="menu-item"        id="menu-crafting"     onclick="showSection('crafting')">⚗️ Crafting</div>
     <div class="menu-item"        id="menu-market"       onclick="showSection('market')">🏪 Rynek</div>
     <div class="menu-item"        id="menu-tournaments"  onclick="showSection('tournaments')">🏆 Turnieje</div>
     <div class="menu-item"        id="menu-contests"     onclick="showSection('contests')">⚔️ Zawody</div>
@@ -227,6 +228,13 @@
       <div id="encyclopediaGrid" class="ency-grid"></div>
     </div>
 
+    <!-- CRAFTING -->
+    <div id="craftingSection" style="display:none">
+      <div class="section-title">⚗️ Crafting</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Wytwarzaj przedmioty z materiałów zdobytych na wyprawach.</div>
+      <button onclick="openCraftingScreen()" style="border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1);font-size:14px;padding:10px 24px">⚗️ Otwórz warsztat</button>
+    </div>
+
     <!-- RYNEK -->
     <div id="marketSection" style="display:none">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">
@@ -386,6 +394,7 @@
 <script src="js/stable_upgrades.js"></script>
 <script src="js/special_expeditions.js"></script>
 <script src="js/achievements.js"></script>
+<script src="js/crafting.js"></script>
 <script src="js/notifications.js"></script>
 <script src="js/breeding.js"></script>
 <script src="js/contests.js"></script>

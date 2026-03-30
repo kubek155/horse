@@ -82,7 +82,7 @@ function renderAll() {
 // UI NAVIGATION
 // =====================
 function showSection(s) {
-  ["expedition","stable","inventory","shop","market","quests","encyclopedia","drops","contests","tournaments","notifications"].forEach(sec => {
+  ["expedition","stable","inventory","shop","crafting","market","quests","encyclopedia","drops","contests","tournaments","notifications"].forEach(sec => {
     document.getElementById(sec + "Section").style.display = "none";
     document.getElementById("menu-" + sec).classList.remove("active");
   });
