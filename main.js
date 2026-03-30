@@ -24,7 +24,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // 2. Główna pętla gry — co sekundę
   setInterval(() => {
     expeditions.forEach(e => {
-      if (!e.done && Date.now() >= e.end) finishExpedition(e);
+      if (!e.done && Date.now() >= e.end) {
+        if (e.isSpecial && typeof finishSpecialExpedition==="function") finishSpecialExpedition(e);
+        else finishExpedition(e);
+      }
     });
     if (typeof checkPregnancies === "function") checkPregnancies();
     // Aktualizuj tylko aktywne wyprawy (nie pełny renderAll — za wolne)

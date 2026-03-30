@@ -59,6 +59,7 @@ function birthFoal(mare) {
     color: RARITY_COLORS[foal.rarity]||"#8aab84",
   });
   trackQuest("breed");
+  if (typeof incAchStat==="function") incAchStat("breeds");
 }
 
 function generateFoalFromPregnancy(p) {
@@ -495,8 +496,12 @@ function confirmBreed() {
 
   let sire = playerHorses[breedSlotA]; // ogier ♂
   let mare = playerHorses[breedSlotB]; // klacz ♀
-  // Upewnij się że klacz to ♀
+  // Zamień jeśli odwrócone
   if ((sire.gender||"male") === "female") [sire, mare] = [mare, sire];
+  // Sprawdź czy mamy parę ♂+♀
+  if ((sire.gender||"male") !== "male" || (mare.gender||"female") !== "female") {
+    log("⚠️ Do rozmnażania potrzeba ogiera ♂ i klaczy ♀!"); return;
+  }
 
   // Sprawdź limit ciąż klaczy
   let maxPreg = MAX_PREGNANCIES[mare.rarity] || 3;
@@ -620,6 +625,7 @@ function breedHorsesNew(idxA, idxB, items) {
 
   playerHorses.push(child);
   trackQuest("breed");
+  if (typeof incAchStat==="function") incAchStat("breeds");
 
   // Animacja nowego konia jeśli rzadki
   let tier = {common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5}[childRarity]||0;

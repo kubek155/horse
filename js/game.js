@@ -68,6 +68,13 @@ function renderAll() {
   renderLevelBar();
   buildRanking();
   if (typeof renderFirebaseStatus === "function") renderFirebaseStatus();
+  // Aktualizuj badge poziomu stajni
+  let slb = document.getElementById("stableLevelBadge");
+  if (slb && typeof getStableLevel==="function") slb.textContent = getStableLevel();
+  // Specjalne wyprawy
+  if (typeof renderSpecialExpeditions==="function") renderSpecialExpeditions();
+  // Sprawdź osiągnięcia
+  if (typeof checkAchievements==="function") checkAchievements();
   saveGame();
 }
 
@@ -133,4 +140,15 @@ function addDebugLootbox() {
   saveGame();
   renderAll();
   log("📦 Dodano 5 Skrzynek z Łupem!");
+}
+
+function switchQuestTab(tab) {
+  ["daily","weekly","ach"].forEach(t => {
+    let content = document.getElementById(`questTab${t.charAt(0).toUpperCase()+t.slice(1)}Content`);
+    let btn     = document.getElementById(`questTab${t.charAt(0).toUpperCase()+t.slice(1)}`);
+    if (content) content.style.display = t===tab?"block":"none";
+    if (btn) btn.classList.toggle("active", t===tab);
+  });
+  if (tab==="weekly" && typeof renderWeeklyQuests==="function") renderWeeklyQuests();
+  if (tab==="ach" && typeof renderAchievements==="function") renderAchievements();
 }
