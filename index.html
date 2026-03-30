@@ -59,6 +59,7 @@
     <div class="menu-item"        id="menu-notifications" onclick="showSection('notifications')">
       🔔 Powiadomienia <span id="notifBadge" style="display:none;background:#c94a4a;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px">0</span>
     </div>
+    <div class="menu-item"        id="menu-ranking"      onclick="showSection('ranking')">🏅 Ranking</div>
     <div class="menu-item"        id="menu-drops"        onclick="showSection('drops')">📜 Historia</div>
   </div>
 
@@ -182,6 +183,14 @@
       <div id="notificationsList"></div>
     </div>
 
+    <!-- RANKING -->
+    <div id="rankingSection" style="display:none">
+      <div class="section-title">🏅 Globalny Ranking</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Top gracze wg poziomu konta.</div>
+      <button onclick="renderGlobalRanking()" style="font-size:12px;border-color:#333;color:#666;margin-bottom:12px">🔄 Odśwież</button>
+      <div id="globalRankingList"></div>
+    </div>
+
     <!-- HISTORIA DROPÓW -->
     <div id="dropsSection" style="display:none">
       <div class="section-title">📜 Historia Dropów</div>
@@ -291,7 +300,6 @@
       <div style="display:flex;gap:6px;margin-bottom:12px">
         <button id="marketTabLocal"   class="market-tab-btn active" onclick="switchMarketTab('local')">🏪 Lokalny</button>
         <button id="marketTabGlobal"  class="market-tab-btn"        onclick="switchMarketTab('global')">🌐 Globalny</button>
-        <button id="marketTabRanking" class="market-tab-btn"        onclick="switchMarketTab('ranking')">🏅 Ranking</button>
       </div>
 
       <div id="marketTabLocalContent">
@@ -300,19 +308,12 @@
       <div id="marketTabGlobalContent" style="display:none">
         <div id="globalMarketList" class="market-grid"></div>
       </div>
-      <div id="marketTabRankingContent" style="display:none">
-        <button onclick="renderGlobalRanking()" style="font-size:12px;border-color:#333;color:#666;margin-bottom:10px">🔄 Odśwież</button>
-        <div id="globalRankingList"></div>
-      </div>
+
     </div>
 
   </div>
 
-  <!-- RIGHTBAR -->
-  <div class="rightbar">
-    <h3>🏆 Ranking</h3>
-    <div id="rankingList"></div>
-  </div>
+
 
 </div>
 

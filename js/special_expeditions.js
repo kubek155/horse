@@ -185,7 +185,7 @@ function launchSpecialExpedition(specId, horseIdx) {
     isSpecial: true,
   };
   expeditions.push(exp);
-  incrementDailyCount();
+  if(typeof addDaily==="function")addDaily();
   let h = playerHorses[horseIdx];
   log(`🌟 ${h.name} wyruszył na ${spec.name} (${spec.duration/3600000}h)!`);
   saveGame(); renderAll();

@@ -135,7 +135,10 @@ function calcContestScore(horse, contest) {
 let contestState = { step:"pick_type", type:null, horse:null, rivals:[], results:[] };
 
 function openContestScreen() {
-  contestState = { step:"pick_type", type:null, horse:null, rivals:[], results:[] };
+  // Nie resetuj jeśli już ustawiony krok (np. pick_horse z inline)
+  if (contestState.step === "pick_type" || !contestState.step) {
+    contestState = { step:"pick_type", type:null, horse:null, rivals:[], results:[] };
+  }
   let existing = document.getElementById("contestOverlay");
   if (existing) existing.remove();
 
@@ -496,6 +499,8 @@ function renderContestsInline() {
 function startContestInline(typeId) {
   let type = CONTEST_TYPES.find(t => t.id === typeId);
   if (!type) return;
+  if (gold < type.entryFee) { log(`⚠️ Za mało złota! Potrzebujesz ${type.entryFee}💰`); return; }
   contestState = { step:"pick_horse", type, horse:null, rivals:[], results:[] };
+  // Otwórz od razu picker konia (bez ekranu wyboru typu)
   openContestScreen();
 }

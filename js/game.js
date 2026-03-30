@@ -66,7 +66,6 @@ function renderAll() {
   renderEncyclopedia();
   renderDropHistory();
   renderLevelBar();
-  buildRanking();
   if (typeof renderFirebaseStatus === "function") renderFirebaseStatus();
   // Aktualizuj badge poziomu stajni
   let slb = document.getElementById("stableLevelBadge");
@@ -82,7 +81,7 @@ function renderAll() {
 // UI NAVIGATION
 // =====================
 function showSection(s) {
-  ["expedition","stable","inventory","shop","crafting","market","quests","encyclopedia","drops","contests","tournaments","notifications"].forEach(sec => {
+  ["expedition","stable","inventory","shop","crafting","market","quests","encyclopedia","drops","contests","tournaments","notifications","ranking"].forEach(sec => {
     document.getElementById(sec + "Section").style.display = "none";
     document.getElementById("menu-" + sec).classList.remove("active");
   });
@@ -96,6 +95,7 @@ function showSection(s) {
     markNotificationsRead();
   }
   if (s === "crafting" && typeof renderCraftingSection === "function") renderCraftingSection();
+  if (s === "ranking" && typeof renderGlobalRanking === "function") renderGlobalRanking();
   if (s === "contests" && typeof renderContestsInline === "function") renderContestsInline();
   if (s === "market") {
     if (typeof switchMarketTab === "function") switchMarketTab("local");

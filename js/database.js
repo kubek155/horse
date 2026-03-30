@@ -354,24 +354,17 @@ function generateSlotItem(name) {
 }
 
 const SHOP_ITEMS = [
-  // Zawsze dostępne — bez limitu
-  { name:"Bandaż",               price:80,   icon:"🩹",  desc:"Leczy rannego konia",                          alwaysAvailable:true },
-  { name:"Słoma",                price:30,   icon:"🌾",  desc:"Nakarm konia — 25% głodu",                     alwaysAvailable:true },
-  { name:"Jabłko",               price:60,   icon:"🍎",  desc:"Nakarm konia — 50% głodu",                     alwaysAvailable:true },
-  { name:"Eliksir Szybkości",    price:300,  icon:"⚡",  desc:"+5 szybkości konia",            alwaysAvailable:true, dailyLimit:5 },
-  { name:"Eliksir Siły",         price:300,  icon:"💪",  desc:"+5 siły konia",                 alwaysAvailable:true, dailyLimit:5 },
-  { name:"Eliksir Wytrzymałości",price:300,  icon:"❤️",  desc:"+5 wytrzymałości konia",         alwaysAvailable:true, dailyLimit:5 },
-  { name:"Eliksir Szczęścia",    price:300,  icon:"🍀",  desc:"+5 szczęścia konia",             alwaysAvailable:true, dailyLimit:5 },
-  // Limit 48h (resetuje się co 2 dni)
-  { name:"Piorun",               price:440,  icon:"⚡️", desc:"Slot: +1–10 szybkości",          isSlotShop:true,     limitHours:48, limitQty:3 },
-  { name:"Kowadło",              price:440,  icon:"🔨",  desc:"Slot: +1–10 siły",               isSlotShop:true,     limitHours:48, limitQty:3 },
-  { name:"Koniczyna",            price:440,  icon:"🍀",  desc:"Slot: +1–10 szczęścia",          isSlotShop:true,     limitHours:48, limitQty:3 },
-  { name:"Serce",                price:440,  icon:"❤️‍🔥",desc:"Slot: +1–10 wytrzymałości",      isSlotShop:true,     limitHours:48, limitQty:3 },
-  { name:"Jabłko Sfinksa",       price:1200, icon:"🍏",  desc:"Wymagane do rozmnażania",                       limitHours:48, limitQty:5 },
-  { name:"Boski Nektar",         price:1600, icon:"🌟",  desc:"+50% szans na mutację",                         limitHours:48, limitQty:2 },
-  { name:"Eliksir Krwi",         price:1000, icon:"🩸",  desc:"Potomek dziedziczy krew silniejszego",          limitHours:48, limitQty:2 },
-  { name:"Skrzynka z Łupem",     price:600,  icon:"📦",  desc:"Losowy koń lub przedmiot!",                     limitHours:48, limitQty:5 },
-  { name:"Eliksir Odmłodzenia",  price:1600, icon:"🧪",  desc:"Odmładza konia",                                limitHours:48, limitQty:3 },
+  // Zawsze dostępne
+  { name:"Bandaż",              price:80,   icon:"🩹", desc:"Leczy rannego konia",              alwaysAvailable:true },
+  { name:"Słoma",               price:30,   icon:"🌾", desc:"Nakarm konia — 25% głodu",         alwaysAvailable:true },
+  { name:"Jabłko",              price:60,   icon:"🍎", desc:"Nakarm konia — 50% głodu",         alwaysAvailable:true },
+  // Hodowla — limit 48h
+  { name:"Jabłko Sfinksa",      price:1200, icon:"🍏", desc:"Wymagane do rozmnażania",           limitHours:48, limitQty:3 },
+  { name:"Boski Nektar",        price:1600, icon:"🌟", desc:"+50% szans na mutację",             limitHours:48, limitQty:1 },
+  { name:"Eliksir Krwi",        price:1000, icon:"🩸", desc:"Potomek dziedziczy krew silniejszego", limitHours:48, limitQty:1 },
+  // Skrzynki i odmłodzenie
+  { name:"Skrzynka z Łupem",    price:600,  icon:"📦", desc:"Losowy koń lub przedmiot!",         limitHours:48, limitQty:3 },
+  { name:"Eliksir Odmłodzenia", price:1600, icon:"🧪", desc:"Odmładza konia",                    limitHours:48, limitQty:2 },
 ];
 
 const QUEST_TEMPLATES = [

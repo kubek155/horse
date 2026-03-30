@@ -67,8 +67,14 @@ function calcTypeBonuses(type) {
 // legendary: 50% szans na 1 slot
 // mythic:    zawsze 2 sloty
 function rollItemSlots(rarity) {
-  if (rarity === "mythic")    return 2;
-  if (rarity === "legendary") return Math.random() < 0.5 ? 1 : 0;
+  // mythic/pradawny: 50% na 1 slot (+ zawsze 1 slot bazowy = 1-2)
+  if (rarity === "mythic")    return Math.random() < 0.50 ? 2 : 1;
+  // epic/legendary: 33% na slot
+  if (rarity === "legendary" || rarity === "epic")
+    return Math.random() < 0.33 ? 1 : 0;
+  // rare: 15% na slot
+  if (rarity === "rare")      return Math.random() < 0.15 ? 1 : 0;
+  // common/uncommon: brak slotu
   return 0;
 }
 
