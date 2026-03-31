@@ -441,7 +441,18 @@ async function renderAdminTab(tab) {
 
           <!-- Wiadomość -->
           <label style="font-size:10px;color:var(--text2);letter-spacing:1px;display:block;margin-top:8px;margin-bottom:4px">WIADOMOŚĆ DLA GRACZY</label>
-          <textarea id="gw_message" rows="2" style="width:100%;padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;resize:vertical;margin-bottom:12px">🎁 Specjalny Giveaway od Admina!</textarea>
+          <textarea id="gw_message" rows="2" style="width:100%;padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;resize:vertical;margin-bottom:10px">🎡 Specjalny Giveaway od Admina!</textarea>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+            <div>
+              <label style="font-size:10px;color:var(--text2);display:block;margin-bottom:4px">LOSOWANIE ZA (min)</label>
+              <input id="gw_drawMins" type="number" value="60" min="1" style="width:100%;padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px">
+            </div>
+            <div>
+              <label style="font-size:10px;color:var(--text2);display:block;margin-bottom:4px">LICZBA NAGRÓD</label>
+              <input id="gw_rewardCount" type="number" value="1" min="1" max="10" style="width:100%;padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px">
+            </div>
+          </div>
 
           <button onclick="adminLaunchGiveaway()" style="width:100%;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1);font-family:'Cinzel',serif;font-size:13px;padding:10px;display:flex;align-items:center;justify-content:center;gap:8px">
             <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M8 1L9.5 5.5h5l-4 3 1.5 5.5L8 11.5 3 14l1.5-5.5-4-3h5z" stroke="#c9a84c" stroke-width="1.2" fill="none"/></svg>
@@ -836,37 +847,65 @@ async function adminLaunchGiveaway() {
   let isItem  = document.getElementById("gw_typeItem")?.classList.contains("active");
   let isHorse = document.getElementById("gw_typeHorse")?.classList.contains("active");
   let msg     = document.getElementById("gw_message")?.value || "Giveaway od admina!";
+  let mins    = parseInt(document.getElementById("gw_drawMins")?.value) || 60;
+  let rewards = parseInt(document.getElementById("gw_rewardCount")?.value) || 1;
 
   let data = {
-    title: "🎁 GIVEAWAY!",
-    msg,
-    sentAt: firebase.firestore.FieldValue.serverTimestamp(),
-    sentBy: "Admin",
-    readBy: [],
-    isGiveaway: true,
+    title:        "🎡 GIVEAWAY!",
+    description:  msg,
+    drawTime:     Date.now() + mins * 60 * 1000,
+    rewardCount:  rewards,
+    participants: [],
+    active:       true,
+    winner:       null,
+    createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy:    "Admin",
+    isGiveaway:   true,
   };
 
   if (isHorse) {
     let rarity = document.getElementById("gw_horseRarity")?.value || "rare";
-    data.giftHorse = rarity;
-    data.reward = 0;
-    data.msg = msg + ` Koń rzadkości: ${rarity}!`;
+    data.rewardType   = "horse";
+    data.rewardRarity = rarity;
   } else if (isItem) {
     let item = document.getElementById("gw_itemName")?.value || "Skrzynka z Łupem";
-    data.giftItem = item;
-    data.reward = 0;
-    data.msg = msg + ` Przedmiot: ${item}!`;
+    data.rewardType = "item";
+    data.rewardItem = item;
   } else {
     let amount = parseInt(document.getElementById("gw_goldAmount")?.value) || 5000;
-    data.reward = amount;
-    data.msg = msg + ` +${amount}💰`;
+    data.rewardType   = "gold";
+    data.rewardAmount = amount;
   }
 
   try {
-    await window.FB.db.collection("broadcasts").add(data);
-    log(`🎁 Giveaway uruchomiony! "${data.msg}"`);
+    let ref = await window.FB.db.collection("giveaways").add(data);
+    log(`🎡 Giveaway uruchomiony! Losowanie za ${mins} min.`);
+    // Zaplanuj losowanie (po stronie admina)
+    setTimeout(async () => {
+      await _adminDrawGiveaway(ref.id);
+    }, mins * 60 * 1000);
     adminLoadGiveawayHistory();
   } catch(e) { log("⚠️ Błąd: " + e.message); }
+}
+
+async function _adminDrawGiveaway(gid) {
+  try {
+    let snap = await window.FB.db.collection("giveaways").doc(gid).get();
+    if (!snap.exists) return;
+    let g = snap.data();
+    let parts = g.participants || [];
+    if (!parts.length) {
+      await window.FB.db.collection("giveaways").doc(gid).update({ active:false });
+      log("🎡 Giveaway zakończony — brak uczestników.");
+      return;
+    }
+    // Wylosuj zwycięzcę
+    let winner = parts[Math.floor(Math.random() * parts.length)];
+    await window.FB.db.collection("giveaways").doc(gid).update({
+      winner, active: false,
+    });
+    log(`🎡 Wylosowano zwycięzcę: ${winner.nick}!`);
+  } catch(e) { console.warn("drawGiveaway:", e.message); }
 }
 
 async function adminLoadGiveawayHistory() {

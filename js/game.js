@@ -93,7 +93,7 @@ function renderAll() {
 // UI NAVIGATION
 // =====================
 function showSection(s) {
-  ["expedition","stable","inventory","shop","crafting","market","quests","encyclopedia","drops","contests","tournaments","notifications","ranking","events"].forEach(sec => {
+  ["expedition","stable","inventory","shop","crafting","market","quests","encyclopedia","drops","contests","tournaments","notifications","ranking","events","giveaway","guild"].forEach(sec => {
     document.getElementById(sec + "Section").style.display = "none";
     document.getElementById("menu-" + sec).classList.remove("active");
   });
@@ -110,6 +110,8 @@ function showSection(s) {
   if (s === "ranking" && typeof renderGlobalRanking === "function") renderGlobalRanking();
   if (s === "events" && typeof renderEventsSection === "function") renderEventsSection();
   if (s === "contests" && typeof renderContestsInline === "function") renderContestsInline();
+  if (s === "giveaway" && typeof renderGiveawaySection === "function") renderGiveawaySection();
+  if (s === "guild"    && typeof renderGuildSection    === "function") renderGuildSection();
   if (s === "market") {
     if (typeof switchMarketTab === "function") switchMarketTab("local");
     if (typeof renderFirebaseStatus === "function") renderFirebaseStatus();
