@@ -214,6 +214,8 @@ function finishExpedition(e) {
           name:   h.name + " (transporter)",
           source: `${loc.icon} ${loc.name}`,
           color:  RARITY_COLORS[h.rarity]||"#c97c2a",
+          horseSVG: typeof drawHorseSVG==="function" ? drawHorseSVG(h.breedKey||h.name, h.rarity, h.stars||0) : null,
+          rarity: h.rarity,
         });
       } else {
         playerHorses.push(h);
@@ -232,6 +234,8 @@ function finishExpedition(e) {
           source: `${loc.icon} ${loc.name}`,
           color: RARITY_COLORS[h.rarity]||"#8aab84",
           chance: `~${horseChance.toFixed(1)}% szans`,
+          horseSVG: typeof drawHorseSVG==="function" ? drawHorseSVG(h.breedKey||h.name, h.rarity, h.stars||0) : null,
+          rarity: h.rarity,
         });
       }
     }

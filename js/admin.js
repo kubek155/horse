@@ -47,6 +47,7 @@ function openAdminPanel() {
         <button id="adTab_events"      class="market-tab-btn"        onclick="switchAdminTab('events')">🎪 Eventy</button>
         <button id="adTab_broadcast"   class="market-tab-btn"        onclick="switchAdminTab('broadcast')">📢 Ogłoszenia</button>
         <button id="adTab_players"     class="market-tab-btn"        onclick="switchAdminTab('players')">👥 Gracze</button>
+        <button id="adTab_giveaway"    class="market-tab-btn"        onclick="switchAdminTab('giveaway')">🎁 Giveaway</button>
         <button id="adTab_config"      class="market-tab-btn"        onclick="switchAdminTab('config')">⚙️ Konfiguracja</button>
       </div>
 
@@ -341,6 +342,112 @@ async function renderAdminTab(tab) {
       </div>
     `;
 
+  } else if (tab === "giveaway") {
+    const GIFT_ITEMS_LIST = [
+      {name:"Skrzynka z Łupem",icon:"📦"},{name:"Jabłko Sfinksa",icon:"🍏"},
+      {name:"Eliksir Szybkości",icon:"⚡"},{name:"Eliksir Siły",icon:"💪"},
+      {name:"Eliksir Wytrzymałości",icon:"❤️"},{name:"Eliksir Szczęścia",icon:"🍀"},
+      {name:"Eliksir Odmłodzenia",icon:"🧪"},{name:"Boski Nektar",icon:"🌟"},
+      {name:"Jabłko",icon:"🍎"},{name:"Bandaż",icon:"🩹"},
+      {name:"Piorun",icon:"⚡️"},{name:"Kowadło",icon:"🔨"},
+      {name:"Koniczyna",icon:"🍀"},{name:"Serce",icon:"❤️‍🔥"},
+      {name:"Jabłko Sfinksa",icon:"🍏"},{name:"Eliksir Krwi",icon:"🩸"},
+    ];
+    const RARITY_DATA = [
+      {r:"common",l:"Zwykły",c:"#909090"},{r:"uncommon",l:"Pospolity",c:"#8aab84"},
+      {r:"rare",l:"Rzadki",c:"#4a7ec8"},{r:"epic",l:"Legendarny",c:"#7b5ea7"},
+      {r:"legendary",l:"Mityczny",c:"#c9a84c"},{r:"mythic",l:"Pradawny",c:"#c94a6a"},
+    ];
+
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+        <!-- Konfiguracja giveaway -->
+        <div style="background:#0f1a0f;border:1px solid #c9a84c44;border-radius:12px;padding:16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+            <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><path d="M10 2l2 5h5l-4 3 1.5 5L10 12l-4.5 3 1.5-5L3 7h5z" stroke="#c9a84c" stroke-width="1.3" fill="none"/></svg>
+            <div style="font-family:'Cinzel',serif;font-size:13px;color:#c9a84c">STWÓRZ GIVEAWAY</div>
+          </div>
+
+          <!-- Typ nagrody -->
+          <div style="font-size:10px;color:var(--text2);letter-spacing:1px;margin-bottom:8px">TYP NAGRODY</div>
+          <div style="display:flex;gap:6px;margin-bottom:14px">
+            <button id="gw_typeGold" class="market-tab-btn active" style="font-size:11px"
+              onclick="['gw_typeGold','gw_typeItem','gw_typeHorse'].forEach(id=>document.getElementById(id).classList.remove('active'));this.classList.add('active');document.getElementById('gw_goldSection').style.display='block';document.getElementById('gw_itemSection').style.display='none';document.getElementById('gw_horseSection').style.display='none'">
+              💰 Złoto
+            </button>
+            <button id="gw_typeItem" class="market-tab-btn" style="font-size:11px"
+              onclick="['gw_typeGold','gw_typeItem','gw_typeHorse'].forEach(id=>document.getElementById(id).classList.remove('active'));this.classList.add('active');document.getElementById('gw_goldSection').style.display='none';document.getElementById('gw_itemSection').style.display='block';document.getElementById('gw_horseSection').style.display='none'">
+              📦 Przedmiot
+            </button>
+            <button id="gw_typeHorse" class="market-tab-btn" style="font-size:11px"
+              onclick="['gw_typeGold','gw_typeItem','gw_typeHorse'].forEach(id=>document.getElementById(id).classList.remove('active'));this.classList.add('active');document.getElementById('gw_goldSection').style.display='none';document.getElementById('gw_itemSection').style.display='none';document.getElementById('gw_horseSection').style.display='block'">
+              🐴 Koń
+            </button>
+          </div>
+
+          <!-- Złoto -->
+          <div id="gw_goldSection">
+            <label style="font-size:10px;color:var(--text2);letter-spacing:1px;display:block;margin-bottom:4px">ILOŚĆ ZŁOTA</label>
+            <input id="gw_goldAmount" type="number" value="5000" style="width:100%;padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:#c9a84c;font-size:16px;margin-bottom:10px;font-family:'Cinzel',serif;text-align:center">
+          </div>
+
+          <!-- Przedmiot -->
+          <div id="gw_itemSection" style="display:none">
+            <div style="font-size:10px;color:var(--text2);letter-spacing:1px;margin-bottom:6px">WYBIERZ PRZEDMIOT</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;max-height:200px;overflow-y:auto;margin-bottom:10px">
+              ${GIFT_ITEMS_LIST.map(it=>`
+                <label onclick="document.querySelectorAll('.gw-item-opt').forEach(b=>b.style.cssText=b.style.cssText.replace(/border:[^;]+/,'border:1px solid #1e3a1e'));this.style.border='1px solid #c9a84c44';document.getElementById('gw_itemName').value='${it.name.replace(/'/g,"\\'")}'"
+                  class="gw-item-opt" style="display:flex;align-items:center;gap:6px;padding:7px;background:#131f13;border:1px solid #1e3a1e;border-radius:7px;cursor:pointer;font-size:11px;color:var(--text2)">
+                  <span style="font-size:16px">${it.icon}</span> ${it.name}
+                </label>
+              `).join("")}
+            </div>
+            <input type="hidden" id="gw_itemName" value="Skrzynka z Łupem">
+          </div>
+
+          <!-- Koń -->
+          <div id="gw_horseSection" style="display:none">
+            <div style="font-size:10px;color:var(--text2);letter-spacing:1px;margin-bottom:6px">RZADKOŚĆ KONIA</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:10px">
+              ${RARITY_DATA.map(({r,l,c},i)=>`
+                <label onclick="document.querySelectorAll('.gw-rarity-opt').forEach(b=>b.style.borderColor='#1e3a1e');this.style.borderColor='${c}';document.getElementById('gw_horseRarity').value='${r}'"
+                  class="gw-rarity-opt" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px;background:#131f13;border:1px solid #1e3a1e;border-radius:8px;cursor:pointer">
+                  <div style="width:28px;height:24px;overflow:hidden;border-radius:4px" id="gw_horse_preview_${r}"></div>
+                  <span style="font-size:10px;color:${c}">${l}</span>
+                </label>
+              `).join("")}
+            </div>
+            <input type="hidden" id="gw_horseRarity" value="rare">
+          </div>
+
+          <!-- Wiadomość -->
+          <label style="font-size:10px;color:var(--text2);letter-spacing:1px;display:block;margin-top:8px;margin-bottom:4px">WIADOMOŚĆ DLA GRACZY</label>
+          <textarea id="gw_message" rows="2" style="width:100%;padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;resize:vertical;margin-bottom:12px">🎁 Specjalny Giveaway od Admina!</textarea>
+
+          <button onclick="adminLaunchGiveaway()" style="width:100%;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1);font-family:'Cinzel',serif;font-size:13px;padding:10px;display:flex;align-items:center;justify-content:center;gap:8px">
+            <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M8 1L9.5 5.5h5l-4 3 1.5 5.5L8 11.5 3 14l1.5-5.5-4-3h5z" stroke="#c9a84c" stroke-width="1.2" fill="none"/></svg>
+            Uruchom Giveaway dla WSZYSTKICH
+          </button>
+        </div>
+
+        <!-- Historia giveaway -->
+        <div style="background:#0f1a0f;border:1px solid #1e3a1e;border-radius:12px;padding:16px">
+          <div style="font-family:'Cinzel',serif;font-size:12px;color:#8aab84;margin-bottom:12px">HISTORIA GIVEAWAY</div>
+          <div id="gw_history" style="font-size:12px;color:var(--text2)">Ładowanie...</div>
+        </div>
+
+      </div>
+    `;
+    // Załaduj historię i mini-previews koni
+    adminLoadGiveawayHistory();
+    if (typeof drawHorseSVG === "function") {
+      RARITY_DATA.forEach(({r})=>{
+        let el2 = document.getElementById("gw_horse_preview_"+r);
+        if(el2){ el2.innerHTML = drawHorseSVG("Arabski", r, 0); let s=el2.querySelector("svg"); if(s){s.setAttribute("width","28");s.setAttribute("height","24");} }
+      });
+    }
+
   } else if (tab === "config") {
     el.innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
@@ -529,27 +636,37 @@ async function adminBroadcast() {
 }
 
 async function adminFindPlayer() {
-  let nick = document.getElementById("ad_pnick")?.value;
+  let nick = document.getElementById("ad_pnick")?.value?.trim();
   let el   = document.getElementById("ad_playerResult");
   if (!nick || !window.FB || !el) return;
-  el.innerHTML = `<div style="color:var(--text2);font-size:12px">Szukam...</div>`;
+  el.innerHTML = `<div style="color:var(--text2);font-size:12px;padding:8px">Szukam "${nick}"...</div>`;
   try {
     let snap = await window.FB.db.collection("players").where("nick","==",nick).limit(5).get();
-    if (snap.empty) { el.innerHTML = `<div style="color:#c94a4a;font-size:12px">Nie znaleziono gracza "${nick}"</div>`; return; }
+    if (snap.empty) { el.innerHTML = `<div style="color:#c94a4a;font-size:12px;padding:8px">Nie znaleziono gracza "${nick}"</div>`; return; }
     el.innerHTML = "";
-    let docs = snap.docs.sort((a,b)=>(a.data().startTime||0)-(b.data().startTime||0));
-    docs.forEach(doc => {
+    snap.docs.forEach(doc => {
       let p = doc.data();
+      let uid = doc.id;
+      let lvlColor = p.level>=20?"#c9a84c":p.level>=10?"#4a7ec8":"#8aab84";
       let row = document.createElement("div");
-      row.style.cssText = "padding:10px;background:#131f13;border:1px solid #1e3a1e;border-radius:8px;margin-bottom:6px";
+      row.style.cssText = "padding:12px;background:#131f13;border:1px solid #c9a84c33;border-radius:10px;margin-bottom:8px";
       row.innerHTML = `
-        <div style="font-size:13px;color:#c9a84c">${p.nick}</div>
-        <div style="font-size:11px;color:var(--text2)">UID: ${doc.id}</div>
-        <div style="font-size:11px;color:var(--text2)">Poz. ${p.level||1} · ${p.horseCount||0} koni · 💰${p.gold||0}</div>
-        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
-          <button onclick="adminGiftPlayer('${doc.id}',1000,'gold')" style="font-size:10px;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.08)">+1000💰</button>
-          <button onclick="adminGiftPlayer('${doc.id}',5000,'gold')" style="font-size:10px;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.08)">+5000💰</button>
-          <button onclick="adminGiftPlayer('${doc.id}',0,'lootbox')" style="font-size:10px;border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.08)">Skrzynka</button>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--panel);display:flex;align-items:center;justify-content:center;font-family:Cinzel,serif;font-size:11px;color:${lvlColor};border:1px solid ${lvlColor}44">${p.level||1}</div>
+          <div>
+            <div style="font-size:14px;color:#c9a84c;font-family:Cinzel,serif">${p.nick}</div>
+            <div style="font-size:10px;color:var(--text2)">🐴 ${p.horseCount||0} koni · 💰${p.gold||0}</div>
+          </div>
+        </div>
+        <div style="font-size:9px;color:#4a5a4a;margin-bottom:8px;word-break:break-all">UID: ${uid}</div>
+        <div style="font-size:10px;color:#8aab84;margin-bottom:6px;letter-spacing:1px">WYŚLIJ BEZPOŚREDNIO:</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px">
+          <button onclick="adminGiftPlayer('${uid}',1000,'gold')" style="font-size:10px;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.08)">💰 +1 000</button>
+          <button onclick="adminGiftPlayer('${uid}',5000,'gold')" style="font-size:10px;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.08)">💰 +5 000</button>
+          <button onclick="adminGiftPlayer('${uid}',10000,'gold')" style="font-size:10px;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.08)">💰 +10 000</button>
+          <button onclick="adminGiftPlayer('${uid}',0,'lootbox')" style="font-size:10px;border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.08)">📦 Skrzynka</button>
+          <button onclick="adminGiftPlayerItem('${uid}')" style="font-size:10px;border-color:#4a7ec8;color:#6ab0e0;background:rgba(74,126,200,0.08)">🎁 Przedmiot</button>
+          <button onclick="adminGiftPlayerHorse('${uid}')" style="font-size:10px;border-color:#4ab870;color:#4ab870;background:rgba(74,184,112,0.08)">🐴 Koń</button>
         </div>
       `;
       el.appendChild(row);
@@ -557,16 +674,38 @@ async function adminFindPlayer() {
   } catch(e) { el.innerHTML = `<div style="color:#c94a4a;font-size:12px">${e.message}</div>`; }
 }
 
-async function adminGiftPlayer(uid, amount, type) {
-  if (!window.FB) return;
-  await window.FB.db.collection("payouts").add({
-    toUid: uid, amount, giftType: type,
-    itemName: type==="gold" ? `${amount}💰 od admina` : "Skrzynka z Łupem",
+async function adminGiftPlayerItem(uid) {
+  if (!uid) { log("⚠️ Brak UID!"); return; }
+  let item = prompt("Nazwa przedmiotu do wysłania:", "Skrzynka z Łupem");
+  if (!item) return;
+  await adminGiftPlayer(uid, 0, 'item_direct', item);
+}
+
+async function adminGiftPlayer(uid, amount, type, itemName) {
+  if (!window.FB || !uid) { log("⚠️ Brak UID!"); return; }
+  let data = {
+    toUid: uid, amount: amount||0, giftType: type,
     fromNick: "Admin",
     collected: false,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-  });
-  log(`🎁 Podarunek wysłany!`);
+  };
+  if (type === "gold") {
+    data.itemName = `${amount}💰 od admina`;
+  } else if (type === "item_direct" && itemName) {
+    data.itemName = itemName;
+    data.giftItem = itemName;
+    data.amount = 0;
+  } else if (type === "horse") {
+    data.itemName = `Koń (${itemName||"rare"}) od admina`;
+    data.giftHorse = itemName || "rare";
+    data.amount = 0;
+  } else {
+    data.itemName = "Skrzynka z Łupem";
+    data.giftItem = "Skrzynka z Łupem";
+    data.amount = 0;
+  }
+  await window.FB.db.collection("payouts").add(data);
+  log(`🎁 Podarunek wysłany do gracza!`);
 }
 
 async function adminGiftAll() {
@@ -669,6 +808,80 @@ async function adminGiftPlayerHorse(uid, rarity) {
     msg:       `Koń rzadkości "${rarity}" od admina!`,
   });
   log(`🐴 Koń (${rarity}) wysłany do gracza!`);
+}
+
+async function adminLaunchGiveaway() {
+  if (!window.FB) return;
+  let isGold  = document.getElementById("gw_typeGold")?.classList.contains("active");
+  let isItem  = document.getElementById("gw_typeItem")?.classList.contains("active");
+  let isHorse = document.getElementById("gw_typeHorse")?.classList.contains("active");
+  let msg     = document.getElementById("gw_message")?.value || "Giveaway od admina!";
+
+  let data = {
+    title: "🎁 GIVEAWAY!",
+    msg,
+    sentAt: firebase.firestore.FieldValue.serverTimestamp(),
+    sentBy: "Admin",
+    readBy: [],
+    isGiveaway: true,
+  };
+
+  if (isHorse) {
+    let rarity = document.getElementById("gw_horseRarity")?.value || "rare";
+    data.giftHorse = rarity;
+    data.reward = 0;
+    data.msg = msg + ` Koń rzadkości: ${rarity}!`;
+  } else if (isItem) {
+    let item = document.getElementById("gw_itemName")?.value || "Skrzynka z Łupem";
+    data.giftItem = item;
+    data.reward = 0;
+    data.msg = msg + ` Przedmiot: ${item}!`;
+  } else {
+    let amount = parseInt(document.getElementById("gw_goldAmount")?.value) || 5000;
+    data.reward = amount;
+    data.msg = msg + ` +${amount}💰`;
+  }
+
+  try {
+    await window.FB.db.collection("broadcasts").add(data);
+    log(`🎁 Giveaway uruchomiony! "${data.msg}"`);
+    adminLoadGiveawayHistory();
+  } catch(e) { log("⚠️ Błąd: " + e.message); }
+}
+
+async function adminLoadGiveawayHistory() {
+  let el = document.getElementById("gw_history");
+  if (!el || !window.FB) return;
+  try {
+    let snap = await window.FB.db.collection("broadcasts")
+      .where("isGiveaway","==",true)
+      .limit(10)
+      .get();
+    if (snap.empty) { el.innerHTML = '<div style="color:var(--text2)">Brak historii giveaway</div>'; return; }
+    let docs = snap.docs.map(d=>({id:d.id,...d.data()}));
+    docs.sort((a,b)=>(b.sentAt?.seconds||0)-(a.sentAt?.seconds||0));
+    el.innerHTML = "";
+    docs.forEach(d => {
+      let row = document.createElement("div");
+      row.style.cssText = "padding:10px;background:#131f13;border:1px solid #c9a84c22;border-radius:8px;margin-bottom:6px";
+      let time = d.sentAt?.seconds ? new Date(d.sentAt.seconds*1000).toLocaleString("pl-PL") : "—";
+      let type = d.giftHorse ? "🐴 Koń" : d.giftItem ? "📦 "+d.giftItem : "💰 "+d.reward;
+      row.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div>
+            <div style="font-size:12px;color:#c9a84c">${d.title||"Giveaway"}</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px">${type}</div>
+            <div style="font-size:10px;color:#4a5a4a;margin-top:2px">${d.msg||""}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:10px;color:var(--text2)">${time}</div>
+            <div style="font-size:10px;color:#4ab870;margin-top:2px">👥 ${(d.readBy||[]).length} odebrano</div>
+          </div>
+        </div>
+      `;
+      el.appendChild(row);
+    });
+  } catch(e) { el.innerHTML = `<div style="color:#c94a4a;font-size:11px">${e.message}</div>`; }
 }
 
 async function checkBroadcasts() {

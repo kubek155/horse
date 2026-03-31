@@ -168,13 +168,21 @@ function renderDropHistory() {
       border-radius:8px;margin-bottom:6px;
       background:var(--panel2);border:1px solid ${rc}33;
     `;
+    // Ustal ikonę — priorytet: horseSVG > itemSVG > svg > emoji
+    let iconHtml;
+    if (entry.horseSVG) {
+      iconHtml = `<div style="width:36px;height:30px;overflow:hidden;border-radius:5px;border:1px solid ${entry.color||"#8aab84"}33;background:var(--panel)">${entry.horseSVG.replace(/width="[^"]*"/, 'width="36"').replace(/height="[^"]*"/, 'height="30"')}</div>`;
+    } else if (entry.name && typeof ITEM_ICONS_SVG!=="undefined" && ITEM_ICONS_SVG[entry.name]) {
+      iconHtml = `<span style="display:inline-flex;width:28px;height:28px">${ITEM_ICONS_SVG[entry.name]}</span>`;
+    } else if (entry.svg) {
+      iconHtml = `<span style="display:inline-flex;width:28px;height:28px">${entry.svg}</span>`;
+    } else {
+      iconHtml = `<span style="font-size:20px">${entry.icon||"📦"}</span>`;
+    }
+
     div.innerHTML = `
-      <span style="min-width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">
-        ${(entry.name&&typeof ITEM_ICONS_SVG!=="undefined"&&ITEM_ICONS_SVG[entry.name])
-          ? `<span style="display:inline-flex;width:28px;height:28px">${ITEM_ICONS_SVG[entry.name]}</span>`
-          : (entry.svg ? `<span style="display:inline-flex;width:28px;height:28px">${entry.svg}</span>`
-            : `<span style="font-size:20px">${entry.icon||"📦"}</span>`)
-        }
+      <span style="min-width:36px;height:32px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">
+        ${iconHtml}
       </span>
       <div style="flex:1;min-width:0">
         <div style="font-size:12px;color:${rc};font-family:'Cinzel',serif;

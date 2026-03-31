@@ -102,7 +102,7 @@ function renderShop() {
     // Nagłówek grupy
     let header = document.createElement("div");
     header.style.cssText = "grid-column:1/-1;font-family:'Cinzel',serif;font-size:11px;letter-spacing:1px;color:var(--text2);padding:8px 0 4px;border-bottom:1px solid var(--border);margin-bottom:4px";
-    header.textContent = g.label;
+    header.textContent = g.label; header.className = "shop-group-header"; if(typeof applyLanguage==="function") setTimeout(applyLanguage,0);
     itemsGrid.appendChild(header);
 
     groupItems.forEach(({item, i}) => {
