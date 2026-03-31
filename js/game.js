@@ -70,6 +70,18 @@ function renderAll() {
   // Aktualizuj badge poziomu stajni
   let slb = document.getElementById("stableLevelBadge");
   if (slb && typeof getStableLevel==="function") slb.textContent = getStableLevel();
+  // Przycisk admin — pokaż tylko dla admina
+  if (typeof isAdmin==="function" && isAdmin()) {
+    if (!document.getElementById("adminBtn")) {
+      let ab = document.createElement("button");
+      ab.id = "adminBtn";
+      ab.style.cssText = "font-size:10px;padding:2px 8px;border-color:#c94a4a;color:#c94a4a;background:rgba(201,74,74,0.08);margin-left:6px;cursor:pointer";
+      ab.textContent = "🔧 Admin";
+      ab.onclick = openAdminPanel;
+      let fs = document.getElementById("firebaseStatus");
+      if (fs) fs.parentNode.insertBefore(ab, fs);
+    }
+  }
   // Specjalne wyprawy
   if (typeof renderSpecialExpeditions==="function") renderSpecialExpeditions();
   // Sprawdź osiągnięcia
@@ -81,7 +93,7 @@ function renderAll() {
 // UI NAVIGATION
 // =====================
 function showSection(s) {
-  ["expedition","stable","inventory","shop","crafting","market","quests","encyclopedia","drops","contests","tournaments","notifications","ranking"].forEach(sec => {
+  ["expedition","stable","inventory","shop","crafting","market","quests","encyclopedia","drops","contests","tournaments","notifications","ranking","events"].forEach(sec => {
     document.getElementById(sec + "Section").style.display = "none";
     document.getElementById("menu-" + sec).classList.remove("active");
   });
@@ -96,6 +108,7 @@ function showSection(s) {
   }
   if (s === "crafting" && typeof renderCraftingSection === "function") renderCraftingSection();
   if (s === "ranking" && typeof renderGlobalRanking === "function") renderGlobalRanking();
+  if (s === "events" && typeof renderEventsSection === "function") renderEventsSection();
   if (s === "contests" && typeof renderContestsInline === "function") renderContestsInline();
   if (s === "market") {
     if (typeof switchMarketTab === "function") switchMarketTab("local");
@@ -171,4 +184,45 @@ function renderItemIconSVG(name, size=36) {
   }
   let d = (typeof ITEMS_DATABASE !== "undefined" && ITEMS_DATABASE[name]) || { icon:"📦" };
   return `<span style="font-size:${size*0.7}px">${d.icon}</span>`;
+}
+
+function renderEventsSection() {
+  let activeEl = document.getElementById("eventsActiveDiv");
+  if (!activeEl) return;
+
+  // Sprawdź event z Firebase
+  if (window._activeEvent) {
+    let ev = window._activeEvent;
+    let msLeft = ev.endsAt - Date.now();
+    let hLeft  = Math.floor(msLeft/3600000);
+    let mLeft  = Math.floor((msLeft%3600000)/60000);
+    activeEl.innerHTML = `
+      <div style="background:rgba(201,168,76,0.08);border:1px solid #c9a84c55;border-radius:12px;padding:20px;display:flex;gap:16px;align-items:center">
+        <div style="font-size:48px">${ev.icon||"🎪"}</div>
+        <div style="flex:1">
+          <div style="font-size:10px;letter-spacing:2px;color:#c9a84c;margin-bottom:4px">AKTYWNY EVENT</div>
+          <div style="font-family:'Cinzel',serif;font-size:18px;color:#d4e8d0">${ev.name}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">${ev.desc}</div>
+          <div style="font-size:12px;color:#4ab870;margin-top:8px">Bonus: <strong>${ev.type.replace(/_/g," ")}</strong></div>
+          <div style="font-size:11px;color:var(--text2);margin-top:4px">Kończy się za: <strong style="color:#c9a84c">${hLeft}h ${mLeft}min</strong></div>
+        </div>
+      </div>`;
+  } else {
+    activeEl.innerHTML = `<div style="padding:16px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text2)">Brak aktywnego eventu. Eventy ogłaszane są przez administrację.</div>`;
+  }
+
+  // Historia
+  let histEl = document.getElementById("eventsHistoryDiv");
+  if (!histEl) return;
+  histEl.innerHTML = `
+    <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;color:var(--text2);margin-bottom:10px">NADCHODZĄCE I PRZESZŁE</div>
+    <div style="font-size:12px;color:var(--text2)">Obserwuj tę zakładkę i powiadomienia — admin ogłasza eventy z wyprzedzeniem.</div>`;
+
+  // Załaduj z Firebase
+  if (window.FB?.db) {
+    checkActiveEvent().then(()=>{
+      if (window._activeEvent) renderEventsSection();
+    });
+    checkBroadcasts();
+  }
 }

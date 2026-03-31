@@ -261,6 +261,7 @@
           localStorage.setItem("hh_nick", user.displayName.split(" ")[0]);
         savePlayerProfile();
         setTimeout(collectPendingPayments, 2000);
+        setTimeout(()=>{ if(typeof checkBroadcasts==="function")checkBroadcasts(); if(typeof checkActiveEvent==="function")checkActiveEvent(); }, 3000);
         window.dispatchEvent(new CustomEvent("hh_logged_in"));
       } else {
         window.dispatchEvent(new CustomEvent("hh_logged_out"));

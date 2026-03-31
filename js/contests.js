@@ -225,7 +225,7 @@ function renderPickHorse(el) {
     let score    = Math.round(calcContestScore(h, type));
     let mainStat = type.stat ? h.stats[type.stat] : (h.stats.speed+h.stats.strength+h.stats.stamina+h.stats.luck);
     let blocked  = !!h.injured || !!h.pregnant;
-    let blockNote = h.injured ? "🤕 Ranny" : h.pregnant ? "🤰 W ciąży" : "";
+    let blockNote = h.injured ? '<span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.injured:""}</span> Ranny' : h.pregnant ? '<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 11Q2 7.5 2 5Q2 3 4 3Q5.2 3 6 4.5Q6.8 3 8 3Q10 3 10 5Q10 7.5 6 11Z" stroke="#f0a0c8" stroke-width="1.3" fill="none"/></svg> W ciąży' : "";
 
     let div = document.createElement("div");
     div.style.cssText = `
@@ -235,7 +235,7 @@ function renderPickHorse(el) {
       opacity:${blocked?0.4:1};transition:all 0.15s;
     `;
     div.innerHTML = `
-      <span style="font-size:20px">${h.flag||"🐴"}</span>
+      <span style="display:inline-flex;width:36px;height:36px;flex-shrink:0;border-radius:6px;overflow:hidden;border:1px solid ${rc}33">${typeof renderHorseMiniSVG==="function"?renderHorseMiniSVG(h,36):(h.flag||"🐴")}</span>
       <div style="flex:1">
         <div style="font-size:12px;color:${rc};font-family:'Cinzel',serif">${h.name} ${h.gender==="male"?"♂":"♀"}</div>
         <div style="font-size:10px;color:var(--text2);display:flex;gap:6px;align-items:center;"><span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.speed:""}</span>${h.stats.speed} <span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.strength:""}</span>${h.stats.strength} <span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.stamina:""}</span>${h.stats.stamina} <span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.luck:""}</span>${h.stats.luck}</div>
@@ -273,7 +273,7 @@ function renderPreview(el) {
       <div style="background:#131f13;border:1px solid ${rc}33;border-radius:10px;padding:12px">
         <div style="font-size:10px;letter-spacing:2px;color:#8aab84;margin-bottom:8px">TWÓJ KOŃ</div>
         <div id="previewHorseSVG" style="border-radius:8px;overflow:hidden;margin-bottom:6px;background:#0a140a"></div>
-        <div style="font-family:'Cinzel',serif;font-size:13px;color:${rc}">${horse.flag||"🐴"} ${horse.name}</div>
+        <div style="font-family:'Cinzel',serif;font-size:13px;color:${rc}">${horse.name}</div>
         <div style="font-size:10px;color:var(--text2);margin-top:3px">${RARITY_LABELS[horse.rarity]||""}</div>
         <div style="font-size:11px;color:var(--text2);margin-top:6px;display:flex;gap:6px;align-items:center"><span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.speed:""}</span>${horse.stats.speed} <span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.strength:""}</span>${horse.stats.strength} <span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.stamina:""}</span>${horse.stats.stamina} <span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.luck:""}</span>${horse.stats.luck}</div>
       </div>
@@ -411,12 +411,12 @@ function renderResults(el) {
 
   // Dodaj XP za zawody
   let xpGain = Math.max(10, Math.floor(50/place));
-  if (typeof addXP==="function") addXP(xpGain, `🏆 ${type.name}`);
+  if (typeof addXP==="function") addXP(xpGain, type.name);
 
   // Historia
   if (typeof addDropHistory==="function") addDropHistory({
     icon: placeIcon, name: `${placeMsg} · ${type.name}`,
-    source: `🏆 Zawody · ${horse.name}`,
+    source: `Zawody · ${horse.name}`,
     color: placeColor,
     chance: prize>0?`+💰${prize}`:"-",
   });
