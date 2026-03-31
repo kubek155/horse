@@ -6,7 +6,7 @@
 const BUILD_MATERIALS = {
   "Deska":       { icon:"🪵", desc:"Drewno budowlane — potrzebne do rozbudowy stajni" },
   "Cegła":       { icon:"🧱", desc:"Wypalona cegła — fundament każdej stajni" },
-  "Dachówka":    { icon:"🏗️",  desc:"Ceramiczna dachówka — okrywa dach stajni" },
+  "Dachówka":    { icon:"🏗️", svgIcon:"roof",  desc:"Ceramiczna dachówka — okrywa dach stajni" },
   "Gwóźdź":      { icon:"📌", desc:"Stalowy gwóźdź — łączy deski i belki" },
   "Siano":       { icon:"🌾", desc:"Bele siana — wypełnienie i izolacja ścian" },
   "Kamień":      { icon:"🪨", desc:"Kamień polny — wzmocnienie fundamentów" },
@@ -33,7 +33,7 @@ const STABLE_LEVELS = [
     materials: { "Cegła":50, "Dachówka":30, "Metal":20, "Szkło":10, "Kamień":30 },
   },
   {
-    level:5, horses:20, cost:50000, bonus:"Stadnina +4 miejsca", icon:"🏟️",
+    level:5, horses:20, cost:50000, bonus:"Stadnina +4 miejsca", icon:"🏟️", svgIcon:"arena",
     materials: { "Cegła":80, "Dachówka":60, "Metal":40, "Szkło":25, "Kamień":50, "Deska":60 },
   },
 ];
@@ -41,35 +41,35 @@ const STABLE_LEVELS = [
 // Ulepszenia stajni — per koń (można kupić wielokrotnie)
 const STABLE_UPGRADES = [
   {
-    id:"gym",         name:"Siłownia",          icon:"💪",
+    id:"gym",         name:"Siłownia",          icon:"💪", svgIcon:"gym",
     desc:"+5 do wszystkich statów wybranego konia (jednorazowe, per koń)",
     cost:3000, materials:{ "Metal":5, "Deska":8 },
     type:"per_horse", stat:"all", val:5,
     requires:2,
   },
   {
-    id:"track",       name:"Tor wyścigowy",      icon:"🏁",
+    id:"track",       name:"Tor wyścigowy",      icon:"🏁", svgIcon:"track",
     desc:"+8 szybkości wybranego konia",
     cost:2500, materials:{ "Deska":12, "Gwóźdź":8 },
     type:"per_horse", stat:"speed", val:8,
     requires:2,
   },
   {
-    id:"pool",        name:"Basen regeneracyjny",icon:"💧",
+    id:"pool",        name:"Basen regeneracyjny",icon:"💧", svgIcon:"pool",
     desc:"+8 wytrzymałości wybranego konia",
     cost:2500, materials:{ "Kamień":10, "Metal":5, "Szkło":3 },
     type:"per_horse", stat:"stamina", val:8,
     requires:2,
   },
   {
-    id:"arena",       name:"Arena treningowa",   icon:"🏟️",
+    id:"arena",       name:"Arena treningowa",   icon:"🏟️", svgIcon:"arena",
     desc:"+8 siły wybranego konia",
     cost:2500, materials:{ "Cegła":15, "Metal":8 },
     type:"per_horse", stat:"strength", val:8,
     requires:3,
   },
   {
-    id:"garden",      name:"Ogród ziołowy",      icon:"🌿",
+    id:"garden",      name:"Ogród ziołowy",      icon:"🌿", svgIcon:"garden",
     desc:"+8 szczęścia wybranego konia",
     cost:2000, materials:{ "Siano":15, "Kamień":5 },
     type:"per_horse", stat:"luck", val:8,
@@ -77,35 +77,35 @@ const STABLE_UPGRADES = [
   },
   // Globalne pasywne
   {
-    id:"vet",         name:"Gabinet weterynarza", icon:"🩺",
+    id:"vet",         name:"Gabinet weterynarza", icon:"🩺", svgIcon:"vet",
     desc:"Leczenie 1 konia dziennie za darmo",
     cost:4000, materials:{ "Szkło":15, "Metal":10, "Cegła":20 },
     type:"global", bonus:{type:"free_heal", val:1},
     requires:3,
   },
   {
-    id:"fountain",    name:"Fontanna Szczęścia",  icon:"⛲",
+    id:"fountain",    name:"Fontanna Szczęścia",  icon:"⛲", svgIcon:"fountain",
     desc:"+5% do drop rate na wszystkich wyprawach",
     cost:12000, materials:{ "Kamień":40, "Metal":20, "Szkło":15 },
     type:"global", bonus:{type:"drop_pct", val:0.05},
     requires:4,
   },
   {
-    id:"forge",       name:"Kuźnia",             icon:"⚒️",
+    id:"forge",       name:"Kuźnia",             icon:"⚒️", svgIcon:"forge",
     desc:"-25% szans na kontuzję wszystkich koni",
     cost:8000, materials:{ "Metal":35, "Cegła":25, "Gwóźdź":30 },
     type:"global", bonus:{type:"injury_reduce", val:0.25},
     requires:3,
   },
   {
-    id:"treadmill",   name:"Bieżnia",            icon:"🏃",
+    id:"treadmill",   name:"Bieżnia",            icon:"🏃", svgIcon:"treadmill",
     desc:"+10% złota z każdej wyprawy",
     cost:10000, materials:{ "Metal":30, "Deska":40, "Gwóźdź":20 },
     type:"global", bonus:{type:"gold_pct", val:0.10},
     requires:4,
   },
   {
-    id:"roof",        name:"Luksusowy dach",     icon:"🏗️",
+    id:"roof",        name:"Luksusowy dach",     icon:"🏗️", svgIcon:"roof",
     desc:"Konie w stajni regenerują głód +20% szybciej",
     cost:6000, materials:{ "Dachówka":50, "Deska":30, "Gwóźdź":40 },
     type:"global", bonus:{type:"hunger_regen", val:0.20},
@@ -299,7 +299,7 @@ function openStableUpgradeScreen() {
   overlay.innerHTML = `
     <div style="width:100%;max-width:680px;background:#0f1a0f;border-radius:16px;padding:24px;border:1px solid #1e3a1e;position:relative">
       <button onclick="document.getElementById('stableUpgradeOverlay').remove()" style="position:absolute;top:12px;right:12px;background:transparent;border:none;color:#4a5a4a;font-size:18px;cursor:pointer">✕</button>
-      <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:#8aab84;margin-bottom:16px">🏠 ROZBUDOWA STAJNI</div>
+      <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:#8aab84;margin-bottom:16px"><span style="display:inline-flex;width:14px;height:14px;vertical-align:middle">${UI_ICONS?.roof||""}</span> ROZBUDOWA STAJNI</div>
 
       <!-- Poziom -->
       <div style="background:#131f13;border:1px solid #c9a84c44;border-radius:12px;padding:16px;margin-bottom:14px">
@@ -314,11 +314,11 @@ function openStableUpgradeScreen() {
               color:${hasNextMats&&hasNextGold?"#c9a84c":"#555"};
               background:${hasNextMats&&hasNextGold?"rgba(201,168,76,0.1)":"transparent"};
               font-family:'Cinzel',serif;font-size:11px;margin-bottom:6px;white-space:nowrap">
-              ⬆️ Poz. ${lvl+1} · 💰${next.cost.toLocaleString()}
+              Poz. ${lvl+1} · 💰${next.cost.toLocaleString()}
             </button>
             <div style="font-size:10px;color:var(--text2);margin-bottom:4px">Potrzebne materiały:</div>
             <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end">${matRow(next.materials)}</div>
-          </div>` : `<div style="color:#4ab870;font-size:13px">✅ Max poziom</div>`}
+          </div>` : `<div style="color:#4ab870;font-size:13px;display:flex;align-items:center;gap:4px">${UI_ICONS?.check||""} Max poziom</div>`}
         </div>
         <!-- SVG stajni -->
         <div style="border-radius:10px;overflow:hidden;margin-top:8px;opacity:0.95">
@@ -333,15 +333,15 @@ function openStableUpgradeScreen() {
           <div style="display:flex;flex-wrap:wrap;gap:6px">
             ${passives.drop_pct    ?`<span style="font-size:11px;background:#c9a84c18;border:1px solid #c9a84c44;border-radius:6px;padding:2px 10px;color:#c9a84c">✨ +${Math.round(passives.drop_pct*100)}% drop</span>`:""}
             ${passives.gold_pct    ?`<span style="font-size:11px;background:#c9a84c18;border:1px solid #c9a84c44;border-radius:6px;padding:2px 10px;color:#c9a84c">💰 +${Math.round(passives.gold_pct*100)}% złota</span>`:""}
-            ${passives.injury_reduce?`<span style="font-size:11px;background:#4a7ec818;border:1px solid #4a7ec844;border-radius:6px;padding:2px 10px;color:#6ab0e0">⚒️ -${Math.round(passives.injury_reduce*100)}% kontuzji</span>`:""}
-            ${passives.free_heal   ?`<span style="font-size:11px;background:#c94a4a18;border:1px solid #c94a4a44;border-radius:6px;padding:2px 10px;color:#e08080">🩺 Darmowe leczenie</span>`:""}
+            ${passives.injury_reduce?`<span style="font-size:11px;background:#4a7ec818;border:1px solid #4a7ec844;border-radius:6px;padding:2px 10px;color:#6ab0e0;display:inline-flex;align-items:center;gap:4px"><span style=\"display:inline-flex;width:12px;height:12px\">${UI_ICONS?.forge||""}</span> -${Math.round(passives.injury_reduce*100)}% kontuzji</span>`:""}
+            ${passives.free_heal   ?`<span style="font-size:11px;background:#c94a4a18;border:1px solid #c94a4a44;border-radius:6px;padding:2px 10px;color:#e08080;display:inline-flex;align-items:center;gap:4px"><span style=\"display:inline-flex;width:12px;height:12px\">${UI_ICONS?.vet||""}</span> Darmowe leczenie</span>`:""}
             ${passives.hunger_regen?`<span style="font-size:11px;background:#4ab87018;border:1px solid #4ab87044;border-radius:6px;padding:2px 10px;color:#4ab870">🌾 +${Math.round(passives.hunger_regen*100)}% reg. głodu</span>`:""}
           </div>
         </div>` : ""}
 
       <!-- Zakładki ulepszeń -->
       <div style="display:flex;gap:6px;margin-bottom:12px">
-        <button id="stUpgTabGlobal" class="market-tab-btn active" onclick="switchStableTab('global')">🏗️ Globalne</button>
+        <button id="stUpgTabGlobal" class="market-tab-btn active" onclick="switchStableTab('global')">${UI_ICONS?.roof||""} Globalne</button>
         <button id="stUpgTabHorse"  class="market-tab-btn"        onclick="switchStableTab('horse')">🐴 Per koń</button>
         <button id="stUpgTabMats"   class="market-tab-btn"        onclick="switchStableTab('mats')">🪵 Materiały</button>
       </div>
@@ -358,15 +358,15 @@ function openStableUpgradeScreen() {
             let col     = owned?"#4ab870":locked?"#333":"#8aab84";
             return `<div style="background:#131f13;border:1px solid ${col}44;border-radius:10px;padding:12px;opacity:${locked?0.4:1}">
               <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-                <span style="font-size:22px">${u.icon}</span>
+                <span style="display:inline-flex;width:24px;height:24px;align-items:center;justify-content:center">${u.svgIcon&&typeof UI_ICONS!=="undefined"&&UI_ICONS[u.svgIcon]?UI_ICONS[u.svgIcon]:u.icon}</span>
                 <div>
                   <div style="font-size:12px;color:${col};font-family:'Cinzel',serif">${u.name}</div>
                   <div style="font-size:10px;color:var(--text2)">${u.desc}</div>
                 </div>
               </div>
               <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px">${matRow(u.materials)}</div>
-              ${owned?`<div style="font-size:11px;color:#4ab870">✅ Aktywne</div>`
-              :locked?`<div style="font-size:11px;color:#555">🔒 Wymaga poz. ${u.requires}</div>`
+              ${owned?`<div style="font-size:11px;color:#4ab870;display:flex;align-items:center;gap:3px"><span style=\"display:inline-flex;width:12px;height:12px\">${UI_ICONS?.check||""}</span> Aktywne</div>`
+              :locked?`<div style="font-size:11px;color:#555;display:flex;align-items:center;gap:3px"><span style=\"display:inline-flex;width:12px;height:12px\">${UI_ICONS?.lock||""}</span> Wymaga poz. ${u.requires}</div>`
               :`<button onclick="buyGlobalUpgrade('${u.id}')" ${canBuy?"":"disabled"} style="
                   width:100%;border-color:${canBuy?"#c9a84c":"#333"};color:${canBuy?"#c9a84c":"#555"};
                   background:${canBuy?"rgba(201,168,76,0.1)":"transparent"};font-size:11px">
@@ -389,14 +389,14 @@ function openStableUpgradeScreen() {
             let col     = locked?"#333":"#8aab84";
             return `<div style="background:#131f13;border:1px solid ${col}44;border-radius:10px;padding:12px;opacity:${locked?0.4:1}">
               <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-                <span style="font-size:22px">${u.icon}</span>
+                <span style="display:inline-flex;width:24px;height:24px;align-items:center;justify-content:center">${u.svgIcon&&typeof UI_ICONS!=="undefined"&&UI_ICONS[u.svgIcon]?UI_ICONS[u.svgIcon]:u.icon}</span>
                 <div>
                   <div style="font-size:12px;color:${col};font-family:'Cinzel',serif">${u.name}</div>
                   <div style="font-size:10px;color:var(--text2)">${u.desc}</div>
                 </div>
               </div>
               <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px">${matRow(u.materials)}</div>
-              ${locked?`<div style="font-size:11px;color:#555">🔒 Wymaga poz. ${u.requires}</div>`
+              ${locked?`<div style="font-size:11px;color:#555;display:flex;align-items:center;gap:3px"><span style=\"display:inline-flex;width:12px;height:12px\">${UI_ICONS?.lock||""}</span> Wymaga poz. ${u.requires}</div>`
               :`<button onclick="openHorseUpgradePicker('${u.id}')" ${canBuy?"":"disabled"} style="
                   width:100%;border-color:${canBuy?"#6ab0e0":"#333"};color:${canBuy?"#6ab0e0":"#555"};
                   background:${canBuy?"rgba(74,176,224,0.1)":"transparent"};font-size:11px">

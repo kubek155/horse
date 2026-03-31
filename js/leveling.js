@@ -154,7 +154,7 @@ function renderDropHistory() {
   let history = getDropHistory();
 
   if (history.length === 0) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">📜</div>Brak historii — idź na wyprawę!</div>`;
+    el.innerHTML = `<div class="empty"><div style="display:flex;justify-content:center;margin-bottom:8px"><span style="width:36px;height:36px;display:inline-flex">${typeof UI_ICONS!=="undefined"?UI_ICONS.scroll:""}</span></div>Brak historii — idź na wyprawę!</div>`;
     return;
   }
 

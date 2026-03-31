@@ -6,18 +6,18 @@ const NOTIF_KEY = "hh_notifications";
 const MAX_NOTIFS = 50;
 
 const NOTIF_TYPES = {
-  expedition_done:  { icon:"🌍", color:"#8aab84"  },
-  expedition_found: { icon:"✨", color:"#c9a84c"  },
-  horse_born:       { icon:"🐣", color:"#f0a0c8"  },
-  item_sold:        { icon:"💰", color:"#4ab870"  },
-  item_bought:      { icon:"🎉", color:"#4a7ec8"  },
-  tournament_win:   { icon:"🏆", color:"#c9a84c"  },
-  tournament_place: { icon:"🏁", color:"#8aab84"  },
-  level_up:         { icon:"⭐", color:"#f0d080"  },
-  horse_injured:    { icon:"🤕", color:"#c94a4a"  },
-  pregnancy_done:   { icon:"🐴", color:"#f0a0c8"  },
-  miscarriage:      { icon:"💔", color:"#c94a4a"  },
-  system:           { icon:"🔔", color:"#8aab84"  },
+  expedition_done:  { svgKey:"exp_done",  color:"#8aab84"  },
+  expedition_found: { svgKey:"exp_found", color:"#c9a84c"  },
+  horse_born:       { svgKey:"horse_born",color:"#f0a0c8"  },
+  item_sold:        { svgKey:"item_sold", color:"#4ab870"  },
+  item_bought:      { svgKey:"item_buy",  color:"#4a7ec8"  },
+  tournament_win:   { svgKey:"medal",     color:"#c9a84c"  },
+  tournament_place: { svgKey:"medal",     color:"#8aab84"  },
+  level_up:         { svgKey:"level_up",  color:"#f0d080"  },
+  horse_injured:    { svgKey:"injured",   color:"#c94a4a"  },
+  pregnancy_done:   { svgKey:"horse_born",color:"#f0a0c8"  },
+  miscarriage:      { svgKey:"injured",   color:"#c94a4a"  },
+  system:           { svgKey:"bell",      color:"#8aab84"  },
 };
 
 function addNotification(type, title, body, extra) {
@@ -26,7 +26,8 @@ function addNotification(type, title, body, extra) {
   notifs.unshift({
     id:    Date.now() + Math.random(),
     type, title, body,
-    icon:  meta.icon,
+    svgKey: meta.svgKey,
+    icon:  meta.svgKey,  // fallback
     color: meta.color,
     time:  Date.now(),
     read:  false,
@@ -72,7 +73,7 @@ function renderNotifications() {
 
   let notifs = getNotifications();
   if (notifs.length === 0) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">🔔</div>Brak powiadomień</div>`;
+    el.innerHTML = `<div class="empty"><div class="empty-icon" style="display:flex;justify-content:center;margin-bottom:8px"><span style="width:40px;height:40px;display:inline-flex">${typeof UI_ICONS!=="undefined"?UI_ICONS.bell:""}</span></div>Brak powiadomień</div>`;
     return;
   }
 
@@ -88,8 +89,11 @@ function renderNotifications() {
       transition:all 0.2s;
       ${!n.read ? `box-shadow:0 0 0 1px ${n.color}22;` : ""}
     `;
+    let notifSvg = (n.svgKey && typeof UI_ICONS!=="undefined" && UI_ICONS[n.svgKey])
+      ? `<span style="display:inline-flex;width:28px;height:28px;align-items:center;justify-content:center">${UI_ICONS[n.svgKey]}</span>`
+      : `<span style="font-size:20px">${n.icon||"🔔"}</span>`;
     div.innerHTML = `
-      <div style="font-size:24px;min-width:32px;text-align:center;margin-top:2px">${n.icon}</div>
+      <div style="min-width:32px;text-align:center;margin-top:2px">${notifSvg}</div>
       <div style="flex:1;min-width:0">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
           <div style="font-family:'Cinzel',serif;font-size:12px;color:${n.color};font-weight:${n.read?'normal':'500'}">${n.title}</div>

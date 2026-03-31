@@ -281,3 +281,42 @@ function applyItemIcon(el, name, size=36) {
     el.innerHTML = `<div style="width:${size}px;height:${size}px">${svg}</div>`;
   }
 }
+
+// ── Dodatkowe ikony UI (nie itemy) ────────────────────────
+const UI_ICONS = {
+  // Statystyki
+  speed:    `<svg viewBox="0 0 14 14" fill="none"><path d="M11 2.5L5 7l2.5 1.2L5 12" stroke="#4a7ec8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  strength: `<svg viewBox="0 0 14 14" fill="none"><rect x="1" y="6" width="3.5" height="3" rx="1.2" fill="#c97c2a"/><rect x="9.5" y="6" width="3.5" height="3" rx="1.2" fill="#c97c2a"/><rect x="4" y="6.5" width="6" height="2" fill="#a06020"/></svg>`,
+  stamina:  `<svg viewBox="0 0 14 14" fill="none"><path d="M7 12Q2 8.5 2 5.5Q2 3 4.5 3Q6 3 7 4.8Q8 3 9.5 3Q12 3 12 5.5Q12 8.5 7 12Z" stroke="#e84040" stroke-width="1.4" fill="none"/></svg>`,
+  luck:     `<svg viewBox="0 0 14 14" fill="none"><circle cx="4.5" cy="4.5" r="3" fill="#3a8a3a" opacity=".9"/><circle cx="9.5" cy="4.5" r="3" fill="#4aa04a" opacity=".9"/><circle cx="7" cy="8" r="3" fill="#3a8a3a" opacity=".9"/><line x1="7" y1="11" x2="7" y2="14" stroke="#3a6a3a" stroke-width="1.3"/></svg>`,
+  gold:     `<svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#c9a84c" stroke-width="1.3"/><text x="7" y="10.5" text-anchor="middle" font-size="7" fill="#c9a84c" font-family="serif">$</text></svg>`,
+  // Statusy
+  check:    `<svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" fill="#4ab87022" stroke="#4ab870" stroke-width="1.2"/><path d="M4.5 7l2 2 3.5-3.5" stroke="#4ab870" stroke-width="1.4" stroke-linecap="round"/></svg>`,
+  lock:     `<svg viewBox="0 0 14 14" fill="none"><rect x="3" y="6" width="8" height="6" rx="1.5" stroke="#555" stroke-width="1.2" fill="none"/><path d="M5 6V4.5a2 2 0 014 0V6" stroke="#555" stroke-width="1.2" fill="none"/></svg>`,
+  up:       `<svg viewBox="0 0 14 14" fill="none"><path d="M7 3L11 8H9v4H5V8H3z" stroke="#c9a84c" stroke-width="1.2" fill="#c9a84c22"/></svg>`,
+  // Typy ulepszeń
+  gym:      `<svg viewBox="0 0 14 14" fill="none"><rect x="1" y="5.5" width="3" height="3" rx="1.2" fill="#c97c2a"/><rect x="10" y="5.5" width="3" height="3" rx="1.2" fill="#c97c2a"/><rect x="3.8" y="6" width="6.4" height="2" fill="#a06020"/><rect x="5.5" y="4" width="3" height="6" rx="0.8" stroke="#c97c2a" stroke-width="1" fill="none"/></svg>`,
+  track:    `<svg viewBox="0 0 14 14" fill="none"><ellipse cx="7" cy="8" rx="5" ry="3.5" stroke="#4a7ec8" stroke-width="1.2" fill="none"/><path d="M5 6L8 4l1 4" stroke="#4a7ec8" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>`,
+  pool:     `<svg viewBox="0 0 14 14" fill="none"><path d="M2 9Q4 7 7 9Q10 11 12 9" stroke="#6ab0e0" stroke-width="1.3" fill="none"/><path d="M2 11Q4 9 7 11Q10 13 12 11" stroke="#6ab0e0" stroke-width="1" fill="none" opacity=".6"/><rect x="3" y="3" width="8" height="5" rx="1" stroke="#6ab0e0" stroke-width="1.2" fill="none"/></svg>`,
+  arena:    `<svg viewBox="0 0 14 14" fill="none"><ellipse cx="7" cy="9" rx="5.5" ry="3" stroke="#7b5ea7" stroke-width="1.2" fill="none"/><path d="M3 9V5.5L7 3l4 2.5V9" stroke="#7b5ea7" stroke-width="1.2" fill="none"/></svg>`,
+  garden:   `<svg viewBox="0 0 14 14" fill="none"><circle cx="5" cy="5" r="3" fill="#3a8a3a" opacity=".8"/><circle cx="9" cy="5" r="3" fill="#4aa04a" opacity=".8"/><rect x="6" y="8" width="2" height="5" rx="0.5" fill="#6a4a2a"/></svg>`,
+  vet:      `<svg viewBox="0 0 14 14" fill="none"><rect x="2" y="4" width="10" height="8" rx="1.5" stroke="#e08080" stroke-width="1.2" fill="none"/><path d="M6 6h2v2h2v2H8v2H6v-2H4V8h2z" fill="#e08080" opacity=".8"/></svg>`,
+  fountain: `<svg viewBox="0 0 14 14" fill="none"><ellipse cx="7" cy="11" rx="5" ry="1.5" stroke="#6ab0e0" stroke-width="1.1" fill="none"/><path d="M7 2v4M5 4Q7 2 9 4" stroke="#6ab0e0" stroke-width="1.2" fill="none"/><path d="M4 6Q7 4 10 6" stroke="#6ab0e0" stroke-width="1" fill="none"/></svg>`,
+  forge:    `<svg viewBox="0 0 14 14" fill="none"><rect x="2" y="7" width="10" height="5" rx="1" stroke="#888" stroke-width="1.2" fill="none"/><path d="M5 7V5a2 2 0 014 0v2" stroke="#888" stroke-width="1.2" fill="none"/><path d="M7 10V8" stroke="#aaa" stroke-width="1.3"/></svg>`,
+  treadmill:`<svg viewBox="0 0 14 14" fill="none"><ellipse cx="7" cy="10" rx="5" ry="2" stroke="#8aab84" stroke-width="1.2" fill="none"/><path d="M5 10L7 5l2 5" stroke="#8aab84" stroke-width="1.2" fill="none"/><circle cx="7" cy="4" r="1.5" stroke="#8aab84" stroke-width="1" fill="none"/></svg>`,
+  roof:     `<svg viewBox="0 0 14 14" fill="none"><path d="M2 8L7 3l5 5" stroke="#c9a84c" stroke-width="1.3" fill="none"/><rect x="3" y="8" width="8" height="4" rx="0.5" stroke="#c9a84c" stroke-width="1.1" fill="none"/></svg>`,
+  // Powiadomienia
+  exp_done: `<svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#8aab84" stroke-width="1.2" fill="none"/><path d="M4.5 7l2 2 3.5-3.5" stroke="#8aab84" stroke-width="1.4" stroke-linecap="round"/></svg>`,
+  exp_found:`<svg viewBox="0 0 14 14" fill="none"><polygon points="7,1.5 8.8,6 13,6 9.7,8.5 11,13 7,10.2 3,13 4.3,8.5 1,6 5.2,6" stroke="#c9a84c" stroke-width="1.1" fill="#c9a84c22"/></svg>`,
+  horse_born:`<svg viewBox="0 0 14 14" fill="none"><path d="M7 12Q3 9 3 6Q3 3 5.5 3Q6.5 3 7 4Q7.5 3 8.5 3Q11 3 11 6Q11 9 7 12Z" stroke="#f0a0c8" stroke-width="1.3" fill="none"/></svg>`,
+  item_sold:`<svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#4ab870" stroke-width="1.2"/><path d="M4.5 7.5L6.5 9.5 10 5" stroke="#4ab870" stroke-width="1.4" stroke-linecap="round"/></svg>`,
+  item_buy: `<svg viewBox="0 0 14 14" fill="none"><rect x="2" y="5" width="10" height="7" rx="1" stroke="#4a7ec8" stroke-width="1.2" fill="none"/><path d="M4.5 5V3.5a2.5 2.5 0 015 0V5" stroke="#4a7ec8" stroke-width="1.2" fill="none"/></svg>`,
+  injured:  `<svg viewBox="0 0 14 14" fill="none"><rect x="2" y="5" width="10" height="6" rx="1.5" stroke="#c94a4a" stroke-width="1.2" fill="none"/><path d="M6 6.5h2v1.5h1.5v2H8v1.5H6v-1.5H4.5v-2H6z" fill="#c94a4a" opacity=".7"/></svg>`,
+  level_up: `<svg viewBox="0 0 14 14" fill="none"><polygon points="7,1 8.5,5.5 13,5.5 9.5,8.2 10.8,13 7,10 3.2,13 4.5,8.2 1,5.5 5.5,5.5" stroke="#f0d080" stroke-width="1.1" fill="#f0d08022"/></svg>`,
+  bell:     `<svg viewBox="0 0 14 14" fill="none"><path d="M7 1.5a4 4 0 00-4 4v3.5L1.5 11h11L11 9V5.5a4 4 0 00-4-4z" stroke="#c9a84c" stroke-width="1.2" fill="none"/><path d="M5.5 11a1.5 1.5 0 003 0" stroke="#c9a84c" stroke-width="1.2" fill="none"/></svg>`,
+  medal:    `<svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="8.5" r="4" stroke="#c9a84c" stroke-width="1.3" fill="none"/><text x="7" y="11.5" text-anchor="middle" font-size="5" fill="#c9a84c">1</text><path d="M5 5L3 1.5h8L9 5" stroke="#c9a84c" stroke-width="1.1" fill="none"/></svg>`,
+  scroll:   `<svg viewBox="0 0 14 14" fill="none"><rect x="3" y="2" width="8" height="10" rx="1" stroke="#8aab84" stroke-width="1.2" fill="none"/><line x1="5" y1="5" x2="9" y2="5" stroke="#8aab84" stroke-width="1"/><line x1="5" y1="7" x2="9" y2="7" stroke="#8aab84" stroke-width="1"/><line x1="5" y1="9" x2="8" y2="9" stroke="#8aab84" stroke-width="1"/><circle cx="3" cy="7" r="1.5" fill="#8aab84" opacity=".5"/></svg>`,
+  // Filtry rynku
+  horse_icon:`<svg viewBox="0 0 16 16" fill="none"><path d="M4 14V9L7 5h2v2l3-1v2l-1 1v5" stroke="#8aab84" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="9" cy="4" r="1.5" stroke="#8aab84" stroke-width="1.2" fill="none"/></svg>`,
+  bag_icon:  `<svg viewBox="0 0 16 16" fill="none"><rect x="3" y="6" width="10" height="8" rx="1.5" stroke="#7b5ea7" stroke-width="1.3" fill="none"/><path d="M5.5 6V4.5A2.5 2.5 0 0110.5 4.5V6" stroke="#7b5ea7" stroke-width="1.3" fill="none"/><line x1="3" y1="10" x2="13" y2="10" stroke="#7b5ea7" stroke-width="1" opacity=".5"/></svg>`,
+};
