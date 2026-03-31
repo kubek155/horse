@@ -253,6 +253,25 @@ async function listOnGlobalMarketFromLocal(offerId) {
 
 // ── Turnieje UI ───────────────────────────────────────────
 let tournamentEntries=[], tournamentUnsub=null, currentTournamentId=null;
+let _activeTournamentDoc = null; // turniej z Firebase (admin)
+
+async function loadActiveTournamentFromFirebase() {
+  if (!window.FB?.db) return null;
+  try {
+    let snap = await window.FB.db.collection("tournaments")
+      .where("active","==",true)
+      .orderBy("startTime","asc")
+      .limit(5)
+      .get();
+    if (snap.empty) return null;
+    // Znajdź najbliższy przyszły lub właśnie trwający
+    let now = Date.now();
+    let docs = snap.docs.map(d=>({id:d.id,...d.data()}));
+    // Preferuj turnieje które jeszcze nie minęły (startTime w przyszłości lub < 3h temu)
+    let valid = docs.filter(t => (t.startTime||0) > now - 3*3600000);
+    return valid.length > 0 ? valid[0] : docs[0];
+  } catch(e) { console.warn("loadActiveTournament:", e.message); return null; }
+}
 
 function renderTournamentsSection() {
   let el = document.getElementById("tournamentsContent");
@@ -263,44 +282,102 @@ function renderTournamentsSection() {
     return;
   }
 
-  let next = window.FB.getNextTournament();
-  let tId  = `${next.type}_${new Date(next.nextTime).toISOString().slice(0,10)}_${next.hour}`;
-  let ct   = typeof CONTEST_TYPES!=="undefined" ? CONTEST_TYPES.find(c=>c.id===next.type) : null;
+  // Najpierw pokaż skeleton loader, potem załaduj z Firebase
+  el.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text2);font-size:13px">🏆 Ładowanie turniejów...</div>`;
 
-  if (tId!==currentTournamentId) {
-    currentTournamentId=tId;
-    if(tournamentUnsub) tournamentUnsub();
-    tournamentUnsub=window.FB.subscribeTournamentEntries(tId,entries=>{
-      tournamentEntries=entries;
+  loadActiveTournamentFromFirebase().then(fbTournament => {
+    _activeTournamentDoc = fbTournament;
+    _renderTournamentsWithData(fbTournament);
+  });
+}
+
+function _renderTournamentsWithData(fbTournament) {
+  let el = document.getElementById("tournamentsContent");
+  if (!el) return;
+
+  // Wybierz turniej do wyświetlenia: z Firebase (admin) lub z harmonogramu
+  let tId, tName, tType, tStartTime, tEntryFee, tPrizes, isAdminTournament;
+
+  if (fbTournament && fbTournament.active) {
+    // Turniej admina z Firebase
+    tId              = fbTournament.id;
+    tName            = fbTournament.name;
+    tType            = fbTournament.type;
+    tStartTime       = fbTournament.startTime;
+    tEntryFee        = fbTournament.entryFee || 0;
+    tPrizes          = fbTournament.prizes || [2000, 1000, 500];
+    isAdminTournament= true;
+  } else {
+    // Fallback: harmonogram
+    let next = window.FB.getNextTournament();
+    tId       = `${next.type}_${new Date(next.nextTime).toISOString().slice(0,10)}_${next.hour}`;
+    tName     = next.name;
+    tType     = next.type;
+    tStartTime= next.nextTime?.getTime?.() || Date.now() + next.msLeft;
+    let ct2   = typeof CONTEST_TYPES!=="undefined" ? CONTEST_TYPES.find(c=>c.id===next.type) : null;
+    tEntryFee = ct2?.entryFee || 0;
+    tPrizes   = ct2?.prizes || [2000, 1000, 500];
+    isAdminTournament = false;
+  }
+
+  let ct = typeof CONTEST_TYPES!=="undefined" ? CONTEST_TYPES.find(c=>c.id===tType) : null;
+
+  // Subskrybuj entries dla tego turnieju
+  if (tId !== currentTournamentId) {
+    currentTournamentId = tId;
+    if (tournamentUnsub) tournamentUnsub();
+    tournamentUnsub = window.FB.subscribeTournamentEntries(tId, entries => {
+      tournamentEntries = entries;
       renderTournamentEntries();
-      let cnt=document.getElementById("entryCount"); if(cnt)cnt.textContent=entries.length;
+      let cnt = document.getElementById("entryCount"); if (cnt) cnt.textContent = entries.length;
     });
   }
 
   let myId    = window.FB.getPlayerId();
   let myEntry = tournamentEntries.find(e=>e.playerId===myId);
-  let ms=next.msLeft, h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000), s=Math.floor((ms%60000)/1000);
+  let msLeft  = Math.max(0, tStartTime - Date.now());
+  let h=Math.floor(msLeft/3600000), m=Math.floor((msLeft%3600000)/60000), s=Math.floor((msLeft%60000)/1000);
+  let statusLabel = msLeft <= 0 ? "🔴 W TRAKCIE" : `🟡 ZA ${h}h ${m}m`;
+
+  // SVG ikony dla typów turniejów
+  const TOURNAMENT_TYPE_SVG = {
+    sprint:     `<svg viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="15" stroke="#c9a84c" stroke-width="1.5" fill="none"/><path d="M12 22L18 10L24 22" stroke="#c9a84c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><line x1="14" y1="19" x2="22" y2="19" stroke="#c9a84c" stroke-width="1.5"/></svg>`,
+    endurance:  `<svg viewBox="0 0 36 36" fill="none"><path d="M6 26 Q10 14 18 16 Q26 18 30 10" stroke="#4ab870" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="30" cy="10" r="3" fill="#4ab870"/><circle cx="6" cy="26" r="3" fill="#4ab870" opacity="0.5"/></svg>`,
+    strength:   `<svg viewBox="0 0 36 36" fill="none"><rect x="8" y="15" width="20" height="6" rx="3" stroke="#c97c2a" stroke-width="1.5" fill="none"/><rect x="4" y="12" width="5" height="12" rx="2" fill="#c97c2a" opacity="0.7"/><rect x="27" y="12" width="5" height="12" rx="2" fill="#c97c2a" opacity="0.7"/></svg>`,
+    grand_prix: `<svg viewBox="0 0 36 36" fill="none"><polygon points="18,4 22,14 33,14 24,21 27,32 18,25 9,32 12,21 3,14 14,14" stroke="#c9a84c" stroke-width="1.5" fill="rgba(201,168,76,0.15)"/></svg>`,
+  };
+
+  let typeIcon = TOURNAMENT_TYPE_SVG[tType] || TOURNAMENT_TYPE_SVG.grand_prix;
 
   el.innerHTML=`
-    <div style="background:#131f13;border:1px solid #c9a84c44;border-radius:12px;padding:16px;margin-bottom:16px">
+    <div style="background:#131f13;border:1px solid ${isAdminTournament?"#c9a84c":"#2a4a2a"}44;border-radius:12px;padding:16px;margin-bottom:16px;${isAdminTournament?"box-shadow:0 0 16px rgba(201,168,76,0.08)":""}">
+      ${isAdminTournament ? `<div style="font-size:9px;letter-spacing:2px;color:#c9a84c;margin-bottom:8px">⚡ TURNIEJ SPECJALNY (ADMIN)</div>` : ""}
       <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px">
-        <div>
-          <div style="font-family:'Cinzel',serif;font-size:15px;color:#c9a84c">${ct?.icon||"🏆"} ${next.name}</div>
-          <div style="font-size:11px;color:var(--text2);margin-top:3px">${ct?.desc||""}</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;flex-shrink:0">${typeIcon}</div>
+          <div>
+            <div style="font-family:'Cinzel',serif;font-size:15px;color:#c9a84c">${tName}</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px">${ct?.desc||tType}</div>
+          </div>
         </div>
-        <div style="text-align:right">
-          <div style="font-size:10px;color:var(--text2)">Start za</div>
-          <div id="tourneyCountdown" style="font-family:'Cinzel',serif;font-size:18px;color:#c9a84c">${h}h ${m}m ${s}s</div>
+        <div style="text-align:right;flex-shrink:0;margin-left:8px">
+          <div style="font-size:10px;color:var(--text2)">Status</div>
+          <div style="font-size:12px;color:#c9a84c;font-family:'Cinzel',serif">${statusLabel}</div>
+          <div id="tourneyCountdown" style="font-family:'Cinzel',serif;font-size:16px;color:#c9a84c">${h}h ${m}m ${s}s</div>
         </div>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:12px">
         <div style="flex:1;background:#0a140a;border-radius:8px;padding:8px;text-align:center">
           <div style="font-size:10px;color:var(--text2)">Wpisowe</div>
-          <div style="font-size:14px;color:#c97c2a">💰 ${ct?.entryFee||0}</div>
+          <div style="font-size:14px;color:#c97c2a">💰 ${tEntryFee}</div>
         </div>
         <div style="flex:1;background:#0a140a;border-radius:8px;padding:8px;text-align:center">
           <div style="font-size:10px;color:var(--text2)">1. miejsce</div>
-          <div style="font-size:14px;color:#c9a84c">💰 ${ct?.prizes?.[0]||0}</div>
+          <div style="font-size:14px;color:#c9a84c">💰 ${tPrizes[0]||0}</div>
+        </div>
+        <div style="flex:1;background:#0a140a;border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:10px;color:var(--text2)">2. miejsce</div>
+          <div style="font-size:14px;color:#8aab84">💰 ${tPrizes[1]||0}</div>
         </div>
         <div style="flex:1;background:#0a140a;border-radius:8px;padding:8px;text-align:center">
           <div style="font-size:10px;color:var(--text2)">Zapisani</div>
@@ -310,24 +387,28 @@ function renderTournamentsSection() {
       ${myEntry
         ?`<div style="padding:8px;background:rgba(74,171,112,0.1);border:1px solid rgba(74,171,112,0.3);border-radius:8px;font-size:12px;color:#4ab870;display:flex;justify-content:space-between;align-items:center">
             <span>✅ ${myEntry.horse?.flag||"🐴"} ${myEntry.horse?.name}</span>
-            <button onclick="unregisterTournament()" style="font-size:10px;border-color:#c94a4a;color:#c94a4a;padding:2px 8px">Wypisz +💰${ct?.entryFee||0}</button>
+            <button onclick="unregisterTournament()" style="font-size:10px;border-color:#c94a4a;color:#c94a4a;padding:2px 8px">Wypisz +💰${tEntryFee}</button>
           </div>`
-        :`<button onclick="openTournamentRegister('${tId}')" style="width:100%;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1);font-family:'Cinzel',serif">🏁 Zapisz konia · 💰 ${ct?.entryFee||0}</button>`
+        :`<button onclick="openTournamentRegister('${tId}')" style="width:100%;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1);font-family:'Cinzel',serif">🏁 Zapisz konia · 💰 ${tEntryFee}</button>`
       }
     </div>
-    <div style="font-size:10px;letter-spacing:2px;color:#8aab84;margin-bottom:8px">LOBBY</div>
+    <div style="font-size:10px;letter-spacing:2px;color:#8aab84;margin-bottom:8px">LOBBY (${tournamentEntries.length} graczy)</div>
     <div id="tournamentEntriesList"></div>
+    <div style="margin-top:12px;text-align:center">
+      <button onclick="renderTournamentsSection()" style="font-size:11px;border-color:#333;color:#666;padding:4px 12px">↻ Odśwież</button>
+    </div>
   `;
 
   renderTournamentEntries();
 
-  let cd=setInterval(()=>{
+  // Odliczanie
+  let cdInterval = setInterval(()=>{
     let el2=document.getElementById("tourneyCountdown");
-    if(!el2){clearInterval(cd);return;}
-    let diff=Math.max(0,next.nextTime-Date.now());
+    if(!el2){clearInterval(cdInterval);return;}
+    let diff=Math.max(0,tStartTime-Date.now());
     let h2=Math.floor(diff/3600000),m2=Math.floor((diff%3600000)/60000),s2=Math.floor((diff%60000)/1000);
     el2.textContent=`${h2}h ${m2}m ${s2}s`;
-    if(diff<=0){clearInterval(cd);renderTournamentsSection();}
+    if(diff<=0){clearInterval(cdInterval);}
   },1000);
 }
 

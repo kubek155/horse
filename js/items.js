@@ -181,6 +181,12 @@ function _doOpenLootBox(itemIdx) {
         ? drawHorseSVG(h.breedKey||h.name, h.rarity, h.stars) : null;
 
       if (playerHorses.length >= STABLE_LIMIT) {
+        // Sprawdź limit transporterów
+        let transporterCount = inventory.filter(i => (ITEMS_DATABASE[i.name]||{}).isTransporter && i.horse).length;
+        if (transporterCount >= 10) {
+          log(`⚠️ Limit transporterów (10)! Odbierz konie z transporterów żeby zrobić miejsce.`);
+          return;
+        }
         // Stajnia pełna — koń trafia do transportera w ekwipunku
         inventory.push({
           name:        "Transporter Konia",
@@ -440,8 +446,96 @@ function renderInventory() {
     return;
   }
 
+  const TRANSPORTER_LIMIT = 10;
+
+  // Podziel na transportery i resztę
+  let transporters = filtered.filter(i => (ITEMS_DATABASE[i.name]||{}).isTransporter && i.horse);
+  let regularItems = filtered.filter(i => !((ITEMS_DATABASE[i.name]||{}).isTransporter && i.horse));
+
   el.innerHTML = "";
-  filtered.forEach((item) => {
+
+  // ── SEKCJA TRANSPORTERÓW (jeśli są widoczne w tym tabie) ──
+  if ((invTab === "all" || invTab === "transport") && transporters.length > 0) {
+    let tHeader = document.createElement("div");
+    tHeader.style.cssText = "grid-column:1/-1;margin-bottom:4px";
+    let pct = transporters.length / TRANSPORTER_LIMIT;
+    let barColor = pct >= 1 ? "#c94a4a" : pct >= 0.7 ? "#c97c2a" : "#4ab870";
+    tHeader.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;color:#8aab84">🧳 TRANSPORTERY</div>
+        <div style="font-size:11px;color:${barColor}">${transporters.length} / ${TRANSPORTER_LIMIT}</div>
+      </div>
+      <div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:12px">
+        <div style="height:100%;width:${Math.min(100,pct*100)}%;background:${barColor};border-radius:2px;transition:width 0.5s"></div>
+      </div>
+    `;
+    el.appendChild(tHeader);
+
+    // Grid 2 kolumny dla transporterów
+    let tGrid = document.createElement("div");
+    tGrid.style.cssText = "grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;margin-bottom:16px";
+
+    transporters.forEach(item => {
+      let idx  = inventory.indexOf(item);
+      let h2   = item.horse;
+      let hrc  = RARITY_COLORS[h2.rarity]||"#8aab84";
+      let hlbl = RARITY_LABELS[h2.rarity]||h2.rarity;
+      let fee  = calcTransporterFee(h2);
+
+      let card = document.createElement("div");
+      card.style.cssText = `
+        border:1px solid ${hrc}44;border-radius:10px;background:var(--panel2);
+        display:flex;align-items:center;gap:10px;padding:10px 12px;
+      `;
+      card.innerHTML = `
+        <div class="transport-svg-slot" style="
+          width:72px;height:60px;flex-shrink:0;
+          background:var(--panel);border-radius:7px;overflow:hidden;
+          border:1px solid ${hrc}22;
+        "></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:9px;letter-spacing:1.5px;color:${hrc};opacity:0.7;margin-bottom:1px">TRANSPORTER</div>
+          <div style="font-family:'Cinzel',serif;font-size:12px;color:${hrc};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h2.name}</div>
+          <div style="font-size:10px;color:var(--text2)">${hlbl} · ${h2.gender==="male"?"♂":"♀"}</div>
+          <div style="font-size:10px;color:var(--text2);margin-top:1px">⚡${h2.stats.speed} 💪${h2.stats.strength} ❤️${h2.stats.stamina}</div>
+          <div style="font-size:10px;color:#c9a84c;margin-top:2px">Opłata: 💰${fee}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <button onclick="openHorsePicker(${idx})" style="border-color:${hrc};color:${hrc};background:${hrc}11;font-size:10px;padding:3px 8px;white-space:nowrap">Odbierz</button>
+          <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1);font-size:10px;padding:3px 8px" onclick="openListItem(${idx})">Sprzedaj</button>
+        </div>
+      `;
+      tGrid.appendChild(card);
+
+      let svgSlot = card.querySelector(".transport-svg-slot");
+      if (svgSlot && typeof drawHorseSVG === "function") {
+        let svgStr = drawHorseSVG(h2.breedKey||h2.name, h2.rarity, h2.stars||0);
+        svgSlot.innerHTML = svgStr;
+        let svgEl = svgSlot.querySelector("svg");
+        if (svgEl) { svgEl.setAttribute("width","72"); svgEl.setAttribute("height","60"); }
+      }
+    });
+    el.appendChild(tGrid);
+
+    // Ostrzeżenie o limicie
+    if (transporters.length >= TRANSPORTER_LIMIT) {
+      let warn = document.createElement("div");
+      warn.style.cssText = "grid-column:1/-1;padding:8px 12px;background:rgba(201,74,74,0.1);border:1px solid #c94a4a44;border-radius:8px;font-size:12px;color:#c94a4a;margin-bottom:12px;text-align:center";
+      warn.textContent = "⚠️ Limit transporterów osiągnięty! Odbierz konie żeby zwolnić miejsce.";
+      el.appendChild(warn);
+    }
+
+    // Separator
+    if (regularItems.length > 0) {
+      let sep = document.createElement("div");
+      sep.style.cssText = "grid-column:1/-1;font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;color:#8aab84;margin-bottom:8px;padding-top:4px;border-top:1px solid var(--border)";
+      sep.textContent = "PRZEDMIOTY";
+      el.appendChild(sep);
+    }
+  }
+
+  // ── SEKCJA ZWYKŁYCH PRZEDMIOTÓW ──
+  regularItems.forEach((item) => {
     let idx     = inventory.indexOf(item);
     let data    = ITEMS_DATABASE[item.name] || { icon:"📦", desc:"" };
     let isSlot  = !!data.isSlotItem;
@@ -458,61 +552,16 @@ function renderInventory() {
     let div = document.createElement("div");
     div.className = "inv-item";
     div.style.borderColor = rc;
-
-    if (data.isTransporter && item.horse) {
-      let h2   = item.horse;
-      let hrc  = RARITY_COLORS[h2.rarity]||"#8aab84";
-      let hlbl = RARITY_LABELS[h2.rarity]||h2.rarity;
-      let fee  = calcTransporterFee(h2);
-
-      // Karta transportera — szeroka, elegancka
-      div.className = "inv-item inv-transport";
-      div.style.cssText = `
-        border:1px solid ${hrc}55;border-radius:12px;background:var(--panel2);
-        display:flex;align-items:center;gap:14px;padding:12px 16px;
-        grid-column: span 2;
-      `;
-      div.innerHTML = `
-        <div class="transport-svg-slot" style="
-          width:100px;height:80px;flex-shrink:0;
-          background:var(--panel);border-radius:8px;overflow:hidden;
-          border:1px solid ${hrc}33;
-        "></div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:2px">🧳 TRANSPORTER</div>
-          <div style="font-family:'Cinzel',serif;font-size:14px;color:${hrc}">${h2.flag||"🐴"} ${h2.name}</div>
-          <div style="font-size:11px;color:var(--text2);margin-top:2px">${hlbl} · ${h2.type||""} · ${h2.gender==="male"?"♂ Ogier":"♀ Klacz"}</div>
-          <div style="font-size:11px;color:var(--text2);margin-top:3px">⚡${h2.stats.speed} 💪${h2.stats.strength} ❤️${h2.stats.stamina} 🍀${h2.stats.luck}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-          <div style="text-align:right">
-            <div style="font-size:10px;color:var(--text2)">Opłata</div>
-            <div style="font-family:'Cinzel',serif;font-size:14px;color:#c9a84c">💰 ${fee}</div>
-          </div>
-          <button onclick="openHorsePicker(${idx})" style="border-color:${hrc};color:${hrc};background:${hrc}11;font-size:11px;white-space:nowrap">🧳 Odbierz</button>
-          <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1);font-size:11px" onclick="openListItem(${idx})">🏪 Sprzedaj</button>
-        </div>
-      `;
-      el.appendChild(div);
-      let svgSlot = div.querySelector(".transport-svg-slot");
-      if (svgSlot && typeof drawHorseSVG === "function") {
-        let svgStr = drawHorseSVG(h2.breedKey||h2.name, h2.rarity, h2.stars||0);
-        svgSlot.innerHTML = svgStr;
-        let svgEl = svgSlot.querySelector("svg");
-        if (svgEl) { svgEl.setAttribute("width","100"); svgEl.setAttribute("height","80"); }
-      }
-    } else {
-      div.innerHTML = `
-        <span class="inv-icon">${(typeof ITEM_ICONS_SVG!=="undefined"&&ITEM_ICONS_SVG[item.name])?`<span style="display:inline-flex;width:36px;height:36px">${ITEM_ICONS_SVG[item.name]}</span>`:data.icon}</span>
-        <span class="inv-name">${item.name}</span>
-        ${bonusHtml}
-        <div class="inv-actions">
-          <button onclick="openHorsePicker(${idx})">${useLabel}</button>
-          <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1)" onclick="openListItem(${idx})">🏪</button>
-        </div>
-      `;
-      el.appendChild(div);
-    }
+    div.innerHTML = `
+      <span class="inv-icon">${(typeof ITEM_ICONS_SVG!=="undefined"&&ITEM_ICONS_SVG[item.name])?`<span style="display:inline-flex;width:36px;height:36px">${ITEM_ICONS_SVG[item.name]}</span>`:data.icon}</span>
+      <span class="inv-name">${item.name}</span>
+      ${bonusHtml}
+      <div class="inv-actions">
+        <button onclick="openHorsePicker(${idx})">${useLabel}</button>
+        <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1)" onclick="openListItem(${idx})">🏪</button>
+      </div>
+    `;
+    el.appendChild(div);
   });
 }
 

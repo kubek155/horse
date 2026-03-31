@@ -70,23 +70,37 @@ async function renderAdminTab(tab) {
   if (!el) return;
 
   if (tab === "tournaments") {
+    // SVG ikony typów turniejów
+    const T_TYPE_ICONS = {
+      sprint:     `<svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M5 12h14M14 7l5 5-5 5" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+      endurance:  `<svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M3 18 Q7 8 12 10 Q17 12 21 5" stroke="#4ab870" stroke-width="1.8" stroke-linecap="round" fill="none"/><circle cx="21" cy="5" r="2" fill="#4ab870"/></svg>`,
+      strength:   `<svg viewBox="0 0 24 24" fill="none" width="20" height="20"><rect x="5" y="10" width="14" height="4" rx="2" stroke="#c97c2a" stroke-width="1.5" fill="none"/><rect x="2" y="8" width="4" height="8" rx="1.5" fill="#c97c2a" opacity="0.8"/><rect x="18" y="8" width="4" height="8" rx="1.5" fill="#c97c2a" opacity="0.8"/></svg>`,
+      luck:       `<svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M12 2C8 2 5 5.5 5 9c0 5 7 13 7 13s7-8 7-13c0-3.5-3-7-7-7z" stroke="#4a9e6a" stroke-width="1.5" fill="none"/><circle cx="12" cy="9" r="2.5" fill="#4ab870" opacity="0.8"/></svg>`,
+      grand_prix: `<svg viewBox="0 0 24 24" fill="none" width="20" height="20"><polygon points="12,2 14.5,9 22,9 16,14 18.5,21 12,16.5 5.5,21 8,14 2,9 9.5,9" stroke="#c9a84c" stroke-width="1.5" fill="rgba(201,168,76,0.2)"/></svg>`,
+    };
+
     el.innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
         <!-- Stwórz turniej -->
         <div style="background:#0f1a0f;border:1px solid #1e3a1e;border-radius:12px;padding:16px">
-          <div style="font-family:'Cinzel',serif;font-size:12px;color:#c9a84c;margin-bottom:14px">STWÓRZ TURNIEJ</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+            <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><polygon points="12,2 14.5,9 22,9 16,14 18.5,21 12,16.5 5.5,21 8,14 2,9 9.5,9" stroke="#c9a84c" stroke-width="1.5" fill="rgba(201,168,76,0.15)"/></svg>
+            <div style="font-family:'Cinzel',serif;font-size:12px;color:#c9a84c">STWÓRZ TURNIEJ</div>
+          </div>
 
           <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;letter-spacing:1px">NAZWA</label>
           <input id="ad_tname" value="Turniej Mistrzów" style="width:100%;padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;margin-bottom:10px">
 
-          <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;letter-spacing:1px">TYP ZAWODÓW</label>
-          <select id="ad_ttype" style="width:100%;padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;margin-bottom:10px">
-            <option value="sprint">Sprint 400m (szybkość)</option>
-            <option value="endurance">Wyścig Wytrzymałościowy</option>
-            <option value="strength">Próba Siły</option>
-            <option value="luck">Turniej Fortuny</option>
-            <option value="grand_prix">Grand Prix (wszystkie staty)</option>
-          </select>
+          <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:6px;letter-spacing:1px">TYP ZAWODÓW</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px" id="ad_ttype_picker">
+            ${Object.entries({sprint:"Sprint 400m",endurance:"Maraton",strength:"Próba Siły",luck:"Turniej Fortuny",grand_prix:"Grand Prix"}).map(([id,label],i)=>`
+              <label style="display:flex;align-items:center;gap:6px;padding:8px;background:#131f13;border:1px solid ${i===0?"#c9a84c44":"#1e3a1e"};border-radius:8px;cursor:pointer" id="ad_tlabel_${id}" onclick="document.querySelectorAll('[id^=ad_tlabel_]').forEach(l=>l.style.borderColor='#1e3a1e');this.style.borderColor='#c9a84c44';document.getElementById('ad_ttype').value='${id}'">
+                <span style="display:inline-flex;width:20px;height:20px">${T_TYPE_ICONS[id]||""}</span>
+                <span style="font-size:11px;color:var(--text2)">${label}</span>
+              </label>
+            `).join("")}
+          </div>
+          <input type="hidden" id="ad_ttype" value="sprint">
 
           <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;letter-spacing:1px">START (za ile minut)</label>
           <input id="ad_tstart" type="number" value="60" min="1" style="width:100%;padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;margin-bottom:10px">
@@ -97,15 +111,24 @@ async function renderAdminTab(tab) {
           <div style="font-size:11px;color:var(--text2);margin-bottom:6px;letter-spacing:1px">NAGRODY (💰)</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px">
             <div>
-              <div style="font-size:10px;color:#f0d040;margin-bottom:3px">🥇 1. miejsce</div>
+              <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
+                <svg viewBox="0 0 16 16" fill="none" width="12" height="12"><circle cx="8" cy="7" r="5" stroke="#f0d040" stroke-width="1.3" fill="rgba(240,208,64,0.2)"/><text x="8" y="11" text-anchor="middle" fill="#f0d040" font-size="6" font-family="serif">1</text></svg>
+                <div style="font-size:10px;color:#f0d040">1. miejsce</div>
+              </div>
               <input id="ad_tp1" type="number" value="2000" style="width:100%;padding:6px;background:#131f13;border:1px solid #f0d04044;border-radius:6px;color:#f0d040;font-size:13px">
             </div>
             <div>
-              <div style="font-size:10px;color:#c0c0c0;margin-bottom:3px">🥈 2. miejsce</div>
+              <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
+                <svg viewBox="0 0 16 16" fill="none" width="12" height="12"><circle cx="8" cy="7" r="5" stroke="#c0c0c0" stroke-width="1.3" fill="rgba(192,192,192,0.15)"/><text x="8" y="11" text-anchor="middle" fill="#c0c0c0" font-size="6" font-family="serif">2</text></svg>
+                <div style="font-size:10px;color:#c0c0c0">2. miejsce</div>
+              </div>
               <input id="ad_tp2" type="number" value="1000" style="width:100%;padding:6px;background:#131f13;border:1px solid #c0c0c044;border-radius:6px;color:#c0c0c0;font-size:13px">
             </div>
             <div>
-              <div style="font-size:10px;color:#c97c2a;margin-bottom:3px">🥉 3. miejsce</div>
+              <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
+                <svg viewBox="0 0 16 16" fill="none" width="12" height="12"><circle cx="8" cy="7" r="5" stroke="#c97c2a" stroke-width="1.3" fill="rgba(201,124,42,0.15)"/><text x="8" y="11" text-anchor="middle" fill="#c97c2a" font-size="6" font-family="serif">3</text></svg>
+                <div style="font-size:10px;color:#c97c2a">3. miejsce</div>
+              </div>
               <input id="ad_tp3" type="number" value="500" style="width:100%;padding:6px;background:#131f13;border:1px solid #c97c2a44;border-radius:6px;color:#c97c2a;font-size:13px">
             </div>
           </div>
@@ -113,15 +136,19 @@ async function renderAdminTab(tab) {
           <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;letter-spacing:1px">MAX UCZESTNIKÓW</label>
           <input id="ad_tmax" type="number" value="20" min="2" max="100" style="width:100%;padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;margin-bottom:14px">
 
-          <button onclick="adminCreateTournament()" style="width:100%;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1);font-family:'Cinzel',serif">
-            🏆 Utwórz turniej
+          <button onclick="adminCreateTournament()" style="width:100%;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1);font-family:'Cinzel',serif;display:flex;align-items:center;justify-content:center;gap:8px">
+            <svg viewBox="0 0 20 20" fill="none" width="16" height="16"><polygon points="10,1 12.5,7.5 20,7.5 14,12 16.5,18.5 10,14.5 3.5,18.5 6,12 0,7.5 7.5,7.5" stroke="#c9a84c" stroke-width="1.5" fill="rgba(201,168,76,0.15)"/></svg>
+            Utwórz turniej
           </button>
         </div>
 
         <!-- Aktywne turnieje -->
         <div style="background:#0f1a0f;border:1px solid #1e3a1e;border-radius:12px;padding:16px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-            <div style="font-family:'Cinzel',serif;font-size:12px;color:#c9a84c">AKTYWNE TURNIEJE</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <svg viewBox="0 0 20 20" fill="none" width="16" height="16"><rect x="2" y="3" width="16" height="14" rx="2" stroke="#8aab84" stroke-width="1.3" fill="none"/><line x1="2" y1="8" x2="18" y2="8" stroke="#8aab84" stroke-width="1"/><line x1="7" y1="3" x2="7" y2="8" stroke="#8aab84" stroke-width="1"/><line x1="13" y1="3" x2="13" y2="8" stroke="#8aab84" stroke-width="1"/></svg>
+              <div style="font-family:'Cinzel',serif;font-size:12px;color:#c9a84c">AKTYWNE TURNIEJE</div>
+            </div>
             <button onclick="renderAdminTab('tournaments')" style="font-size:10px;border-color:#333;color:#666;padding:2px 8px">↻ Odśwież</button>
           </div>
           <div id="ad_activeTournaments" style="font-size:12px;color:var(--text2)">Ładowanie...</div>

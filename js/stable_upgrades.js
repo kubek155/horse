@@ -433,8 +433,11 @@ function openStableUpgradeScreen() {
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
           ${Object.entries(BUILD_MATERIALS).map(([name,d])=>{
             let have = countMaterial(name);
+            let svgIcon = (typeof ITEM_ICONS_SVG!=="undefined" && ITEM_ICONS_SVG[name])
+              ? `<div style="width:36px;height:36px;margin:0 auto 4px">${ITEM_ICONS_SVG[name]}</div>`
+              : `<div style="font-size:28px;margin-bottom:4px">${d.icon}</div>`;
             return `<div style="background:#131f13;border:1px solid ${have>0?"#c9a84c44":"#1e3a1e"};border-radius:10px;padding:12px;text-align:center">
-              <div style="font-size:28px;margin-bottom:4px">${d.icon}</div>
+              ${svgIcon}
               <div style="font-family:'Cinzel',serif;font-size:11px;color:${have>0?"#c9a84c":"#4a5a4a"}">${name}</div>
               <div style="font-size:18px;color:${have>0?"#d4e8d0":"#4a5a4a"};margin:4px 0">${have}</div>
               <div style="font-size:10px;color:var(--text2);line-height:1.3">${d.desc}</div>
