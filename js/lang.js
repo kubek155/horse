@@ -279,3 +279,7 @@ function closeLangModal() {
 document.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => { applyLanguage(); }, 300);
 });
+
+// Eksport globalny
+window.openLangModal = openLangModal;
+window.setLanguage = setLanguage;

@@ -258,20 +258,19 @@ let _activeTournamentDoc = null; // turniej z Firebase (admin)
 async function loadActiveTournamentFromFirebase() {
   if (!window.FB?.db) return null;
   try {
-    // UWAGA: bez orderBy żeby nie wymagać indeksu Firestore
-    let snap = await window.FB.db.collection("tournaments")
-      .where("active","==",true)
-      .limit(10)
-      .get();
+    // Pobieramy ostatnie 20 dokumentów bez żadnych filtrów - zero indeksów
+    let snap = await window.FB.db.collection("tournaments").limit(20).get();
     if (snap.empty) return null;
     let now = Date.now();
     let docs = snap.docs.map(d=>({id:d.id,...d.data()}));
-    // Sortuj lokalnie po startTime
-    docs.sort((a,b)=>(a.startTime||0)-(b.startTime||0));
-    // Preferuj turnieje aktywne (startTime w przyszłości lub max 3h temu)
-    let valid = docs.filter(t => (t.startTime||0) > now - 3*3600000);
-    let result = valid.length > 0 ? valid[0] : docs[0];
-    console.log("✅ Tournament from Firebase:", result?.name, result?.id);
+    // Filtruj i sortuj lokalnie
+    let active = docs.filter(t => t.active === true);
+    if (!active.length) return null;
+    active.sort((a,b)=>(a.startTime||0)-(b.startTime||0));
+    // Preferuj turnieje które jeszcze trwają (startTime < teraz + 24h, nie starsze niż 3h)
+    let valid = active.filter(t => (t.startTime||0) > now - 3*3600000);
+    let result = valid.length > 0 ? valid[0] : active[0];
+    console.log("✅ Firebase tournament:", result?.name, result?.id);
     return result;
   } catch(e) {
     console.warn("loadActiveTournament error:", e.message);

@@ -9,7 +9,7 @@ const MAX_PREGNANCIES = {
   rare:      5,
   epic:      6,
   legendary: 7,
-  mythic:    8,
+  mythic:    1,  // Pradawne konie mogą mieć tylko 1 ciążę
 };
 
 // Czas ciąży w ms — 48h = 172800000

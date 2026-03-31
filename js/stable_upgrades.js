@@ -218,8 +218,8 @@ function drawStableSVG(level) {
   <line x1="140" y1="18" x2="140" y2="62" stroke="${col.detail}" stroke-width="1.5" opacity="0.4"/>
 
   <!-- Drzwi -->
-  <rect x="112" y="90" width="32" height="40" rx="16 16 2 2" fill="${col.detail}" opacity="0.8"/>
-  <rect x="114" y="92" width="28" height="36" rx="14 14 2 2" fill="#1a0e06" opacity="0.7"/>
+  <rect x="112" y="90" width="32" height="40" rx="4" fill="${col.detail}" opacity="0.8"/>
+  <rect x="114" y="92" width="28" height="36" rx="3" fill="#1a0e06" opacity="0.7"/>
   <circle cx="138" cy="112" r="2.5" fill="${col.detail}"/>
 
   <!-- Belki poziome -->

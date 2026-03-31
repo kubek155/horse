@@ -552,7 +552,8 @@ function renderInventory() {
 
     let bonusHtml = (isSlot && item.bonus !== undefined)
       ? `<div class="inv-bonus">+${item.bonus} ${statIcon}</div>` : "";
-    let useLabel = isFood ? "🍎 Karm" : isSlot ? "✨ Slot" : isPass ? "🎫 Info" : isBreed ? "🍏 Hoduj" : "Użyj";
+    let isBox = item.name === "Skrzynka z Łupem" || item.name === "Skrzynka Startowa";
+  let useLabel = isFood ? "🍎 Karm" : isSlot ? "✨ Slot" : isPass ? "🎫 Info" : isBreed ? "🍏 Hoduj" : isBox ? "🎁 Otwórz" : "Użyj";
 
     let div = document.createElement("div");
     div.className = "inv-item";
@@ -562,7 +563,7 @@ function renderInventory() {
       <span class="inv-name">${item.name}</span>
       ${bonusHtml}
       <div class="inv-actions">
-        <button onclick="openHorsePicker(${idx})">${useLabel}</button>
+        <button onclick="${isBox ? 'openLootboxWithAnimation(' + idx + ')' : 'openHorsePicker(' + idx + ')'}">${useLabel}</button>
         <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1)" onclick="openListItem(${idx})">🏪</button>
       </div>
     `;

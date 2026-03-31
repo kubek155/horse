@@ -767,3 +767,21 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   border-radius: 3px;
   transition: width 0.6s ease;
 }
+
+/* =====================
+   ANIMACJA LOOTBOX CSGO
+   ===================== */
+@keyframes lbShine {
+  0%   { opacity:0; transform:translateX(-100%) rotate(30deg); }
+  50%  { opacity:0.15; }
+  100% { opacity:0; transform:translateX(200%) rotate(30deg); }
+}
+@keyframes lbCardPop {
+  0%   { transform:scale(0.8);opacity:0; }
+  60%  { transform:scale(1.05); }
+  100% { transform:scale(1);opacity:1; }
+}
+@keyframes lbGlow {
+  0%,100% { box-shadow:0 0 20px var(--glow-color,#c9a84c44); }
+  50%      { box-shadow:0 0 40px var(--glow-color,#c9a84c88), 0 0 80px var(--glow-color,#c9a84c22); }
+}
