@@ -460,10 +460,13 @@ async function renderAdminTab(tab) {
           </button>
         </div>
 
-        <!-- Historia giveaway -->
+        <!-- Aktywne i Historia giveaway -->
         <div style="background:#0f1a0f;border:1px solid #1e3a1e;border-radius:12px;padding:16px">
-          <div style="font-family:'Cinzel',serif;font-size:12px;color:#8aab84;margin-bottom:12px">HISTORIA GIVEAWAY</div>
-          <div id="gw_history" style="font-size:12px;color:var(--text2)">Ładowanie...</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div style="font-family:'Cinzel',serif;font-size:12px;color:#8aab84">GIVEAWAY</div>
+            <button onclick="adminLoadGiveawayHistory()" style="font-size:10px;border-color:#333;color:#666;padding:2px 8px">↻ Odśwież</button>
+          </div>
+          <div id="gw_history" style="font-size:12px;color:var(--text2);max-height:420px;overflow-y:auto">Ładowanie...</div>
         </div>
 
       </div>
@@ -911,36 +914,85 @@ async function _adminDrawGiveaway(gid) {
 async function adminLoadGiveawayHistory() {
   let el = document.getElementById("gw_history");
   if (!el || !window.FB) return;
+  el.innerHTML = '<div style="color:var(--text2);font-size:12px;padding:8px">Ładowanie...</div>';
   try {
-    let snap = await window.FB.db.collection("broadcasts")
-      .where("isGiveaway","==",true)
-      .limit(10)
-      .get();
-    if (snap.empty) { el.innerHTML = '<div style="color:var(--text2)">Brak historii giveaway</div>'; return; }
+    let snap = await window.FB.db.collection("giveaways").limit(20).get();
+    if (snap.empty) { el.innerHTML = '<div style="color:var(--text2);padding:8px;font-size:12px">Brak giveaway</div>'; return; }
     let docs = snap.docs.map(d=>({id:d.id,...d.data()}));
-    docs.sort((a,b)=>(b.sentAt?.seconds||0)-(a.sentAt?.seconds||0));
+    docs.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     el.innerHTML = "";
-    docs.forEach(d => {
-      let row = document.createElement("div");
-      row.style.cssText = "padding:10px;background:#131f13;border:1px solid #c9a84c22;border-radius:8px;margin-bottom:6px";
-      let time = d.sentAt?.seconds ? new Date(d.sentAt.seconds*1000).toLocaleString("pl-PL") : "—";
-      let type = d.giftHorse ? "🐴 Koń" : d.giftItem ? "📦 "+d.giftItem : "💰 "+d.reward;
-      row.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:start">
-          <div>
-            <div style="font-size:12px;color:#c9a84c">${d.title||"Giveaway"}</div>
-            <div style="font-size:11px;color:var(--text2);margin-top:2px">${type}</div>
-            <div style="font-size:10px;color:#4a5a4a;margin-top:2px">${d.msg||""}</div>
-          </div>
-          <div style="text-align:right;flex-shrink:0">
-            <div style="font-size:10px;color:var(--text2)">${time}</div>
-            <div style="font-size:10px;color:#4ab870;margin-top:2px">👥 ${(d.readBy||[]).length} odebrano</div>
-          </div>
-        </div>
-      `;
-      el.appendChild(row);
-    });
+
+    // Nagłówek z podziałem Aktywne / Historia
+    let now = Date.now();
+    let active  = docs.filter(d => d.active && (d.drawTime||0) + 60000 > now);
+    let history = docs.filter(d => !d.active || (d.drawTime||0) + 60000 <= now);
+
+    if (active.length) {
+      let hdr = document.createElement("div");
+      hdr.style.cssText = "font-size:9px;letter-spacing:2px;color:#4ab870;margin-bottom:8px;margin-top:4px";
+      hdr.textContent = "AKTYWNE";
+      el.appendChild(hdr);
+      active.forEach(d => _renderAdminGiveawayRow(el, d, true));
+    }
+
+    if (history.length) {
+      let hdr2 = document.createElement("div");
+      hdr2.style.cssText = "font-size:9px;letter-spacing:2px;color:#555;margin-bottom:8px;margin-top:12px";
+      hdr2.textContent = "HISTORIA";
+      el.appendChild(hdr2);
+      history.forEach(d => _renderAdminGiveawayRow(el, d, false));
+    }
+
   } catch(e) { el.innerHTML = `<div style="color:#c94a4a;font-size:11px">${e.message}</div>`; }
+}
+
+function _renderAdminGiveawayRow(container, d, isActive) {
+  let row = document.createElement("div");
+  let now = Date.now();
+  let msLeft = Math.max(0, (d.drawTime||0) - now);
+  let mLeft  = Math.floor(msLeft/60000);
+  let timeStr = msLeft > 0 ? `Za ${mLeft} min` : (d.winner ? "✅ Wylosowano" : "Zakończony");
+  let rewardStr = d.rewardType==="horse" ? `🐴 ${d.rewardRarity||"?"}`
+                : d.rewardType==="item"  ? `📦 ${d.rewardItem||"?"}`
+                : `💰 ${d.rewardAmount||0}`;
+
+  row.style.cssText = `padding:10px 12px;background:#131f13;border:1px solid ${isActive?"#4ab87033":"#1e3a1e"};border-radius:10px;margin-bottom:8px`;
+  row.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+          <div style="width:7px;height:7px;border-radius:50%;background:${isActive?"#4ab870":"#555"};flex-shrink:0"></div>
+          <div style="font-size:12px;color:${isActive?"#c9a84c":"var(--text2)"};font-family:'Cinzel',serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.title||"Giveaway"}</div>
+        </div>
+        <div style="font-size:11px;color:var(--text2)">${rewardStr} · ${timeStr}</div>
+        <div style="font-size:10px;color:#4a5a4a">👥 ${(d.participants||[]).length} uczestników${d.winner?" · 🏆 "+d.winner.nick:""}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+        ${isActive ? `<button onclick="adminForceDrawGiveaway('${d.id}')" style="font-size:9px;border-color:#c9a84c44;color:#c9a84c;padding:3px 7px;white-space:nowrap">▶ Losuj teraz</button>` : ""}
+        <button onclick="adminDeleteGiveaway('${d.id}')" style="font-size:9px;border-color:#c94a4a44;color:#c94a4a;padding:3px 7px">✕ Usuń</button>
+      </div>
+    </div>
+  `;
+  container.appendChild(row);
+}
+
+async function adminDeleteGiveaway(gid) {
+  if (!window.FB) return;
+  if (!confirm("Usunąć ten giveaway?")) return;
+  try {
+    await window.FB.db.collection("giveaways").doc(gid).update({ active:false });
+    log("🗑️ Giveaway zakończony/usunięty.");
+    adminLoadGiveawayHistory();
+  } catch(e) { log("⚠️ Błąd: " + e.message); }
+}
+
+async function adminForceDrawGiveaway(gid) {
+  if (!window.FB) return;
+  try {
+    await _adminDrawGiveaway(gid);
+    adminLoadGiveawayHistory();
+    log("🎡 Losowanie wykonane!");
+  } catch(e) { log("⚠️ Błąd: " + e.message); }
 }
 
 async function checkBroadcasts() {

@@ -60,6 +60,10 @@ function renderTournamentsSection() {
     return;
   }
 
+  // Wyczyść stare timery i subskrypcje przed ponownym renderem
+  Object.values(_raceIntervals).forEach(iv => clearInterval(iv)); _raceIntervals = {};
+  Object.values(_tourneyUnsubs).forEach(u => u && u()); _tourneyUnsubs = {};
+
   el.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text2);font-size:13px">🏆 Ładowanie turniejów...</div>`;
 
   loadAllActiveTournaments().then(tourneys => {
@@ -96,8 +100,12 @@ function _renderAllTournaments(tourneys) {
     return;
   }
 
-  // Renderuj każdy turniej
-  tourneys.forEach(t => _renderOneTournament(el, t));
+  // Renderuj każdy turniej (sprawdź czy karta już istnieje)
+  tourneys.forEach(t => {
+    let existing = document.getElementById("tourney_card_" + t.id);
+    if (existing) return; // już wyrenderowana - nie duplikuj
+    _renderOneTournament(el, t);
+  });
 }
 
 const TOURNEY_TYPE_SVG = {

@@ -55,16 +55,27 @@ function loadGame() {
 // =====================
 // RENDER ALL
 // =====================
+
+// ── Helper: sprawdź czy sekcja jest widoczna ──────────────
+function _sectionVisible(id) {
+  let el = document.getElementById(id + "Section");
+  return el && el.style.display !== "none";
+}
+
 function renderAll() {
+  // Renderuj tylko widoczne sekcje (oprócz zawsze potrzebnych)
   renderLimitBar();
   // renderExpeditions jest w setInterval co 1s — nie przebudowuj co 5s
-  renderHorses();
-  renderInventory();
-  renderShop();
-  renderMarket();
-  renderQuests();
-  renderEncyclopedia();
-  renderDropHistory();
+  if (_sectionVisible("stable"))    renderHorses();
+  if (_sectionVisible("inventory"))  renderInventory();
+  if (_sectionVisible("shop"))       renderShop();
+  if (_sectionVisible("market"))     renderMarket();
+  if (_sectionVisible("quests"))     renderQuests();
+  // Renderuj tylko jeśli sekcja jest widoczna
+  let _visEnc = document.getElementById("encyclopediaSection");
+  if (_visEnc && _visEnc.style.display !== "none") renderEncyclopedia();
+  let _visDrop = document.getElementById("dropsSection");
+  if (_visDrop && _visDrop.style.display !== "none") renderDropHistory();
   renderLevelBar();
   if (typeof renderFirebaseStatus === "function") renderFirebaseStatus();
   // Aktualizuj badge poziomu stajni

@@ -2,7 +2,9 @@
 // SYSTEM GIVEAWAY — Koło Fortuny
 // =====================
 
-let _giveawayUnsub = null;
+let _giveawayUnsubs = {};  // mapa unsub per giveaway ID
+let _gwTimers = [];  // globalny tracker timerów — czyszczone przy re-render
+
 
 // ── Render sekcji giveaway ─────────────────────────────────
 function renderGiveawaySection() {
@@ -21,6 +23,9 @@ function renderGiveawaySection() {
     return;
   }
 
+  // Wyczyść stare timery i subskrypcje
+  _gwTimers.forEach(iv => clearInterval(iv)); _gwTimers = [];
+  Object.values(_giveawayUnsubs).forEach(u => u && u()); _giveawayUnsubs = {};
   content.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text2)">⏳ Ładowanie...</div>`;
   _loadActiveGiveaways();
 }
@@ -125,9 +130,9 @@ function _renderGiveawayCard(container, g) {
   _renderGwAction(g.id, g, myId, myNick, hasJoined, isWinner, phase);
   _startGwTimer(g);
 
-  // Subskrybuj zmiany
-  if (_giveawayUnsub) { _giveawayUnsub(); }
-  _giveawayUnsub = window.FB.db.collection("giveaways").doc(g.id)
+  // Subskrybuj zmiany per ID
+  if (_giveawayUnsubs[g.id]) _giveawayUnsubs[g.id]();
+  _giveawayUnsubs[g.id] = window.FB.db.collection("giveaways").doc(g.id)
     .onSnapshot(snap => {
       if (!snap.exists) return;
       let updated = {id:snap.id,...snap.data()};
@@ -237,6 +242,7 @@ function _startGwTimer(g) {
   };
   update();
   let timerIv = setInterval(update, 1000);
+  _gwTimers.push(timerIv);
 }
 
 // ── Koło Fortuny ───────────────────────────────────────────

@@ -1,5 +1,21 @@
 // main.js — startuje grę natychmiast, Firebase dołącza się asynchronicznie
 
+
+// ── Ripple animacja na wszystkich przyciskach ──────────────
+document.addEventListener("click", (e) => {
+  let btn = e.target.closest("button");
+  if (!btn) return;
+  let ripple = document.createElement("span");
+  ripple.className = "btn-ripple";
+  let rect = btn.getBoundingClientRect();
+  let size = Math.max(rect.width, rect.height);
+  ripple.style.width  = ripple.style.height = size + "px";
+  ripple.style.left   = (e.clientX - rect.left  - size/2) + "px";
+  ripple.style.top    = (e.clientY - rect.top   - size/2) + "px";
+  btn.appendChild(ripple);
+  ripple.addEventListener("animationend", () => ripple.remove());
+}, true);
+
 document.addEventListener("DOMContentLoaded", () => {
 
   // 1. Start gry lokalnie — natychmiast

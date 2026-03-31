@@ -785,3 +785,27 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   0%,100% { box-shadow:0 0 20px var(--glow-color,#c9a84c44); }
   50%      { box-shadow:0 0 40px var(--glow-color,#c9a84c88), 0 0 80px var(--glow-color,#c9a84c22); }
 }
+
+/* =====================
+   RIPPLE ANIMACJA PRZYCISKÓW
+   ===================== */
+button {
+  position: relative;
+  overflow: hidden;
+}
+.btn-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  transform: scale(0);
+  animation: rippleEffect 0.5s linear;
+  pointer-events: none;
+}
+@keyframes rippleEffect {
+  to { transform: scale(4); opacity: 0; }
+}
+/* Feedback wizualny przy kliknięciu */
+button:active {
+  transform: scale(0.97);
+  transition: transform 0.08s ease;
+}
