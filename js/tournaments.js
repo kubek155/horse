@@ -30,9 +30,14 @@ async function loadAllActiveTournaments() {
     let snap = await window.FB.db.collection("tournaments").limit(30).get();
     let now  = Date.now();
     let docs = snap.docs.map(d=>({id:d.id,...d.data()}));
-    // Aktywne = active:true I raceEnd < now+24h (nie starsze niż 24h po zakończeniu)
-    return docs.filter(t => t.active && (t.startTime||0) + 10*60*1000 > now - 60*60*1000)
-               .sort((a,b)=>(a.startTime||0)-(b.startTime||0));
+    // Pokaż tylko turnieje w fazie zapisów lub wyścigu (nie zakończone)
+    // Zakończone = startTime + 10min + 60s buffer upłynął
+    let SHOW_BUFFER = 60 * 1000; // 60s po końcu wyścigu jeszcze widoczny
+    return docs.filter(t => {
+      if (!t.active) return false;
+      let raceEnd = (t.startTime||0) + 10*60*1000;
+      return Date.now() < raceEnd + SHOW_BUFFER;
+    }).sort((a,b)=>(a.startTime||0)-(b.startTime||0));
   } catch(e) {
     console.warn("loadAllActiveTournaments:", e.message);
     return [];
@@ -218,6 +223,18 @@ function _startTourneyTimer(t, myId, ct) {
       timerEl.innerHTML = `<div style="font-size:12px;color:#555">Zakończony</div>`;
       _renderFinishedPhase(phaseEl, t, myId, ct);
       clearInterval(_raceIntervals[t.id]);
+      // Usuń kartę po 60 sekundach
+      setTimeout(() => {
+        let card = document.getElementById("tourney_card_" + t.id);
+        if (card) {
+          card.style.transition = "opacity 1s, max-height 1s";
+          card.style.opacity = "0";
+          card.style.overflow = "hidden";
+          card.style.maxHeight = card.offsetHeight + "px";
+          setTimeout(() => { card.style.maxHeight = "0"; card.style.marginBottom = "0"; card.style.padding = "0"; }, 100);
+          setTimeout(() => card.remove(), 1100);
+        }
+      }, 60000);
     }
   }
 
