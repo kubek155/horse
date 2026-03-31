@@ -273,7 +273,7 @@ function renderMarket() {
       let luckVal = h.stats.luck || 0;
       div.innerHTML = `
         <div class="mc-header">
-          <span class="mc-icon">🐴</span>
+          <span class="mc-icon" style="width:52px;height:52px;flex-shrink:0">${(typeof renderHorseMiniSVG==="function")?renderHorseMiniSVG(h,52):h.flag||"🐴"}</span>
           <div style="flex:1">
             <div class="mc-name" style="color:${col}">${h.name}${h.stars > 0 ? " " + "⭐".repeat(h.stars) : ""}${h.parents ? ` <span style="font-size:10px;opacity:0.7">· hodowany</span>` : ""}</div>
             <div class="mc-sub">${HORSE_DATABASE[h.group]?.name || h.group} · 🎂 ${getHorseAgeDays(h)} dni</div>
@@ -310,7 +310,7 @@ function renderMarket() {
 
       div.innerHTML = `
         <div class="mc-header">
-          <span class="mc-icon">${data.icon}</span>
+          <span class="mc-icon" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center">${(typeof renderItemIconSVG==="function")?renderItemIconSVG(offer.item.name,40):data.icon}</span>
           <div style="flex:1">
             <div class="mc-name">${offer.item.name}</div>
             <div class="mc-sub">${descLine}</div>

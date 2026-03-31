@@ -1,3 +1,16 @@
+
+// rareShop — 5% szans że item pojawi się w danym oknie 48h
+function isRareShopAvailable(item) {
+  if (!item.rareShop) return true;
+  // Seed oparty na nazwie itemu + aktualnym oknie 48h
+  let window48 = Math.floor(Date.now() / (48*3600000));
+  // Deterministyczny hash — żeby każdy gracz widział to samo
+  let hash = 0;
+  let key  = item.name + "_" + window48;
+  for (let i=0; i<key.length; i++) hash = (hash*31 + key.charCodeAt(i)) & 0xffffffff;
+  let pseudo = Math.abs(hash) / 0xffffffff;
+  return pseudo < item.rareChance;
+}
 function getElixirSold() { return parseInt(localStorage.getItem("hh_elixir_sold"))||0; }
 function addElixirSold()  { localStorage.setItem("hh_elixir_sold", getElixirSold()+1); }
 const ELIXIR_AVAILABLE = Math.random() < 0.10 && getElixirSold() < 5;
@@ -38,6 +51,11 @@ function shopTimeLeft(item) {
 
 function buyItem(idx) {
   let item = SHOP_ITEMS[idx];
+  // rareShop — 5% szans co 48h
+  if (item.rareShop && !isRareShopAvailable(item)) {
+    log("⚠️ Ten przedmiot nie jest dziś dostępny w sklepie!");
+    return;
+  }
   // Sprawdź limit czasowy
   let limit   = getShopLimit(item);
   let bought  = getShopBought(item);
@@ -107,12 +125,13 @@ function renderShop() {
         }
       }
 
-      let limit     = getShopLimit(item);
-      let bought    = getShopBought(item);
-      let limitLeft = limit - bought.count;
-      let timeLeft  = shopTimeLeft(item);
-      let available2= limitLeft > 0;
-      let canAfford = gold >= item.price && available && available2;
+      let limit      = getShopLimit(item);
+      let bought     = getShopBought(item);
+      let limitLeft  = limit - bought.count;
+      let timeLeft   = shopTimeLeft(item);
+      let rareAvail  = isRareShopAvailable(item);
+      let available2 = limitLeft > 0 && rareAvail;
+      let canAfford  = gold >= item.price && available && available2;
       let div = document.createElement("div");
       div.className = "shop-item";
       if (borderOverride) div.style.borderColor = borderOverride;

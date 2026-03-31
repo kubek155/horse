@@ -137,8 +137,11 @@ const RECIPES = [
 ];
 
 const CRAFT_CAT_LABELS = {
-  hodowla:"🧬 Hodowla", sloty:"✨ Sloty", inne:"📦 Inne",
-  materiały:"🪵 Materiały", eliksiry:"🧪 Eliksiry",
+  hodowla:"<span style='display:inline-flex;width:14px;height:14px;vertical-align:middle'><svg viewBox='0 0 18 18' fill='none'><circle cx='9' cy='9' r='7' stroke='#f0a0c8' stroke-width='1.5' fill='none'/><path d='M6 9h6M9 6v6' stroke='#f0a0c8' stroke-width='1.5'/></svg></span> Hodowla",
+  sloty:"<span style='display:inline-flex;width:14px;height:14px;vertical-align:middle'><svg viewBox='0 0 18 18' fill='none'><polygon points='9,2 11,7 16,7 12,11 14,16 9,13 4,16 6,11 2,7 7,7' stroke='#c9a84c' stroke-width='1.2' fill='none'/></svg></span> Sloty",
+  inne:"<span style='display:inline-flex;width:14px;height:14px;vertical-align:middle'><svg viewBox='0 0 18 18' fill='none'><rect x='3' y='9' width='12' height='8' rx='1.5' stroke='#8aab84' stroke-width='1.5' fill='none'/><path d='M5 9V7a4 4 0 018 0v2' stroke='#8aab84' stroke-width='1.5' fill='none'/></svg></span> Inne",
+  materiały:"<span style='display:inline-flex;width:14px;height:14px;vertical-align:middle'><svg viewBox='0 0 18 18' fill='none'><rect x='3' y='8' width='12' height='5' rx='1' stroke='#8B5E3C' stroke-width='1.5' fill='none'/><rect x='4' y='11' width='10' height='4' rx='1' stroke='#A0723A' stroke-width='1' fill='none'/></svg></span> Materiały",
+  eliksiry:"<span style='display:inline-flex;width:14px;height:14px;vertical-align:middle'><svg viewBox='0 0 18 18' fill='none'><path d='M7 3h4v4l3 7H4L7 7z' stroke='#4a7ec8' stroke-width='1.5' fill='none'/></svg></span> Eliksiry",
 };
 
 let craftCat = "hodowla";
@@ -171,7 +174,13 @@ function renderCraftingSection() {
   // Pasek materiałów
   let matsBar = document.getElementById("craftMatsBar");
   if (matsBar) {
-    let mats = Object.entries(BUILD_MATERIALS||{}).map(([name,d])=>`${d.icon}${countInv(name)}`).join(" ");
+    let mats = Object.entries(BUILD_MATERIALS||{}).map(([name,d])=>{
+    let svg = (typeof ITEM_ICONS_SVG!=="undefined"&&ITEM_ICONS_SVG[name])
+      ? `<span style="display:inline-flex;width:16px;height:16px;vertical-align:middle">${ITEM_ICONS_SVG[name]}</span>`
+      : d.icon;
+    let have = countInv(name);
+    return `<span style="opacity:${have>0?1:0.35}">${svg}<span style="font-size:10px;color:${have>0?"#c9a84c":"#444"}">${have}</span></span>`;
+  }).join(" ");
     matsBar.innerHTML = mats;
   }
   renderCraftingGrid();

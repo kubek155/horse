@@ -376,15 +376,15 @@ function getItemCategory(name) {
 }
 
 const INV_TABS = [
-  { id:"all",       label:"Wszystko",    icon:"🎒" },
-  { id:"food",      label:"Jedzenie",    icon:"🍎" },
-  { id:"breed",     label:"Hodowla",     icon:"🍏" },
-  { id:"elixir",    label:"Eliksiry",    icon:"🧪" },
-  { id:"slot",      label:"Sloty",       icon:"✨" },
-  { id:"pass",      label:"Przepustki",  icon:"🎫" },
-  { id:"build",     label:"Budowlane",   icon:"🪵" },
-  { id:"transport", label:"Transportery",icon:"🧳" },
-  { id:"other",     label:"Inne",        icon:"📦" },
+  { id:"all",       label:"Wszystko",    svg:`<svg viewBox="0 0 16 16" fill="none"><rect x="3" y="6" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 6V4.5A3 2.5 0 0111 4.5V6" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>` },
+  { id:"food",      label:"Jedzenie",    svg:`<svg viewBox="0 0 16 16" fill="none"><path d="M8 2c-3 0-5 3-5 6s2 6 5 6 5-3 5-6-2-6-5-6z" fill="#e84c3d" opacity=".9"/><path d="M7.5 2.5L7 1" stroke="#3a6a1a" stroke-width="1.2" fill="none"/></svg>` },
+  { id:"breed",     label:"Hodowla",     svg:`<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#f0a0c8" stroke-width="1.3" fill="none"/><path d="M5 8h6M8 5v6" stroke="#f0a0c8" stroke-width="1.3"/></svg>` },
+  { id:"elixir",    label:"Eliksiry",    svg:`<svg viewBox="0 0 16 16" fill="none"><path d="M6 2h4v4l3 7H3L6 6z" stroke="#4a7ec8" stroke-width="1.3" fill="none"/></svg>` },
+  { id:"slot",      label:"Sloty",       svg:`<svg viewBox="0 0 16 16" fill="none"><polygon points="8,1.5 9.8,6 14.5,6 10.8,8.8 12.5,13.5 8,10.5 3.5,13.5 5.2,8.8 1.5,6 6.2,6" stroke="#c9a84c" stroke-width="1.2" fill="none"/></svg>` },
+  { id:"pass",      label:"Przepustki",  svg:`<svg viewBox="0 0 16 16" fill="none"><rect x="2" y="5" width="12" height="7" rx="1.5" stroke="#4a9e6a" stroke-width="1.3" fill="none"/><circle cx="5.5" cy="8.5" r="1" fill="#4a9e6a"/><line x1="8" y1="7" x2="12" y2="7" stroke="#4a9e6a" stroke-width="1"/><line x1="8" y1="10" x2="11" y2="10" stroke="#4a9e6a" stroke-width="1"/></svg>` },
+  { id:"build",     label:"Budowlane",   svg:`<svg viewBox="0 0 16 16" fill="none"><rect x="2" y="7" width="12" height="5" rx="1" stroke="#8B5E3C" stroke-width="1.3" fill="none"/><rect x="3" y="10" width="10" height="3" rx="0.5" stroke="#A0723A" stroke-width="1" fill="none"/></svg>` },
+  { id:"transport", label:"Transportery",svg:`<svg viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="9" rx="1.5" stroke="#888" stroke-width="1.3" fill="none"/><path d="M6 8c0-2 4-2 4 0" stroke="#aaa" stroke-width="1" fill="none"/><circle cx="5.5" cy="13" r="1.5" fill="#555" stroke="#777" stroke-width="1"/><circle cx="10.5" cy="13" r="1.5" fill="#555" stroke="#777" stroke-width="1"/></svg>` },
+  { id:"other",     label:"Inne",        svg:`<svg viewBox="0 0 16 16" fill="none"><rect x="2" y="7" width="12" height="8" rx="1" stroke="#8aab84" stroke-width="1.3" fill="none"/><rect x="6" y="5" width="4" height="4" rx="0.5" stroke="#8aab84" stroke-width="1.3" fill="none"/></svg>` },
 ];
 
 function renderInventory() {

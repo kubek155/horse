@@ -154,3 +154,21 @@ function switchQuestTab(tab) {
   if (tab==="weekly" && typeof renderWeeklyQuests==="function") renderWeeklyQuests();
   if (tab==="ach" && typeof renderAchievements==="function") renderAchievements();
 }
+
+// Pomocnicza - SVG konia miniaturka (dla rynku itp.)
+function renderHorseMiniSVG(h, size=52) {
+  let svgStr = (typeof drawHorseSVG === "function")
+    ? drawHorseSVG(h.breedKey||h.name, h.rarity, h.stars||0)
+    : null;
+  if (!svgStr) return `<span style="font-size:${size*0.6}px">${h.flag||"🐴"}</span>`;
+  return `<div style="width:${size}px;height:${size}px;overflow:hidden;border-radius:6px">${svgStr.replace(/width="[^"]*"/, `width="${size}"`).replace(/height="[^"]*"/, `height="${size}"`)}</div>`;
+}
+
+// SVG ikona itemu (lub fallback emoji)
+function renderItemIconSVG(name, size=36) {
+  if (typeof ITEM_ICONS_SVG !== "undefined" && ITEM_ICONS_SVG[name]) {
+    return `<div style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center">${ITEM_ICONS_SVG[name]}</div>`;
+  }
+  let d = (typeof ITEMS_DATABASE !== "undefined" && ITEMS_DATABASE[name]) || { icon:"📦" };
+  return `<span style="font-size:${size*0.7}px">${d.icon}</span>`;
+}
