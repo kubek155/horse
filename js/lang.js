@@ -184,7 +184,8 @@ function setLanguage(lang) {
 
 function applyLanguage() {
   let L = getLang();
-  // Menu items
+
+  // 1. Menu
   const menuMap = {
     expedition:"menu_expedition", stable:"menu_stable", inventory:"menu_inventory",
     shop:"menu_shop", crafting:"menu_crafting", market:"menu_market",
@@ -199,45 +200,65 @@ function applyLanguage() {
     let badgeEl = el.querySelector("span[id]");
     let svgHtml = svgEl ? svgEl.outerHTML + " " : "";
     let badgeHtml = badgeEl ? " " + badgeEl.outerHTML : "";
-    el.innerHTML = svgHtml + (L[key]||key) + badgeHtml;
+    el.innerHTML = svgHtml + (L[key] || key) + badgeHtml;
   });
 
-  // Zakładki ekwipunku
-  const invTabMap = {all:"inv_all",food:"inv_food",breed:"inv_breed",elixir:"inv_elixir",
-    slot:"inv_slot",pass:"inv_pass",build:"inv_build",transport:"inv_transport",other:"inv_other"};
-  Object.entries(invTabMap).forEach(([id,key])=>{
-    let btn = document.querySelector(`.inv-tab-btn[data-tab="${id}"]`);
-    if (!btn) return;
-    let svgEl = btn.querySelector("span");
-    let svgHtml = svgEl ? svgEl.outerHTML + " " : "";
-    let countMatch = btn.innerHTML.match(/\(<span[^>]*>(\d+)<\/span>\)/);
-    let countHtml = countMatch ? ` <span style="font-size:10px;opacity:0.7">(${countMatch[1]})</span>` : "";
-    btn.innerHTML = svgHtml + (L[key]||key) + countHtml;
-  });
-
-  // Nagłówki sekcji — data-i18n
+  // 2. Nagłówki sekcji (data-i18n)
   document.querySelectorAll("[data-i18n]").forEach(el => {
     let key = el.dataset.i18n;
     if (L[key]) el.textContent = L[key];
   });
 
-  // Zakładki sklepu (grupy)
-  const shopGroupMap = {
-    "Jedzenie & Leczenie":"shop_food",
-    "Eliksiry (jednorazowe)":"shop_elixirs",
-    "Przedmioty do slotów":"shop_slots",
-    "Hodowla":"shop_breed",
-    "Specjalne":"shop_special",
-    "Food & Healing":"shop_food",
-  };
+  // 3. Zakładki ekwipunku
+  const invTabMap = {all:"inv_all",food:"inv_food",breed:"inv_breed",elixir:"inv_elixir",
+    slot:"inv_slot",pass:"inv_pass",build:"inv_build",transport:"inv_transport",other:"inv_other"};
+  Object.entries(invTabMap).forEach(([id, key]) => {
+    let btn = document.querySelector(`.inv-tab-btn[data-tab="${id}"]`);
+    if (!btn) return;
+    let svgSpan = btn.querySelector("span[style]");
+    let svgHtml = svgSpan ? svgSpan.outerHTML + " " : "";
+    let countMatch = btn.textContent.match(/\((\d+)\)/);
+    let countHtml = countMatch ? ` <span style="font-size:10px;opacity:0.7">(${countMatch[1]})</span>` : "";
+    btn.innerHTML = svgHtml + (L[key] || key) + countHtml;
+  });
+
+  // 4. Grupy sklepu
+  const shopPL = {"Jedzenie & Leczenie":"shop_food","Eliksiry (jednorazowe)":"shop_elixirs",
+    "Przedmioty do slotów":"shop_slots","Hodowla":"shop_breed","Specjalne":"shop_special"};
+  const shopEN = {"Food & Healing":"shop_food","Elixirs (one-use)":"shop_elixirs",
+    "Slot Items":"shop_slots","Breeding":"shop_breed","Special":"shop_special"};
+  const shopDE = {"Essen & Heilung":"shop_food","Elixiere (einmalig)":"shop_elixirs",
+    "Slot-Gegenstände":"shop_slots","Zucht":"shop_breed","Spezial":"shop_special"};
+  const shopFR = {"Nourriture & Soins":"shop_food","Élixirs (usage unique)":"shop_elixirs",
+    "Objets d'emplacement":"shop_slots","Élevage":"shop_breed","Spécial":"shop_special"};
+  const allShopMaps = {...shopPL, ...shopEN, ...shopDE, ...shopFR};
   document.querySelectorAll(".shop-group-header").forEach(el => {
-    let key = shopGroupMap[el.textContent.trim()];
+    let key = allShopMaps[el.textContent.trim()];
     if (key && L[key]) el.textContent = L[key];
   });
 
-  // Aktualizuj przycisk wyboru języka
+  // 5. Sekcja tytuły (section-title)
+  const sectionTitleMap = {
+    "Wyprawy":"exp_daily_limit", "Stajnia":"stable_title",
+    "Ekwipunek":"inv_title", "Sklep":"shop_title",
+    "Crafting":"craft_title", "Rynek":"market_title",
+    "Turnieje":"tourn_title", "Questy":"quest_title",
+  };
+  // (opcjonalne — section-title ma SVG więc nie nadpisujemy)
+
+  // 6. Przycisk języka
   let langBtn = document.getElementById("langToggleBtn");
   if (langBtn) langBtn.innerHTML = `${L.flag} ${L.name} ▾`;
+
+  // 7. Przeładuj dynamiczne sekcje jeśli są widoczne
+  let visShop = document.getElementById("shopSection");
+  if (visShop && visShop.style.display !== "none" && typeof renderShop === "function") {
+    setTimeout(renderShop, 50);
+  }
+  let visInv = document.getElementById("inventorySection");
+  if (visInv && visInv.style.display !== "none" && typeof renderInventory === "function") {
+    setTimeout(renderInventory, 50);
+  }
 }
 
 // Modal wyboru języka
