@@ -23,7 +23,7 @@ const STABLE_LEVELS = [
   },
   {
     level:2, horses:10, cost:1500,  bonus:"Solidna stajnia",        icon:"🏡",
-    levelBonus: { type:"hunger_regen", val:0.10, label:"+10% reg. głodu", svgKey:"garden" },
+    levelBonus: { type:"auto_feed", val:1, label:"Automatyczne karmienie (jedzenie z Eq)", svgKey:"garden" },
     materials: { "Deska":20, "Gwóźdź":10, "Siano":5 },
   },
   {
@@ -361,9 +361,9 @@ function openStableUpgradeScreen() {
 
       <!-- Zakładki ulepszeń -->
       <div style="display:flex;gap:6px;margin-bottom:12px">
-        <button id="stUpgTabGlobal" class="market-tab-btn active" onclick="switchStableTab('global')">${UI_ICONS?.roof||""} Globalne</button>
-        <button id="stUpgTabHorse"  class="market-tab-btn"        onclick="switchStableTab('horse')">🐴 Per koń</button>
-        <button id="stUpgTabMats"   class="market-tab-btn"        onclick="switchStableTab('mats')">🪵 Materiały</button>
+        <button id="stUpgTabGlobal" class="market-tab-btn active" onclick="switchStableTab('global')"><span style="display:inline-flex;width:13px;height:13px;vertical-align:middle">${typeof UI_ICONS!=="undefined"?UI_ICONS.roof:""}</span> Bonusy</button>
+        <button id="stUpgTabHorse"  class="market-tab-btn"        onclick="switchStableTab('horse')"><span style="display:inline-flex;width:13px;height:13px;vertical-align:middle">${typeof UI_ICONS!=="undefined"?UI_ICONS.gym:""}</span> Trening koni</button>
+        <button id="stUpgTabMats"   class="market-tab-btn"        onclick="switchStableTab('mats')"><span style="display:inline-flex;width:13px;height:13px;vertical-align:middle">${typeof ITEM_ICONS_SVG!=="undefined"?ITEM_ICONS_SVG["Deska"]:""}</span> Materiały</button>
       </div>
 
       <!-- Globalne ulepszenia -->
@@ -555,3 +555,45 @@ function applyHorseUpgrade(horseIdx, upgradeId) {
 }
 
 patchStableLimit();
+
+// ── Automatyczne karmienie (poz.2+) ─────────────────────
+let _lastAutoFeed = 0;
+function autoFeedHorses() {
+  let passives = getStablePassives();
+  if (!passives.auto_feed) return;
+  // Karm co 30 sekund żeby nie przeładować
+  if (Date.now() - _lastAutoFeed < 30000) return;
+  _lastAutoFeed = Date.now();
+
+  // Znajdź konie które są głodne (>40% głodu)
+  let hungryHorses = playerHorses.filter(h => getHunger(h) > 40);
+  if (hungryHorses.length === 0) return;
+
+  // Priorytet jedzenia: Jabłko > Słoma
+  let foodPriority = ["Jabłko", "Słoma"];
+  let fedCount = 0;
+
+  hungryHorses.forEach(h => {
+    if (getHunger(h) <= 40) return; // już najedzone
+    // Szukaj jedzenia w ekwipunku
+    for (let foodName of foodPriority) {
+      let idx = inventory.findIndex(i => i.name === foodName);
+      if (idx >= 0) {
+        // Użyj jedzenia
+        let d = ITEMS_DATABASE[foodName];
+        if (d?.isFood) {
+          h.lastFed = Date.now() - (100 - d.feedAmount) * 864000; // symuluj karmienie
+          h.lastFed = Date.now(); // reset głodu
+          inventory.splice(idx, 1);
+          fedCount++;
+          break;
+        }
+      }
+    }
+  });
+
+  if (fedCount > 0) {
+    saveGame();
+    log(`🌾 Auto-karmienie: nakarmiono ${fedCount} koni z ekwipunku`);
+  }
+}

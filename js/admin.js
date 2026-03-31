@@ -4,7 +4,7 @@
 // Dostęp tylko dla uid w ADMIN_UIDS
 
 const ADMIN_UIDS = [
-  "VBR9IR7A74PzSZnMzRF8hLouBED2", // zastąp prawdziwym UID z Firebase Console
+  "jakub_admin_uid_placeholder", // zastąp prawdziwym UID z Firebase Console
 ];
 
 function isAdmin() {
@@ -31,10 +31,10 @@ function openAdminPanel() {
 
   let overlay = document.createElement("div");
   overlay.id  = "adminPanelOverlay";
-  overlay.style.cssText = "position:fixed;inset:0;z-index:9800;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;font-family:'Crimson Text',serif;overflow-y:auto;padding:20px";
+  overlay.style.cssText = "position:fixed;inset:0;z-index:9800;background:#060c06;display:flex;align-items:stretch;font-family:'Crimson Text',serif;overflow:hidden";
 
   overlay.innerHTML = `
-    <div style="width:100%;max-width:800px;background:#080f08;border-radius:16px;padding:24px;border:1px solid #c9a84c66;position:relative">
+    <div style="width:100%;max-width:1200px;background:#080f08;border-radius:16px;padding:24px;border:1px solid #c9a84c66;position:relative">
       <button onclick="document.getElementById('adminPanelOverlay').remove()" style="position:absolute;top:12px;right:12px;background:transparent;border:none;color:#4a5a4a;font-size:18px;cursor:pointer">✕</button>
 
       <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:#c9a84c;margin-bottom:20px">
@@ -286,10 +286,11 @@ async function loadAdminTournaments() {
   if (!el || !window.FB) return;
   try {
     let snap = await window.FB.db.collection("tournaments")
-      .where("active","==",true).orderBy("startTime").limit(10).get();
+      .where("active","==",true).limit(20).get();
     if (snap.empty) { el.innerHTML = `<div style="color:var(--text2);font-size:12px">Brak aktywnych turniejów</div>`; return; }
     el.innerHTML = "";
-    snap.docs.forEach(doc => {
+    let docs = snap.docs.sort((a,b)=>(a.data().startTime||0)-(b.data().startTime||0));
+    docs.forEach(doc => {
       let t = doc.data();
       let msLeft = t.startTime - Date.now();
       let timeStr = msLeft > 0
@@ -400,7 +401,8 @@ async function adminFindPlayer() {
     let snap = await window.FB.db.collection("players").where("nick","==",nick).limit(5).get();
     if (snap.empty) { el.innerHTML = `<div style="color:#c94a4a;font-size:12px">Nie znaleziono gracza "${nick}"</div>`; return; }
     el.innerHTML = "";
-    snap.docs.forEach(doc => {
+    let docs = snap.docs.sort((a,b)=>(a.data().startTime||0)-(b.data().startTime||0));
+    docs.forEach(doc => {
       let p = doc.data();
       let row = document.createElement("div");
       row.style.cssText = "padding:10px;background:#131f13;border:1px solid #1e3a1e;border-radius:8px;margin-bottom:6px";

@@ -169,7 +169,13 @@ function renderDropHistory() {
       background:var(--panel2);border:1px solid ${rc}33;
     `;
     div.innerHTML = `
-      <span style="font-size:22px;min-width:28px;text-align:center">${entry.icon||"📦"}</span>
+      <span style="min-width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">
+        ${(entry.name&&typeof ITEM_ICONS_SVG!=="undefined"&&ITEM_ICONS_SVG[entry.name])
+          ? `<span style="display:inline-flex;width:28px;height:28px">${ITEM_ICONS_SVG[entry.name]}</span>`
+          : (entry.svg ? `<span style="display:inline-flex;width:28px;height:28px">${entry.svg}</span>`
+            : `<span style="font-size:20px">${entry.icon||"📦"}</span>`)
+        }
+      </span>
       <div style="flex:1;min-width:0">
         <div style="font-size:12px;color:${rc};font-family:'Cinzel',serif;
           white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${entry.name}</div>

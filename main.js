@@ -30,7 +30,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
     if (typeof checkPregnancies === "function") checkPregnancies();
-    // Aktualizuj tylko aktywne wyprawy (nie pełny renderAll — za wolne)
+    // Automatyczne karmienie (stajnia poz.2+)
+    if (typeof autoFeedHorses === "function") autoFeedHorses();
     renderExpeditions();
     renderLimitBar();
   }, 1000);

@@ -554,10 +554,10 @@ function renderBreedModal() {
     let genderIcon = h.gender==="male" ? "♂" : "♀";
     let genderColor = h.gender==="male" ? "#6ab0e0" : "#e080a0";
     btn.innerHTML=`
-      <span style="font-size:18px">${h.flag||"🐴"}</span>
+
       <div style="flex:1">
         <div style="font-family:'Cinzel',serif;font-size:12px;color:${col}">${h.name}${h.stars>0?" "+"⭐".repeat(h.stars):""} <span style="color:${genderColor}">${genderIcon}</span></div>
-        <div style="font-size:11px;color:var(--text2)">${BLOODLINE_LABELS[h.bloodline]||""} · ⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck}</div>
+        <div style="font-size:11px;color:var(--text2)">${BLOODLINE_LABELS[h.bloodline]||""} · <span style="display:inline-flex;width:10px;height:10px">${typeof UI_ICONS!=="undefined"?UI_ICONS.speed:""}</span>${h.stats.speed} <span style="display:inline-flex;width:10px;height:10px">${typeof UI_ICONS!=="undefined"?UI_ICONS.strength:""}</span>${h.stats.strength} <span style="display:inline-flex;width:10px;height:10px">${typeof UI_ICONS!=="undefined"?UI_ICONS.stamina:""}</span>${h.stats.stamina} <span style="display:inline-flex;width:10px;height:10px">${typeof UI_ICONS!=="undefined"?UI_ICONS.luck:""}</span>${h.stats.luck}</div>
       </div>`;
     btn.onclick=()=>selectBreedHorse(i);
     list.appendChild(btn);
@@ -682,13 +682,12 @@ function renderHorses() {
     let restDiv = document.createElement("div");
     restDiv.innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-        <span style="font-size:20px">${h.flag||"🐴"}</span>
         <span style="font-size:10px;background:${rarCol}22;padding:2px 7px;border-radius:6px;color:${rarCol};border:1px solid ${rarCol}55">${RARITY_LABELS[h.rarity]||h.rarity}</span>
       </div>
       <div class="horse-name" style="color:${rarCol}">${h.name} <span style="font-size:13px">${h.gender==="male"?"♂":"♀"}</span></div>
       <div class="horse-breed">${h.type||""} · ${bl}</div>
       ${h.injured ? `<div style="margin:4px 0 6px;padding:4px 8px;background:rgba(201,74,74,0.12);border:1px solid rgba(201,74,74,0.4);border-radius:6px;font-size:11px;color:#e08080">
-        🤕 Ranny — użyj Bandaża z Ekwipunku
+        <span style="display:inline-flex;width:11px;height:11px;vertical-align:middle">${typeof UI_ICONS!=="undefined"?UI_ICONS.injured:""}</span> Ranny — użyj Bandaża
       </div>` : ""}
       ${(()=>{
         if (!h.pregnant) return "";
