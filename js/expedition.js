@@ -89,7 +89,7 @@ function openExpeditionHorsePicker(locIdx) {
     let age    = getHorseAgeDays(h);
     let busy   = busyHorseIdxs.has(hi);
     // Sprawdź wymagania krainy dla tego konkretnego konia
-    let req    = expLoc ? checkLocationRequirements(expLoc, h) : { ok: true };
+    let req    = expLoc ? checkLocationRequirement(expLoc, h) : { ok: true };
     let blocked = busy || !!h.injured || !req.ok;
 
     let btn    = document.createElement("button");

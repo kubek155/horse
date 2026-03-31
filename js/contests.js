@@ -467,27 +467,42 @@ function renderContestsInline() {
   let lvl = typeof getPlayerLevel === "function" ? getPlayerLevel() : 1;
   el.innerHTML = "";
   let grid = document.createElement("div");
-  grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px";
+  grid.style.cssText = "display:flex;flex-direction:column;gap:10px;max-width:560px;margin:0 auto";
 
   CONTEST_TYPES.forEach(type => {
     let locked = lvl < type.minLevel;
     let svg = CONTEST_TYPE_SVGS[type.id] || "";
     let div    = document.createElement("div");
-    div.className = "shop-item";
-    div.style.cssText = `border:1px solid ${locked?"#1e2e1e":type.color+"44"};opacity:${locked?0.45:1}`;
+    div.style.cssText = `
+      background:var(--panel2);
+      border:1px solid ${locked?"#1e2e1e":type.color+"55"};
+      border-radius:12px;padding:16px 20px;
+      display:flex;align-items:center;gap:16px;
+      opacity:${locked?0.4:1};
+    `;
     div.innerHTML = `
-      <div class="si-icon"><div style="width:44px;height:44px">${svg}</div></div>
-      <div class="si-name" style="color:${locked?"#555":type.color}">${type.name}</div>
-      <div class="si-desc">${type.desc}</div>
-      <div class="si-price" style="display:flex;justify-content:space-between">
-        <span>💰 ${type.entryFee}</span>
-        <span style="color:#c9a84c">🥇 ${type.prizes[0]}</span>
+      <div style="width:52px;height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+        background:${type.color}15;border-radius:10px;border:1px solid ${type.color}33">
+        <div style="width:40px;height:40px">${svg}</div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'Cinzel',serif;font-size:14px;color:${locked?"#555":type.color};margin-bottom:3px">${type.name}</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:6px">${type.desc}</div>
+        <div style="display:flex;gap:12px;font-size:11px">
+          <span style="color:var(--text2)">Wpisowe: <span style="color:#c97c2a">💰${type.entryFee}</span></span>
+          <span style="color:var(--text2)">1. miejsce: <span style="color:#c9a84c">💰${type.prizes[0]}</span></span>
+          ${locked?`<span style="color:#555">🔒 Poz. ${type.minLevel}</span>`:""}
+        </div>
       </div>
       ${locked
-        ? `<div style="font-size:11px;color:#555;margin-top:4px">🔒 Wymaga poz. ${type.minLevel}</div>`
-        : `<button class="si-buy btn-gold" onclick="startContestInline('${type.id}')" style="border-color:${type.color};color:${type.color};background:${type.color}11">
+        ? ""
+        : `<button onclick="startContestInline('${type.id}')" style="
+            flex-shrink:0;
+            border-color:${type.color};color:${type.color};
+            background:${type.color}15;font-family:'Cinzel',serif;
+            font-size:12px;padding:8px 16px;white-space:nowrap">
             🏁 Startuj
-           </button>`
+          </button>`
       }
     `;
     grid.appendChild(div);
