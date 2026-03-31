@@ -17,23 +17,28 @@ const BUILD_MATERIALS = {
 // Poziomy stajni — wymagają złota + materiałów
 const STABLE_LEVELS = [
   {
-    level:1, horses:8, cost:0, bonus:"Startowa stajnia", icon:"🏠",
+    level:1, horses:8,  cost:0,     bonus:"Startowa stajnia",       icon:"🏠",
+    levelBonus: null,
     materials: {},
   },
   {
-    level:2, horses:10, cost:1500, bonus:"Solidna stajnia +2 miejsca", icon:"🏡",
+    level:2, horses:10, cost:1500,  bonus:"Solidna stajnia",        icon:"🏡",
+    levelBonus: { type:"hunger_regen", val:0.10, label:"+10% reg. głodu", svgKey:"garden" },
     materials: { "Deska":20, "Gwóźdź":10, "Siano":5 },
   },
   {
-    level:3, horses:13, cost:5000, bonus:"Rozbudowana stajnia +3 miejsca", icon:"🏘️",
+    level:3, horses:13, cost:5000,  bonus:"Rozbudowana stajnia",    icon:"🏘️",
+    levelBonus: { type:"injury_reduce", val:0.15, label:"-15% kontuzji", svgKey:"forge" },
     materials: { "Deska":40, "Cegła":20, "Gwóźdź":25, "Kamień":15 },
   },
   {
-    level:4, horses:16, cost:15000, bonus:"Wielka stajnia +3 miejsca", icon:"🏰",
+    level:4, horses:16, cost:15000, bonus:"Wielka stajnia",         icon:"🏰",
+    levelBonus: { type:"gold_pct", val:0.10, label:"+10% złota z wypraw", svgKey:"gold" },
     materials: { "Cegła":50, "Dachówka":30, "Metal":20, "Szkło":10, "Kamień":30 },
   },
   {
-    level:5, horses:20, cost:50000, bonus:"Stadnina +4 miejsca", icon:"🏟️", svgIcon:"arena",
+    level:5, horses:20, cost:50000, bonus:"Stadnina",               icon:"🏟️", svgIcon:"arena",
+    levelBonus: { type:"drop_pct", val:0.08, label:"+8% drop rate", svgKey:"exp_found" },
     materials: { "Cegła":80, "Dachówka":60, "Metal":40, "Szkło":25, "Kamień":50, "Deska":60 },
   },
 ];
@@ -145,9 +150,18 @@ function patchStableLimit() {
 // Globalne pasywne bonusy
 function getStablePassives() {
   let passives = {};
+  // Bonusy z ulepszeń globalnych
   getGlobalUpgrades().forEach(uid => {
     let u = STABLE_UPGRADES.find(x=>x.id===uid && x.type==="global");
     if (u?.bonus) passives[u.bonus.type] = (passives[u.bonus.type]||0) + u.bonus.val;
+  });
+  // Bonusy z poziomów stajni (każdy poziom >=N daje swój bonus)
+  let lvl = getStableLevel();
+  STABLE_LEVELS.forEach(sl => {
+    if (sl.level <= lvl && sl.levelBonus) {
+      let b = sl.levelBonus;
+      passives[b.type] = (passives[b.type]||0) + b.val;
+    }
   });
   return passives;
 }
@@ -289,9 +303,11 @@ function openStableUpgradeScreen() {
     return Object.entries(mats).map(([name,qty])=>{
       let have = countMaterial(name);
       let ok   = have>=qty;
-      let d    = BUILD_MATERIALS[name]||{icon:"📦"};
-      return `<span style="font-size:11px;padding:2px 8px;border-radius:5px;background:${ok?"rgba(74,184,112,0.12)":"rgba(201,74,74,0.12)"};border:1px solid ${ok?"#4ab87044":"#c94a4a44"};color:${ok?"#4ab870":"#c94a4a"}">
-        ${d.icon} ${name} ${have}/${qty}
+      let svgIco = (typeof ITEM_ICONS_SVG!=="undefined"&&ITEM_ICONS_SVG[name])
+        ? `<span style="display:inline-flex;width:14px;height:14px;vertical-align:middle">${ITEM_ICONS_SVG[name]}</span>`
+        : (BUILD_MATERIALS[name]?.icon||"📦");
+      return `<span style="font-size:11px;padding:2px 8px;border-radius:5px;background:${ok?"rgba(74,184,112,0.12)":"rgba(201,74,74,0.12)"};border:1px solid ${ok?"#4ab87044":"#c94a4a44"};color:${ok?"#4ab870":"#c94a4a"};display:inline-flex;align-items:center;gap:4px">
+        ${svgIco} ${name} ${have}/${qty}
       </span>`;
     }).join(" ");
   }
@@ -305,8 +321,12 @@ function openStableUpgradeScreen() {
       <div style="background:#131f13;border:1px solid #c9a84c44;border-radius:12px;padding:16px;margin-bottom:14px">
         <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px">
           <div>
-            <div style="font-family:'Cinzel',serif;font-size:16px;color:#c9a84c">${cur.icon} Poziom ${lvl} — max ${cur.horses} koni</div>
+            <div style="font-family:'Cinzel',serif;font-size:16px;color:#c9a84c">Poziom ${lvl} — max ${cur.horses} koni</div>
             <div style="font-size:12px;color:var(--text2);margin-top:3px">${cur.bonus}</div>
+            ${cur.levelBonus ? `<div style="font-size:11px;color:#4ab870;margin-top:4px;display:flex;align-items:center;gap:4px">
+              <span style="display:inline-flex;width:13px;height:13px">${typeof UI_ICONS!=="undefined"&&UI_ICONS[cur.levelBonus.svgKey]?UI_ICONS[cur.levelBonus.svgKey]:""}</span>
+              Bonus poz. ${lvl}: ${cur.levelBonus.label}
+            </div>` : ""}
           </div>
           ${next ? `<div style="text-align:right">
             <button onclick="upgradeStable()" ${hasNextMats&&hasNextGold?"":"disabled"} style="
@@ -331,11 +351,11 @@ function openStableUpgradeScreen() {
         <div style="background:#131f13;border:1px solid #4ab87044;border-radius:10px;padding:10px 14px;margin-bottom:14px">
           <div style="font-size:10px;letter-spacing:2px;color:#4ab870;margin-bottom:6px">AKTYWNE BONUSY GLOBALNE</div>
           <div style="display:flex;flex-wrap:wrap;gap:6px">
-            ${passives.drop_pct    ?`<span style="font-size:11px;background:#c9a84c18;border:1px solid #c9a84c44;border-radius:6px;padding:2px 10px;color:#c9a84c">✨ +${Math.round(passives.drop_pct*100)}% drop</span>`:""}
-            ${passives.gold_pct    ?`<span style="font-size:11px;background:#c9a84c18;border:1px solid #c9a84c44;border-radius:6px;padding:2px 10px;color:#c9a84c">💰 +${Math.round(passives.gold_pct*100)}% złota</span>`:""}
+            ${passives.drop_pct    ?`<span style="font-size:11px;background:#c9a84c18;border:1px solid #c9a84c44;border-radius:6px;padding:2px 10px;color:#c9a84c;display:inline-flex;align-items:center;gap:4px"><span style=\"display:inline-flex;width:12px;height:12px\">${typeof UI_ICONS!=="undefined"?UI_ICONS.exp_found:""}</span> +${Math.round(passives.drop_pct*100)}% drop</span>`:""}
+            ${passives.gold_pct    ?`<span style="font-size:11px;background:#c9a84c18;border:1px solid #c9a84c44;border-radius:6px;padding:2px 10px;color:#c9a84c;display:inline-flex;align-items:center;gap:4px"><span style=\"display:inline-flex;width:12px;height:12px\">${typeof UI_ICONS!=="undefined"?UI_ICONS.gold:""}</span> +${Math.round(passives.gold_pct*100)}% złota</span>`:""}
             ${passives.injury_reduce?`<span style="font-size:11px;background:#4a7ec818;border:1px solid #4a7ec844;border-radius:6px;padding:2px 10px;color:#6ab0e0;display:inline-flex;align-items:center;gap:4px"><span style=\"display:inline-flex;width:12px;height:12px\">${UI_ICONS?.forge||""}</span> -${Math.round(passives.injury_reduce*100)}% kontuzji</span>`:""}
             ${passives.free_heal   ?`<span style="font-size:11px;background:#c94a4a18;border:1px solid #c94a4a44;border-radius:6px;padding:2px 10px;color:#e08080;display:inline-flex;align-items:center;gap:4px"><span style=\"display:inline-flex;width:12px;height:12px\">${UI_ICONS?.vet||""}</span> Darmowe leczenie</span>`:""}
-            ${passives.hunger_regen?`<span style="font-size:11px;background:#4ab87018;border:1px solid #4ab87044;border-radius:6px;padding:2px 10px;color:#4ab870">🌾 +${Math.round(passives.hunger_regen*100)}% reg. głodu</span>`:""}
+            ${passives.hunger_regen?`<span style="font-size:11px;background:#4ab87018;border:1px solid #4ab87044;border-radius:6px;padding:2px 10px;color:#4ab870;display:inline-flex;align-items:center;gap:4px"><span style=\"display:inline-flex;width:12px;height:12px\">${typeof ITEM_ICONS_SVG!=="undefined"?ITEM_ICONS_SVG["Siano"]:""}</span> +${Math.round(passives.hunger_regen*100)}% reg. głodu</span>`:""}
           </div>
         </div>` : ""}
 

@@ -178,7 +178,7 @@ function renderContestStep() {
 function renderPickType(el) {
   let lvl = typeof getPlayerLevel === "function" ? getPlayerLevel() : 1;
   el.innerHTML = `
-    <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:#8aab84;text-align:center;margin-bottom:20px">🏆 ZAWODY</div>
+    <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:#8aab84;text-align:center;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:6px"><span style="display:inline-flex;width:14px;height:14px">${typeof UI_ICONS!=="undefined"?UI_ICONS.medal:""}</span> ZAWODY</div>
     <div style="font-size:12px;color:var(--text2);text-align:center;margin-bottom:16px">Wybierz rodzaj zawodów</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px"></div>
   `;
@@ -238,7 +238,7 @@ function renderPickHorse(el) {
       <span style="font-size:20px">${h.flag||"🐴"}</span>
       <div style="flex:1">
         <div style="font-size:12px;color:${rc};font-family:'Cinzel',serif">${h.name} ${h.gender==="male"?"♂":"♀"}</div>
-        <div style="font-size:10px;color:var(--text2)">⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck}</div>
+        <div style="font-size:10px;color:var(--text2);display:flex;gap:6px;align-items:center;"><span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.speed:""}</span>${h.stats.speed} <span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.strength:""}</span>${h.stats.strength} <span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.stamina:""}</span>${h.stats.stamina} <span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.luck:""}</span>${h.stats.luck}</div>
         ${blocked ? `<div style="font-size:10px;color:#c94a4a;margin-top:2px">${blockNote}</div>` : ""}
       </div>
       <div style="text-align:right">
@@ -275,7 +275,7 @@ function renderPreview(el) {
         <div id="previewHorseSVG" style="border-radius:8px;overflow:hidden;margin-bottom:6px;background:#0a140a"></div>
         <div style="font-family:'Cinzel',serif;font-size:13px;color:${rc}">${horse.flag||"🐴"} ${horse.name}</div>
         <div style="font-size:10px;color:var(--text2);margin-top:3px">${RARITY_LABELS[horse.rarity]||""}</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:6px">⚡${horse.stats.speed} 💪${horse.stats.strength} ❤️${horse.stats.stamina} 🍀${horse.stats.luck}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:6px;display:flex;gap:6px;align-items:center"><span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.speed:""}</span>${horse.stats.speed} <span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.strength:""}</span>${horse.stats.strength} <span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.stamina:""}</span>${horse.stats.stamina} <span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.luck:""}</span>${horse.stats.luck}</div>
       </div>
       <div style="background:#131f13;border:1px solid #1e3a1e;border-radius:10px;padding:12px">
         <div style="font-size:10px;letter-spacing:2px;color:#8aab84;margin-bottom:8px">RYWALE (7 NPC)</div>
@@ -290,7 +290,7 @@ function renderPreview(el) {
 
     <div style="background:#131f13;border-radius:8px;padding:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
       <div style="font-size:12px;color:var(--text2)">Wpisowe: <span style="color:${canAfford?"var(--gold2)":"#c94a4a"}">💰 ${type.entryFee}</span> · Twoje złoto: <span style="color:var(--gold2)">💰 ${gold}</span></div>
-      <div style="font-size:11px;color:var(--text2)">🥇 ${type.prizes[0]} · 🥈 ${type.prizes[1]} · 🥉 ${type.prizes[2]}</div>
+      <div style="font-size:11px;color:var(--text2);display:flex;gap:8px;align-items:center"><svg width="11" height="11" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="8" r="4" stroke="#f0d040" stroke-width="1.2"/><text x="7" y="11" text-anchor="middle" font-size="5" fill="#f0d040">1</text></svg>${type.prizes[0]} <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="8" r="4" stroke="#c0c0c0" stroke-width="1.2"/><text x="7" y="11" text-anchor="middle" font-size="5" fill="#c0c0c0">2</text></svg>${type.prizes[1]} <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="8" r="4" stroke="#c97c2a" stroke-width="1.2"/><text x="7" y="11" text-anchor="middle" font-size="5" fill="#c97c2a">3</text></svg>${type.prizes[2]}</div>
     </div>
 
     <button onclick="startContest()" ${canAfford?"":"disabled"} style="
@@ -300,7 +300,7 @@ function renderPreview(el) {
       border:1px solid ${canAfford?"var(--gold)":"#333"};
       color:${canAfford?"var(--gold)":"#555"};
       cursor:${canAfford?"pointer":"not-allowed"};
-    ">${canAfford?"🏁 Startuj! · Wpisowe: 💰 "+type.entryFee:"⚠️ Za mało złota (brakuje "+(type.entryFee-gold)+"💰)"}</button>
+    ">${canAfford?"Startuj · 💰 "+type.entryFee:"Za mało złota (brakuje "+(type.entryFee-gold)+"💰)"}</button>
   `;
 
   // Wstaw SVG konia
@@ -436,7 +436,7 @@ function renderResults(el) {
         let erc = e.isPlayer ? rc : (RARITY_COLORS[e.rarity]||"#4a5a4a");
         let medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":"";
         return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #1e2e1e;${e.isPlayer?"background:rgba(201,168,76,0.05);border-radius:4px;padding:5px 6px;":""}">
-          <span style="width:20px;text-align:center;font-size:12px">${medal||"#"+(i+1)}</span>
+          <span style="width:20px;text-align:center;display:inline-flex;align-items:center;justify-content:center">${medal||'<span style="font-size:10px;color:#555">#'+(i+1)+'</span>'}</span>
           <span style="font-size:14px">${e.flag}</span>
           <span style="flex:1;font-size:12px;color:${erc}${e.isPlayer?";font-weight:500":""}">${e.name}</span>
           <span style="font-size:11px;color:var(--text2)">${Math.round(e.score)}</span>
