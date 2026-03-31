@@ -220,26 +220,123 @@ async function renderAdminTab(tab) {
     `;
 
   } else if (tab === "players") {
-    el.innerHTML = `
-      <div style="background:#0f1a0f;border:1px solid #1e3a1e;border-radius:12px;padding:16px">
-        <div style="font-family:'Cinzel',serif;font-size:12px;color:#b090e0;margin-bottom:14px">ZARZĄDZANIE GRACZAMI</div>
-        <div style="display:flex;gap:8px;margin-bottom:12px">
-          <input id="ad_pnick" placeholder="Nick gracza" style="flex:1;padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px">
-          <button onclick="adminFindPlayer()" style="border-color:#b090e0;color:#b090e0;background:rgba(176,144,224,0.1)">Szukaj</button>
-        </div>
-        <div id="ad_playerResult"></div>
+    // Ikony rzadkości koni
+    const RARITY_SVG_ICONS = {
+      common:    `<svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#909090" stroke-width="1.2" fill="rgba(144,144,144,0.15)"/></svg>`,
+      uncommon:  `<svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#8aab84" stroke-width="1.2" fill="rgba(138,171,132,0.15)"/></svg>`,
+      rare:      `<svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#4a7ec8" stroke-width="1.2" fill="rgba(74,126,200,0.15)"/></svg>`,
+      epic:      `<svg viewBox="0 0 12 12" fill="none"><polygon points="6,1 7.8,4.5 12,4.5 8.8,7 10,11 6,8.5 2,11 3.2,7 0,4.5 4.2,4.5" stroke="#7b5ea7" stroke-width="1" fill="rgba(123,94,167,0.15)"/></svg>`,
+      legendary: `<svg viewBox="0 0 12 12" fill="none"><polygon points="6,1 7.8,4.5 12,4.5 8.8,7 10,11 6,8.5 2,11 3.2,7 0,4.5 4.2,4.5" stroke="#c9a84c" stroke-width="1" fill="rgba(201,168,76,0.2)"/></svg>`,
+      mythic:    `<svg viewBox="0 0 12 12" fill="none"><polygon points="6,1 7.8,4.5 12,4.5 8.8,7 10,11 6,8.5 2,11 3.2,7 0,4.5 4.2,4.5" stroke="#c94a6a" stroke-width="1" fill="rgba(201,74,106,0.2)"/></svg>`,
+    };
 
-        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
-          <div style="font-family:'Cinzel',serif;font-size:11px;color:#b090e0;margin-bottom:10px">ROZDANIE (wszyscy gracze)</div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <select id="ad_giftType" style="padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px">
-              <option value="gold">💰 Złoto</option>
-              <option value="item">📦 Przedmiot</option>
-            </select>
-            <input id="ad_giftAmount" type="number" value="1000" placeholder="Ilość złota" style="width:120px;padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px">
-            <input id="ad_giftItem" placeholder="Nazwa przedmiotu" style="width:160px;padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px">
-            <button onclick="adminGiftAll()" style="border-color:#4ab870;color:#4ab870;background:rgba(74,184,112,0.1)">🎁 Wyślij wszystkim</button>
+    // Lista popularnych przedmiotów do wysyłki
+    const GIFT_ITEMS = [
+      { name:"Skrzynka z Łupem", icon:"📦" },
+      { name:"Jabłko Sfinksa",   icon:"🍏" },
+      { name:"Eliksir Szybkości",icon:"⚡" },
+      { name:"Eliksir Siły",     icon:"💪" },
+      { name:"Eliksir Wytrzymałości", icon:"❤️" },
+      { name:"Eliksir Szczęścia",icon:"🍀" },
+      { name:"Eliksir Odmłodzenia", icon:"🧪" },
+      { name:"Boski Nektar",     icon:"🌟" },
+      { name:"Jabłko",           icon:"🍎" },
+      { name:"Bandaż",           icon:"🩹" },
+      { name:"Piorun",           icon:"⚡️" },
+      { name:"Kowadło",          icon:"🔨" },
+      { name:"Koniczyna",        icon:"🍀" },
+      { name:"Serce",            icon:"❤️‍🔥" },
+    ];
+
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+        <!-- Lewa kolumna: lista + wyszukiwanie -->
+        <div style="background:#0f1a0f;border:1px solid #1e3a1e;border-radius:12px;padding:16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+            <svg viewBox="0 0 20 20" fill="none" width="16" height="16"><circle cx="9" cy="9" r="6" stroke="#b090e0" stroke-width="1.5" fill="none"/><path d="M14 14l3 3" stroke="#b090e0" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <div style="font-family:'Cinzel',serif;font-size:12px;color:#b090e0">ZARZĄDZANIE GRACZAMI</div>
           </div>
+
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <input id="ad_pnick" placeholder="Szukaj po nicku..." style="flex:1;padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px">
+            <button onclick="adminFindPlayer()" style="border-color:#b090e0;color:#b090e0;background:rgba(176,144,224,0.1)">Szukaj</button>
+            <button onclick="adminLoadAllPlayers()" style="border-color:#4ab870;color:#4ab870;background:rgba(74,184,112,0.08);font-size:11px">Lista</button>
+          </div>
+          <div id="ad_playerResult" style="max-height:400px;overflow-y:auto"></div>
+        </div>
+
+        <!-- Prawa kolumna: rozdanie -->
+        <div style="display:flex;flex-direction:column;gap:12px">
+
+          <!-- Rozdanie dla wszystkich -->
+          <div style="background:#0f1a0f;border:1px solid #1e3a1e;border-radius:12px;padding:16px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+              <svg viewBox="0 0 20 20" fill="none" width="16" height="16"><path d="M10 2L12 8h6l-5 3.5 2 6-5-3.5L5 17.5l2-6L2 8h6z" stroke="#4ab870" stroke-width="1.3" fill="none"/></svg>
+              <div style="font-family:'Cinzel',serif;font-size:11px;color:#4ab870">ROZDANIE — WSZYSCY GRACZE</div>
+            </div>
+
+            <div style="display:flex;gap:6px;margin-bottom:10px">
+              <button onclick="document.getElementById('ad_giftTypeGold').classList.add('active');document.getElementById('ad_giftTypeItem').classList.remove('active');document.getElementById('ad_giftTypeHorse').classList.remove('active');document.getElementById('ad_giftGoldRow').style.display='flex';document.getElementById('ad_giftItemRow').style.display='none';document.getElementById('ad_giftHorseRow').style.display='none'"
+                id="ad_giftTypeGold" class="market-tab-btn active" style="font-size:11px">💰 Złoto</button>
+              <button onclick="document.getElementById('ad_giftTypeItem').classList.add('active');document.getElementById('ad_giftTypeGold').classList.remove('active');document.getElementById('ad_giftTypeHorse').classList.remove('active');document.getElementById('ad_giftGoldRow').style.display='none';document.getElementById('ad_giftItemRow').style.display='flex';document.getElementById('ad_giftHorseRow').style.display='none'"
+                id="ad_giftTypeItem" class="market-tab-btn" style="font-size:11px">📦 Przedmiot</button>
+              <button onclick="document.getElementById('ad_giftTypeHorse').classList.add('active');document.getElementById('ad_giftTypeGold').classList.remove('active');document.getElementById('ad_giftTypeItem').classList.remove('active');document.getElementById('ad_giftGoldRow').style.display='none';document.getElementById('ad_giftItemRow').style.display='none';document.getElementById('ad_giftHorseRow').style.display='flex'"
+                id="ad_giftTypeHorse" class="market-tab-btn" style="font-size:11px">🐴 Koń</button>
+            </div>
+
+            <!-- Złoto -->
+            <div id="ad_giftGoldRow" style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+              <input id="ad_giftAmount" type="number" value="1000" style="flex:1;padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px">
+              <span style="font-size:12px;color:var(--text2)">💰</span>
+            </div>
+
+            <!-- Przedmiot -->
+            <div id="ad_giftItemRow" style="display:none;flex-direction:column;gap:8px;margin-bottom:10px">
+              <div style="font-size:10px;color:var(--text2);letter-spacing:1px;margin-bottom:4px">WYBIERZ PRZEDMIOT</div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;max-height:160px;overflow-y:auto">
+                ${GIFT_ITEMS.map((it,i)=>`
+                  <label onclick="document.querySelectorAll('.gift-item-opt').forEach(b=>b.style.borderColor='#1e3a1e');this.style.borderColor='#c9a84c44';document.getElementById('ad_giftItem').value='${it.name}'"
+                    class="gift-item-opt" style="display:flex;align-items:center;gap:5px;padding:6px;background:#131f13;border:1px solid #1e3a1e;border-radius:7px;cursor:pointer;font-size:11px;color:var(--text2)">
+                    <span style="font-size:14px">${it.icon}</span> ${it.name}
+                  </label>
+                `).join("")}
+              </div>
+              <input type="hidden" id="ad_giftItem" value="Skrzynka z Łupem">
+            </div>
+
+            <!-- Koń -->
+            <div id="ad_giftHorseRow" style="display:none;flex-direction:column;gap:8px;margin-bottom:10px">
+              <div style="font-size:10px;color:var(--text2);letter-spacing:1px;margin-bottom:4px">RZADKOŚĆ KONIA</div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px">
+                ${Object.entries({common:"Zwykły",uncommon:"Pospolity",rare:"Rzadki",epic:"Legendarny",legendary:"Mityczny",mythic:"Pradawny"}).map(([r,lbl],i)=>`
+                  <label onclick="document.querySelectorAll('.gift-rarity-opt').forEach(b=>b.style.borderColor='#1e3a1e');this.style.borderColor='${["#909090","#8aab84","#4a7ec8","#7b5ea7","#c9a84c","#c94a6a"][i]}44';document.getElementById('ad_giftHorseRarity').value='${r}'"
+                    class="gift-rarity-opt" style="display:flex;align-items:center;gap:4px;padding:6px;background:#131f13;border:1px solid #1e3a1e;border-radius:7px;cursor:pointer;font-size:10px;color:${["#909090","#8aab84","#4a7ec8","#7b5ea7","#c9a84c","#c94a6a"][i]}">
+                    <span style="display:inline-flex;width:12px;height:12px">${RARITY_SVG_ICONS[r]}</span> ${lbl}
+                  </label>
+                `).join("")}
+              </div>
+              <input type="hidden" id="ad_giftHorseRarity" value="rare">
+            </div>
+
+            <button onclick="adminGiftAll()" style="width:100%;border-color:#4ab870;color:#4ab870;background:rgba(74,184,112,0.1);font-family:'Cinzel',serif;display:flex;align-items:center;justify-content:center;gap:6px">
+              <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M8 2L9.5 6h4l-3.2 2.5 1.2 4L8 10 4.5 12.5l1.2-4L2.5 6h4z" stroke="#4ab870" stroke-width="1.2" fill="none"/></svg>
+              Wyślij wszystkim
+            </button>
+          </div>
+
+          <!-- Wyślij do konkretnego gracza -->
+          <div style="background:#0f1a0f;border:1px solid #1e3a1e;border-radius:12px;padding:16px">
+            <div style="font-family:'Cinzel',serif;font-size:11px;color:#6ab0e0;margin-bottom:10px">WYŚLIJ DO GRACZA (po UID)</div>
+            <input id="ad_giftUid" placeholder="UID gracza (z listy powyżej)" style="width:100%;padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;margin-bottom:8px">
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button onclick="adminGiftPlayer(document.getElementById('ad_giftUid').value,1000,'gold')" style="font-size:10px;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.08)">+1000💰</button>
+              <button onclick="adminGiftPlayer(document.getElementById('ad_giftUid').value,5000,'gold')" style="font-size:10px;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.08)">+5000💰</button>
+              <button onclick="adminGiftPlayer(document.getElementById('ad_giftUid').value,0,'lootbox')" style="font-size:10px;border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.08)">Skrzynka</button>
+              <button onclick="adminGiftPlayerHorse(document.getElementById('ad_giftUid').value,'rare')" style="font-size:10px;border-color:#4a7ec8;color:#6ab0e0;background:rgba(74,126,200,0.08)">🐴 Rzadki+</button>
+            </div>
+          </div>
+
         </div>
       </div>
     `;
@@ -272,6 +369,18 @@ async function renderAdminTab(tab) {
             <button onclick="resetExpeditions()" style="border-color:#4a7ec8;color:#6ab0e0;background:rgba(74,126,200,0.08)">Reset limitów wypraw</button>
             <button onclick="disableAdminMode()" style="border-color:#c94a4a;color:#c94a4a;background:rgba(201,74,74,0.08)">Wyłącz tryb admina</button>
           </div>
+        </div>
+        <div style="background:#0f1a0f;border:1px solid #1e3a1e;border-radius:12px;padding:16px;margin-top:12px">
+          <div style="font-family:'Cinzel',serif;font-size:11px;color:#6ab0e0;margin-bottom:10px">🌐 JĘZYK INTERFEJSU</div>
+          <div id="adminLangPicker" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+          <script>if(typeof renderLanguagePicker==="function")setTimeout(()=>{
+            let el=document.getElementById("adminLangPicker");
+            if(el&&typeof LANGUAGES!=="undefined"){
+              el.innerHTML=Object.entries(LANGUAGES).map(([code,L])=>
+                \`<button class="lang-btn market-tab-btn\${(localStorage.getItem("hh_lang")||"pl")===code?" active":""}" onclick="setLanguage('\${code}')" style="font-size:12px;padding:6px 12px">\${L.flag} \${L.name}</button>\`
+              ).join("");
+            }
+          },100);</script>
         </div>
       </div>
     `;
@@ -462,19 +571,40 @@ async function adminGiftPlayer(uid, amount, type) {
 
 async function adminGiftAll() {
   if (!window.FB) return;
-  let type   = document.getElementById("ad_giftType")?.value||"gold";
+  // Ustal typ na podstawie aktywnego przycisku
+  let isGold  = document.getElementById("ad_giftTypeGold")?.classList.contains("active");
+  let isItem  = document.getElementById("ad_giftTypeItem")?.classList.contains("active");
+  let isHorse = document.getElementById("ad_giftTypeHorse")?.classList.contains("active");
+
   let amount = parseInt(document.getElementById("ad_giftAmount")?.value)||1000;
   let item   = document.getElementById("ad_giftItem")?.value||"Skrzynka z Łupem";
-  // Zapisz jako broadcast payout — każdy gracz odbiera przy logowaniu
-  await window.FB.db.collection("broadcasts").add({
-    title: "Rozdanie od admina!",
-    msg:   type==="gold" ? `Wszyscy gracze otrzymali ${amount}💰!` : `Wszyscy gracze otrzymali: ${item}!`,
-    reward: type==="gold" ? amount : 0,
-    giftItem: type==="item" ? item : null,
+  let horseRarity = document.getElementById("ad_giftHorseRarity")?.value||"rare";
+
+  let broadcastData = {
     sentAt: firebase.firestore.FieldValue.serverTimestamp(),
     sentBy: "Admin",
     readBy: [],
-  });
+  };
+
+  if (isHorse) {
+    broadcastData.title   = "Koń od admina!";
+    broadcastData.msg     = `Wszyscy gracze otrzymali konia rzadkości: ${horseRarity}!`;
+    broadcastData.reward  = 0;
+    broadcastData.giftItem = null;
+    broadcastData.giftHorse = horseRarity;
+  } else if (isItem) {
+    broadcastData.title   = "Przedmiot od admina!";
+    broadcastData.msg     = `Wszyscy gracze otrzymali: ${item}!`;
+    broadcastData.reward  = 0;
+    broadcastData.giftItem = item;
+  } else {
+    broadcastData.title   = "Złoto od admina!";
+    broadcastData.msg     = `Wszyscy gracze otrzymali ${amount}💰!`;
+    broadcastData.reward  = amount;
+    broadcastData.giftItem = null;
+  }
+
+  await window.FB.db.collection("broadcasts").add(broadcastData);
   log(`🎁 Rozdanie wysłane do wszystkich!`);
 }
 
@@ -490,6 +620,57 @@ function adminSaveConfig() {
 }
 
 // Odbierz ogłoszenia/rozdania
+// Załaduj pełną listę graczy
+async function adminLoadAllPlayers() {
+  let el = document.getElementById("ad_playerResult");
+  if (!el || !window.FB) return;
+  el.innerHTML = '<div style="color:var(--text2);font-size:12px;padding:8px">Ładowanie...</div>';
+  try {
+    let snap = await window.FB.db.collection("players").orderBy("level","desc").limit(50).get();
+    if (snap.empty) { el.innerHTML = '<div style="color:var(--text2);font-size:12px">Brak graczy</div>'; return; }
+    el.innerHTML = "";
+    snap.docs.forEach(doc => {
+      let p = doc.data();
+      let rc = { 1:"#909090",5:"#8aab84",10:"#4a7ec8",20:"#7b5ea7",30:"#c9a84c" };
+      let lvlColor = p.level>=30?"#c9a84c":p.level>=20?"#7b5ea7":p.level>=10?"#4a7ec8":p.level>=5?"#8aab84":"#909090";
+      let row = document.createElement("div");
+      row.style.cssText = "padding:10px 12px;background:#131f13;border:1px solid #1e3a1e;border-radius:8px;margin-bottom:6px;cursor:pointer";
+      row.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-family:Cinzel,serif;font-size:10px;color:${lvlColor};border:1px solid ${lvlColor}44">${p.level||1}</div>
+              <span style="font-size:13px;color:#c9a84c;font-family:Cinzel,serif">${p.nick||"?"}</span>
+            </div>
+            <div style="font-size:10px;color:var(--text2);margin-top:3px">🐴 ${p.horseCount||0} koni · 💰${p.gold||0} · UID: <span style="color:#4a5a4a;font-size:9px">${doc.id.slice(0,12)}...</span></div>
+          </div>
+          <div style="display:flex;gap:4px">
+            <button onclick="event.stopPropagation();adminGiftPlayer('${doc.id}',1000,'gold')" style="font-size:9px;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.08);padding:2px 6px">+1k💰</button>
+            <button onclick="event.stopPropagation();document.getElementById('ad_giftUid').value='${doc.id}'" style="font-size:9px;border-color:#4ab870;color:#4ab870;background:rgba(74,184,112,0.08);padding:2px 6px">Wybierz</button>
+          </div>
+        </div>
+      `;
+      el.appendChild(row);
+    });
+  } catch(e) { el.innerHTML = `<div style="color:#c94a4a;font-size:12px">${e.message}</div>`; }
+}
+
+// Wyślij konia do konkretnego gracza
+async function adminGiftPlayerHorse(uid, rarity) {
+  if (!uid || !window.FB) { log("⚠️ Podaj UID gracza!"); return; }
+  rarity = rarity || document.getElementById("ad_giftHorseRarity")?.value || "rare";
+  await window.FB.db.collection("broadcasts_personal").add({
+    toUid:     uid,
+    type:      "horse",
+    rarity:    rarity,
+    fromNick:  "Admin",
+    collected: false,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    msg:       `Koń rzadkości "${rarity}" od admina!`,
+  });
+  log(`🐴 Koń (${rarity}) wysłany do gracza!`);
+}
+
 async function checkBroadcasts() {
   if (!window.FB?.isLoggedIn()) return;
   let myId = window.FB.getPlayerId();
@@ -508,6 +689,21 @@ async function checkBroadcasts() {
         if (typeof addNotification==="function") addNotification("item_sold",
           b.title, `${b.msg} +${b.reward}💰`);
         log(`📢 ${b.title}: +${b.reward}💰`);
+      }
+      if (b.giftHorse) {
+        if (typeof generateHorse === "function") {
+          let h = generateHorse(b.giftHorse);
+          let limit = typeof getStableLimit==="function" ? getStableLimit() : 8;
+          if ((window.playerHorses||[]).length < limit) {
+            window.playerHorses?.push(h);
+          } else {
+            window.inventory?.push({ name:"Transporter Konia", obtained:Date.now(), horse:h });
+          }
+          window.saveGame?.();
+          if (typeof addNotification==="function") addNotification("horse_born",
+            b.title, `${h.flag||"🐴"} ${h.name} · ${b.msg}`);
+          log(`🐴 Admin: ${h.flag||"🐴"} ${h.name} dołączył do stajni!`);
+        }
       }
       if (b.giftItem) {
         window.inventory?.push({ name:b.giftItem, obtained:Date.now() });

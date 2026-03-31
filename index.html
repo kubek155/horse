@@ -23,7 +23,7 @@
       </div>
       <div class="topbar-stat">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="5" width="10" height="8" rx="1.5" stroke="#7b5ea7" stroke-width="1.2" fill="none"/><path d="M5 5 V3.5 Q8 2 11 3.5 V5" stroke="#7b5ea7" stroke-width="1.2" fill="none"/><line x1="6" y1="8.5" x2="10" y2="8.5" stroke="#7b5ea7" stroke-width="1"/><line x1="6" y1="10.5" x2="9" y2="10.5" stroke="#7b5ea7" stroke-width="1"/></svg>
-        <span style="color:var(--text2)">Eq:</span> <span id="invCount">0</span>
+        <span style="color:var(--text2)">Ekwipunek:</span> <span id="invCount">0</span>
       </div>
       <div class="topbar-stat">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="#4a7ec8" stroke-width="1.2" fill="none"/><line x1="2" y1="6" x2="14" y2="6" stroke="#4a7ec8" stroke-width="1"/><line x1="5.5" y1="1" x2="5.5" y2="4" stroke="#4a7ec8" stroke-width="1.2"/><line x1="10.5" y1="1" x2="10.5" y2="4" stroke="#4a7ec8" stroke-width="1.2"/><text x="8" y="13" text-anchor="middle" font-size="6" fill="#4a7ec8">WYP</text></svg>
@@ -41,7 +41,8 @@
         <div id="xpBar" class="xp-bar-fill"></div>
       </div>
     </div>
-  </div>
+    <div id="langPicker" style="display:flex;gap:4px;align-items:center;padding:4px 8px;background:var(--panel2);border-radius:8px;border:1px solid var(--border);flex-wrap:wrap;max-width:280px"></div>
+</div>
 
   <!-- SIDEBAR -->
   <div class="sidebar">
@@ -417,6 +418,7 @@
 <script src="js/market.js"></script>
 <script src="js/quests.js"></script>
 <script src="js/encyclopedia.js"></script>
+<script src="js/lang.js"></script>
 <script src="main.js"></script>
 <!-- Firebase SDK przez CDN - szybsze niż dynamic import -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>

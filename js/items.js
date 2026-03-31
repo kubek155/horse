@@ -489,20 +489,25 @@ function renderInventory() {
       `;
       card.innerHTML = `
         <div class="transport-svg-slot" style="
-          width:72px;height:60px;flex-shrink:0;
-          background:var(--panel);border-radius:7px;overflow:hidden;
-          border:1px solid ${hrc}22;
+          width:84px;height:68px;flex-shrink:0;
+          background:var(--panel);border-radius:8px;overflow:hidden;
+          border:1px solid ${hrc}33;
         "></div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:9px;letter-spacing:1.5px;color:${hrc};opacity:0.7;margin-bottom:1px">TRANSPORTER</div>
-          <div style="font-family:'Cinzel',serif;font-size:12px;color:${hrc};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h2.name}</div>
-          <div style="font-size:10px;color:var(--text2)">${hlbl} · ${h2.gender==="male"?"♂":"♀"}</div>
-          <div style="font-size:10px;color:var(--text2);margin-top:1px">⚡${h2.stats.speed} 💪${h2.stats.strength} ❤️${h2.stats.stamina}</div>
-          <div style="font-size:10px;color:#c9a84c;margin-top:2px">Opłata: 💰${fee}</div>
+          <div style="font-size:9px;letter-spacing:1.5px;color:${hrc};opacity:0.7;margin-bottom:2px">🧳 TRANSPORTER</div>
+          <div style="font-family:'Cinzel',serif;font-size:13px;color:${hrc};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h2.name}</div>
+          <div style="font-size:10px;color:var(--text2);margin-top:1px">${hlbl} · ${h2.type||""} · ${h2.gender==="male"?"♂ Ogier":"♀ Klacz"}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:4px">
+            <div style="font-size:10px;color:var(--text2)">⚡<span style="color:var(--text)">${h2.stats.speed}</span></div>
+            <div style="font-size:10px;color:var(--text2)">💪<span style="color:var(--text)">${h2.stats.strength}</span></div>
+            <div style="font-size:10px;color:var(--text2)">❤️<span style="color:var(--text)">${h2.stats.stamina}</span></div>
+            <div style="font-size:10px;color:var(--text2)">🍀<span style="color:var(--text)">${h2.stats.luck||0}</span></div>
+          </div>
+          <div style="font-size:10px;color:#c9a84c;margin-top:4px;font-family:'Cinzel',serif">Opłata: 💰${fee}</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:4px">
-          <button onclick="openHorsePicker(${idx})" style="border-color:${hrc};color:${hrc};background:${hrc}11;font-size:10px;padding:3px 8px;white-space:nowrap">Odbierz</button>
-          <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1);font-size:10px;padding:3px 8px" onclick="openListItem(${idx})">Sprzedaj</button>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+          <button onclick="openHorsePicker(${idx})" style="border-color:${hrc};color:${hrc};background:${hrc}11;font-size:11px;padding:4px 10px;white-space:nowrap">🧳 Odbierz</button>
+          <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1);font-size:11px;padding:4px 10px" onclick="openListItem(${idx})">🏪 Sprzedaj</button>
         </div>
       `;
       tGrid.appendChild(card);
@@ -512,7 +517,7 @@ function renderInventory() {
         let svgStr = drawHorseSVG(h2.breedKey||h2.name, h2.rarity, h2.stars||0);
         svgSlot.innerHTML = svgStr;
         let svgEl = svgSlot.querySelector("svg");
-        if (svgEl) { svgEl.setAttribute("width","72"); svgEl.setAttribute("height","60"); }
+        if (svgEl) { svgEl.setAttribute("width","84"); svgEl.setAttribute("height","68"); }
       }
     });
     el.appendChild(tGrid);

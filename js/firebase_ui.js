@@ -385,9 +385,15 @@ function _renderTournamentsWithData(fbTournament) {
         </div>
       </div>
       ${myEntry
-        ?`<div style="padding:8px;background:rgba(74,171,112,0.1);border:1px solid rgba(74,171,112,0.3);border-radius:8px;font-size:12px;color:#4ab870;display:flex;justify-content:space-between;align-items:center">
-            <span>✅ ${myEntry.horse?.flag||"🐴"} ${myEntry.horse?.name}</span>
-            <button onclick="unregisterTournament()" style="font-size:10px;border-color:#c94a4a;color:#c94a4a;padding:2px 8px">Wypisz +💰${tEntryFee}</button>
+        ?`<div style="padding:8px;background:rgba(74,171,112,0.1);border:1px solid rgba(74,171,112,0.3);border-radius:8px;font-size:12px;color:#4ab870;display:flex;justify-content:space-between;align-items:center;gap:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div id="myEntryHorseSVG" style="width:40px;height:32px;background:var(--panel);border-radius:5px;overflow:hidden;flex-shrink:0"></div>
+              <div>
+                <div style="font-size:12px;color:${RARITY_COLORS[myEntry.horse?.rarity]||'#4ab870'}">✅ ${myEntry.horse?.name}</div>
+                <div style="font-size:10px;color:var(--text2)">⚡${myEntry.horse?.stats?.speed||0} 💪${myEntry.horse?.stats?.strength||0} ❤️${myEntry.horse?.stats?.stamina||0} 🍀${myEntry.horse?.stats?.luck||0}</div>
+              </div>
+            </div>
+            <button onclick="unregisterTournament()" style="font-size:10px;border-color:#c94a4a;color:#c94a4a;padding:2px 8px;white-space:nowrap">Wypisz +💰${tEntryFee}</button>
           </div>`
         :`<button onclick="openTournamentRegister('${tId}')" style="width:100%;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1);font-family:'Cinzel',serif">🏁 Zapisz konia · 💰 ${tEntryFee}</button>`
       }
@@ -400,6 +406,17 @@ function _renderTournamentsWithData(fbTournament) {
   `;
 
   renderTournamentEntries();
+
+  // Wstaw SVG konia do myEntry
+  if (myEntry?.horse) {
+    let slot = document.getElementById("myEntryHorseSVG");
+    if (slot && typeof drawHorseSVG === "function") {
+      let h2 = myEntry.horse;
+      slot.innerHTML = drawHorseSVG(h2.breedKey||h2.name, h2.rarity, h2.stars||0);
+      let svgEl = slot.querySelector("svg");
+      if (svgEl) { svgEl.setAttribute("width","40"); svgEl.setAttribute("height","32"); }
+    }
+  }
 
   // Odliczanie
   let cdInterval = setInterval(()=>{
@@ -416,18 +433,31 @@ function renderTournamentEntries() {
   let el=document.getElementById("tournamentEntriesList");
   if(!el) return;
   let myId=window.FB?window.FB.getPlayerId():null;
-  if(!tournamentEntries.length){el.innerHTML=`<div style="font-size:12px;color:#4a5a4a;text-align:center;padding:16px">Brak zapisanych graczy. Bądź pierwszy!</div>`;return;}
-  el.innerHTML=tournamentEntries.map(e=>{
+  if(!tournamentEntries.length){el.innerHTML='<div style="font-size:12px;color:#4a5a4a;text-align:center;padding:16px">Brak zapisanych graczy. Bądź pierwszy!</div>';return;}
+  el.innerHTML="";
+  tournamentEntries.forEach((e,rank)=>{
     let isMe=e.playerId===myId, rc=RARITY_COLORS[e.horse?.rarity]||"#8aab84";
-    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#131f13;border:1px solid ${isMe?"#c9a84c44":"#1e3a1e"};border-radius:8px;margin-bottom:6px">
-      <span style="font-size:18px">${e.horse?.flag||"🐴"}</span>
-      <div style="flex:1">
-        <div style="font-size:12px;color:${rc}">${e.horse?.name||"?"} <span style="font-size:10px;color:var(--text2)">· ${e.playerNick||"Gracz"}</span>${isMe?' <span style="color:#c9a84c;font-size:10px">(Ty)</span>':''}</div>
-        <div style="font-size:10px;color:var(--text2)">⚡${e.horse?.stats?.speed} 💪${e.horse?.stats?.strength} ❤️${e.horse?.stats?.stamina}</div>
-      </div>
-      <span style="font-size:10px;color:${rc}">${RARITY_LABELS[e.horse?.rarity]||""}</span>
-    </div>`;
-  }).join("");
+    let h=e.horse;
+    let row=document.createElement("div");
+    row.style.cssText="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#131f13;border:1px solid "+(isMe?"#c9a84c44":"#1e3a1e")+";border-radius:8px;margin-bottom:6px"+(isMe?";box-shadow:0 0 0 1px #c9a84c22":"");
+    row.innerHTML=
+      '<div style="font-family:Cinzel,serif;font-size:11px;color:var(--text2);width:16px;text-align:center">'+(rank+1)+'</div>'+
+      '<div class="tourn-svg-slot" style="width:44px;height:36px;flex-shrink:0;background:var(--panel);border-radius:6px;overflow:hidden;border:1px solid '+rc+'22"></div>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:12px;color:'+rc+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+
+          (h?.name||"?")+ ' <span style="font-size:10px;color:var(--text2)">· '+(e.playerNick||"Gracz")+'</span>'+(isMe?' <span style="color:#c9a84c;font-size:10px">(Ty)</span>':'')+
+        '</div>'+
+        '<div style="font-size:10px;color:var(--text2);margin-top:2px">⚡'+(h?.stats?.speed||0)+' 💪'+(h?.stats?.strength||0)+' ❤️'+(h?.stats?.stamina||0)+' 🍀'+(h?.stats?.luck||0)+'</div>'+
+      '</div>'+
+      '<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:'+ rc +'18;border:1px solid '+ rc +'33;color:'+ rc +';white-space:nowrap">'+(RARITY_LABELS[h?.rarity]||"")+'</span>';
+    el.appendChild(row);
+    let svgSlot=row.querySelector(".tourn-svg-slot");
+    if(svgSlot&&h&&typeof drawHorseSVG==="function"){
+      svgSlot.innerHTML=drawHorseSVG(h.breedKey||h.name,h.rarity,h.stars||0);
+      let svgEl=svgSlot.querySelector("svg");
+      if(svgEl){svgEl.setAttribute("width","44");svgEl.setAttribute("height","36");}
+    }
+  });
 }
 
 function openTournamentRegister(tId) {
