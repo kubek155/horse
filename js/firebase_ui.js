@@ -145,6 +145,82 @@ function initGlobalMarket() {
   }
 }
 
+function renderGlobalMarketSection() {
+  // Załaduj globalny rynek w osobnej sekcji
+  if (!window.FB?.isLoggedIn()) {
+    let el2 = document.getElementById("globalMarketList2");
+    if (el2) el2.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text2)">Zaloguj się aby zobaczyć rynek globalny.<br><button onclick="openLoginModal()" style="margin-top:12px;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1)">🔑 Zaloguj się</button></div>`;
+    return;
+  }
+  if (!globalMarketUnsub) {
+    globalMarketUnsub = window.FB.subscribeGlobalMarket(offers => {
+      globalMarketOffers = offers;
+      renderGlobalMarket();
+      renderGlobalMarketList2();
+    });
+  }
+  renderGlobalMarketList2();
+}
+
+function renderGlobalMarketList2() {
+  let el = document.getElementById("globalMarketList2");
+  if (!el) return;
+  let offers = (globalMarketOffers||[]);
+  let typeF = "all"; // można dodać filtry
+  if (!offers.length) {
+    el.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🌐</div>Brak ofert na rynku globalnym</div>`;
+    return;
+  }
+  el.innerHTML = "";
+  // Użyj tej samej logiki renderowania co renderGlobalMarket ale do globalMarketList2
+  let myId = window.FB.getPlayerId();
+  offers.forEach((offer, i) => {
+    let isHorse = offer.type === "horse";
+    let h = offer.horse;
+    let item = offer.item;
+    let rc = isHorse ? (RARITY_COLORS[h?.rarity]||"#8aab84") : "#4a7ec8";
+    let isMine = offer.sellerId === myId;
+
+    let card = document.createElement("div");
+    card.className = "mc-card";
+    card.style.borderColor = rc + "44";
+
+    if (isHorse && h) {
+      let svgDiv = document.createElement("div");
+      svgDiv.style.cssText = "width:100%;height:70px;overflow:hidden;border-radius:7px;background:var(--panel);margin-bottom:8px;border:1px solid "+rc+"22";
+      svgDiv.innerHTML = typeof drawHorseSVG==="function" ? drawHorseSVG(h.breedKey||h.name,h.rarity,h.stars||0) : "🐴";
+      let svgEl = svgDiv.querySelector("svg"); if(svgEl){svgEl.setAttribute("width","100%");svgEl.setAttribute("height","70");}
+      card.appendChild(svgDiv);
+    } else if (item) {
+      let iconDiv = document.createElement("div");
+      iconDiv.style.cssText = "width:44px;height:44px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center";
+      iconDiv.innerHTML = (typeof ITEM_ICONS_SVG!=="undefined"&&ITEM_ICONS_SVG[item.name])||`<span style="font-size:32px">${(typeof ITEMS_DATABASE!=="undefined"&&ITEMS_DATABASE[item.name]?.icon)||"📦"}</span>`;
+      card.appendChild(iconDiv);
+    }
+
+    let name = isHorse ? (h?.name||"Koń") : (item?.name||"Przedmiot");
+    let sub  = isHorse ? `${(typeof RARITY_LABELS!=="undefined"?RARITY_LABELS[h?.rarity]:h?.rarity)||""} · ⚡${h?.stats?.speed} 💪${h?.stats?.strength}` : "";
+
+    card.innerHTML += `
+      <div class="mc-name" style="color:${rc}">${name}</div>
+      <div class="mc-sub">${sub}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+        <div class="mc-price">💰${offer.price}</div>
+        <div style="font-size:10px;color:var(--text2)">${offer.sellerNick||"?"}</div>
+      </div>
+      ${isMine
+        ? `<button onclick="cancelGlobalListing_ext('${offer.id}')" style="width:100%;margin-top:8px;font-size:10px;border-color:#c94a4a44;color:#c94a4a">Wycofaj</button>`
+        : `<button onclick="buyGlobal_ext('${offer.id}')" style="width:100%;margin-top:8px;font-size:10px;border-color:${rc};color:${rc};background:${rc}11">💰 Kup</button>`
+      }
+    `;
+    el.appendChild(card);
+  });
+}
+
+// Aliasy dla przycisków
+async function buyGlobal_ext(id) { if(window.FB) await window.FB.buyFromGlobalMarket(id); }
+async function cancelGlobalListing_ext(id) { if(window.FB) await window.FB.cancelGlobalListing(id); }
+
 function renderGlobalMarket() {
   let el = document.getElementById("globalMarketList");
   if (!el) return;

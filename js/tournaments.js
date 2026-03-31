@@ -10,14 +10,14 @@ let _raceIntervals   = {};   // setInterval per race
 
 // ── Fazy turnieju ──────────────────────────────────────────
 // startTime      = czas startu wyścigu (koniec zapisów)
-// raceEndTime    = startTime + 10 minut
+// raceEndTime    = startTime + 2 minuty
 // active:true + startTime > now       → ZAPISY
-// active:true + startTime <= now < raceEndTime → WYŚCIG
+// active:true + startTime <= now < raceEndTime → WYŚCIG (2 min)
 // active:true + raceEndTime <= now    → ZAKOŃCZONY (wyniki)
 
 function getTourneyPhase(t) {
   let now = Date.now();
-  let raceEnd = (t.startTime||0) + 10*60*1000;
+  let raceEnd = (t.startTime||0) + 2*60*1000;
   if ((t.startTime||0) > now)         return "registration"; // zapisy
   if (now < raceEnd)                   return "racing";       // wyścig
   return "finished";                                          // wyniki
@@ -35,7 +35,7 @@ async function loadAllActiveTournaments() {
     let SHOW_BUFFER = 60 * 1000; // 60s po końcu wyścigu jeszcze widoczny
     return docs.filter(t => {
       if (!t.active) return false;
-      let raceEnd = (t.startTime||0) + 10*60*1000;
+      let raceEnd = (t.startTime||0) + 2*60*1000;
       return Date.now() < raceEnd + SHOW_BUFFER;
     }).sort((a,b)=>(a.startTime||0)-(b.startTime||0));
   } catch(e) {
@@ -201,7 +201,7 @@ function _startTourneyTimer(t, myId, ct) {
   function update() {
     let phase    = getTourneyPhase(t);
     let now      = Date.now();
-    let raceEnd  = (t.startTime||0) + 10*60*1000;
+    let raceEnd  = (t.startTime||0) + 2*60*1000;
     let timerEl  = document.getElementById("tourney_timer_" + t.id);
     let phaseEl  = document.getElementById("tourney_phase_" + t.id);
     if (!timerEl) { clearInterval(_raceIntervals[t.id]); return; }
@@ -247,7 +247,7 @@ function _startTourneyTimer(t, myId, ct) {
   }
 
   update();
-  _raceIntervals[t.id] = setInterval(update, 1000);
+  _raceIntervals[t.id] = setInterval(update, 250); // 4x/s dla płynności
 }
 
 function _renderRegistrationPhase(el, t, myId, ct) {
@@ -371,7 +371,7 @@ function _renderRaceTrack(tid, ranked, myId) {
     leftPct = Math.max(3, Math.min(91, leftPct));
 
     let lane  = document.createElement("div");
-    lane.style.cssText = `position:relative;height:44px;margin-bottom:4px;
+    lane.style.cssText = `position:relative;height:54px;margin-bottom:6px;
       background:${isMe?"rgba(201,168,76,0.05)":"rgba(0,0,0,0.1)"};
       border-radius:6px;border:1px solid ${isMe?"#c9a84c22":"#1a2a1a"};
       overflow:hidden`;
@@ -397,7 +397,7 @@ function _renderRaceTrack(tid, ranked, myId) {
     horseEl.style.cssText = `
       position:absolute;top:50%;left:${leftPct}%;
       transform:translate(-50%,-50%);
-      transition:left 1s ease-out;
+      transition:left 0.3s linear;
       display:flex;align-items:center;gap:4px;
       z-index:2;
     `;
@@ -460,7 +460,7 @@ function _renderFinishedPhase(el, t, myId, ct) {
     return;
   }
 
-  let ranked  = _calcRacePositions(entries, t.type, 10*60*1000, 10*60*1000);
+  let ranked  = _calcRacePositions(entries, t.type, 2*60*1000, 2*60*1000);
   let prizes  = t.prizes || [0,0,0];
   let myRank  = ranked.findIndex(e => e.playerId === myId);
   let myPrize = myRank >= 0 && myRank < prizes.length ? prizes[myRank] : 0;

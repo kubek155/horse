@@ -48,6 +48,7 @@ function openAdminPanel() {
         <button id="adTab_broadcast"   class="market-tab-btn"        onclick="switchAdminTab('broadcast')">📢 Ogłoszenia</button>
         <button id="adTab_players"     class="market-tab-btn"        onclick="switchAdminTab('players')">👥 Gracze</button>
         <button id="adTab_giveaway"    class="market-tab-btn"        onclick="switchAdminTab('giveaway')">🎁 Giveaway</button>
+        <button id="adTab_menu"        class="market-tab-btn"        onclick="switchAdminTab('menu')">🧭 Menu</button>
         <button id="adTab_config"      class="market-tab-btn"        onclick="switchAdminTab('config')">⚙️ Konfiguracja</button>
       </div>
 
@@ -480,7 +481,115 @@ async function renderAdminTab(tab) {
       });
     }
 
-  } else if (tab === "config") {
+  } else if (tab === "menu") {
+    // Pobierz aktualny stan menu z localStorage
+    const ALL_MENU = [
+      {id:"expedition",    label:"Wyprawy",         icon:"🗺️"},
+      {id:"stable",        label:"Stajnia",          icon:"🏠"},
+      {id:"inventory",     label:"Ekwipunek",        icon:"🎒"},
+      {id:"shop",          label:"Sklep",            icon:"🛒"},
+      {id:"crafting",      label:"Crafting",         icon:"⚗️"},
+      {id:"market",        label:"Rynek",            icon:"🏪"},
+      {id:"globalmarket",  label:"Rynek Globalny",   icon:"🌐"},
+      {id:"tournaments",   label:"Turnieje",         icon:"🏆"},
+      {id:"contests",      label:"Zawody",           icon:"🌟"},
+      {id:"quests",        label:"Questy",           icon:"📋"},
+      {id:"encyclopedia",  label:"Encyklopedia",     icon:"📖"},
+      {id:"notifications", label:"Powiadomienia",    icon:"🔔"},
+      {id:"events",        label:"Eventy",           icon:"🎪"},
+      {id:"ranking",       label:"Ranking",          icon:"📊"},
+      {id:"drops",         label:"Historia",         icon:"📜"},
+      {id:"giveaway",      label:"Giveaway",         icon:"🎡"},
+      {id:"guild",         label:"Gildia",           icon:"🏰"},
+    ];
+
+    let hiddenMenus = JSON.parse(localStorage.getItem("hh_hidden_menus")||"[]");
+    let menuOrder   = JSON.parse(localStorage.getItem("hh_menu_order")||"null") || ALL_MENU.map(m=>m.id);
+
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div style="background:#0f1a0f;border:1px solid #1e3a1e;border-radius:12px;padding:16px">
+          <div style="font-family:'Cinzel',serif;font-size:12px;color:#c9a84c;margin-bottom:14px">🧭 WIDOCZNOŚĆ MENU</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:12px">Kliknij aby ukryć/pokazać pozycje menu dla wszystkich graczy</div>
+          <div style="display:flex;flex-direction:column;gap:6px" id="menuVisibilityList"></div>
+          <button onclick="saveMenuSettings()" style="width:100%;margin-top:14px;border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1);font-family:'Cinzel',serif">💾 Zapisz i zastosuj</button>
+        </div>
+        <div style="background:#0f1a0f;border:1px solid #1e3a1e;border-radius:12px;padding:16px">
+          <div style="font-family:'Cinzel',serif;font-size:12px;color:#4ab870;margin-bottom:14px">↕️ KOLEJNOŚĆ MENU</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:12px">Przeciągnij aby zmienić kolejność</div>
+          <div id="menuOrderList" style="display:flex;flex-direction:column;gap:4px"></div>
+          <div style="display:flex;gap:8px;margin-top:14px">
+            <button onclick="resetMenuOrder()" style="flex:1;border-color:#555;color:#777;font-size:11px">↺ Reset</button>
+            <button onclick="saveMenuSettings()" style="flex:2;border-color:#4ab870;color:#4ab870;background:rgba(74,184,112,0.1);font-family:'Cinzel',serif">💾 Zapisz</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Wypełnij listę widoczności
+    let visList = document.getElementById("menuVisibilityList");
+    ALL_MENU.forEach(m => {
+      let hidden = hiddenMenus.includes(m.id);
+      let row = document.createElement("label");
+      row.style.cssText = `display:flex;align-items:center;gap:10px;padding:8px 10px;background:${hidden?"#0a0e0a":"#131f13"};border:1px solid ${hidden?"#1a2a1a":"#2a4a2a"};border-radius:8px;cursor:pointer`;
+      row.innerHTML = `
+        <input type="checkbox" ${hidden?"":"checked"} data-menu-id="${m.id}"
+          style="width:16px;height:16px;accent-color:#c9a84c;cursor:pointer">
+        <span style="font-size:14px">${m.icon}</span>
+        <span style="font-size:12px;color:${hidden?"var(--text2)":"var(--text)"}">${m.label}</span>
+        ${hidden?`<span style="font-size:9px;color:#c94a4a;margin-left:auto">UKRYTE</span>`:`<span style="font-size:9px;color:#4ab870;margin-left:auto">WIDOCZNE</span>`}
+      `;
+      row.querySelector("input").onchange = (e) => {
+        row.style.background = e.target.checked ? "#131f13" : "#0a0e0a";
+        row.style.borderColor = e.target.checked ? "#2a4a2a" : "#1a2a1a";
+        let span = row.querySelector("span:last-child");
+        span.style.color = e.target.checked ? "#4ab870" : "#c94a4a";
+        span.textContent = e.target.checked ? "WIDOCZNE" : "UKRYTE";
+      };
+      visList.appendChild(row);
+    });
+
+    // Wypełnij listę kolejności (drag & drop)
+    let orderList = document.getElementById("menuOrderList");
+    let reorderData = [...menuOrder];
+    function renderOrderList() {
+      orderList.innerHTML = "";
+      reorderData.forEach((id, i) => {
+        let m = ALL_MENU.find(x=>x.id===id);
+        if (!m) return;
+        let row = document.createElement("div");
+        row.draggable = true;
+        row.dataset.idx = i;
+        row.style.cssText = "display:flex;align-items:center;gap:8px;padding:7px 10px;background:#131f13;border:1px solid #1e3a1e;border-radius:7px;cursor:grab;user-select:none";
+        row.innerHTML = `
+          <svg viewBox="0 0 16 16" fill="none" width="12" height="12" style="opacity:0.4"><line x1="2" y1="4" x2="14" y2="4" stroke="#8aab84" stroke-width="1.5"/><line x1="2" y1="8" x2="14" y2="8" stroke="#8aab84" stroke-width="1.5"/><line x1="2" y1="12" x2="14" y2="12" stroke="#8aab84" stroke-width="1.5"/></svg>
+          <span style="font-size:14px">${m.icon}</span>
+          <span style="font-size:12px;color:var(--text)">${m.label}</span>
+          <span style="font-size:10px;color:#4a5a4a;margin-left:auto">#${i+1}</span>
+        `;
+        // Drag events
+        row.ondragstart = e => { e.dataTransfer.setData("text/plain", i); row.style.opacity="0.4"; };
+        row.ondragend   = () => { row.style.opacity="1"; };
+        row.ondragover  = e => { e.preventDefault(); row.style.borderColor="#c9a84c44"; };
+        row.ondragleave = () => { row.style.borderColor="#1e3a1e"; };
+        row.ondrop      = e => {
+          e.preventDefault(); row.style.borderColor="#1e3a1e";
+          let fromIdx = parseInt(e.dataTransfer.getData("text/plain"));
+          let toIdx   = i;
+          if (fromIdx===toIdx) return;
+          let [moved] = reorderData.splice(fromIdx,1);
+          reorderData.splice(toIdx,0,moved);
+          renderOrderList();
+        };
+        orderList.appendChild(row);
+      });
+    }
+    renderOrderList();
+
+    window._adminMenuReorderData = reorderData;
+    window._adminAllMenu = ALL_MENU;
+
+  } else if (tab === "config") {  } else if (tab === "config") {
     el.innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
         <div style="background:#0f1a0f;border:1px solid #1e3a1e;border-radius:12px;padding:16px">
@@ -527,6 +636,62 @@ async function renderAdminTab(tab) {
 }
 
 // ── Funkcje admin Firebase ────────────────────────────────
+
+
+// ── Zarządzanie menu ───────────────────────────────────────
+function saveMenuSettings() {
+  // Zbierz ukryte menu
+  let hidden = [];
+  document.querySelectorAll("[data-menu-id]").forEach(cb => {
+    if (!cb.checked) hidden.push(cb.dataset.menuId);
+  });
+  localStorage.setItem("hh_hidden_menus", JSON.stringify(hidden));
+
+  // Zbierz kolejność
+  let order = window._adminMenuReorderData || [];
+  if (order.length) localStorage.setItem("hh_menu_order", JSON.stringify(order));
+
+  // Zastosuj natychmiast
+  applyMenuSettings();
+  log("🧭 Ustawienia menu zapisane i zastosowane!");
+}
+
+function resetMenuOrder() {
+  localStorage.removeItem("hh_menu_order");
+  localStorage.removeItem("hh_hidden_menus");
+  applyMenuSettings();
+  renderAdminTab("menu");
+  log("↺ Menu zresetowane do domyślnego");
+}
+
+function applyMenuSettings() {
+  let hidden = JSON.parse(localStorage.getItem("hh_hidden_menus")||"[]");
+  let order  = JSON.parse(localStorage.getItem("hh_menu_order")||"null");
+  let sidebar = document.querySelector(".sidebar");
+  if (!sidebar) return;
+
+  // Pokaż/ukryj elementy
+  sidebar.querySelectorAll(".menu-item[id^='menu-']").forEach(item => {
+    let sec = item.id.replace("menu-","");
+    item.style.display = hidden.includes(sec) ? "none" : "";
+  });
+
+  // Zmień kolejność
+  if (order && order.length) {
+    let items = {};
+    sidebar.querySelectorAll(".menu-item[id^='menu-']").forEach(item => {
+      items[item.id.replace("menu-","")] = item;
+    });
+    order.forEach(id => {
+      if (items[id]) sidebar.appendChild(items[id]);
+    });
+  }
+}
+
+// Zastosuj ustawienia przy starcie
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(applyMenuSettings, 500);
+});
 
 async function adminCreateTournament() {
   if (!window.FB) { log("⚠️ Brak połączenia Firebase!"); return; }
