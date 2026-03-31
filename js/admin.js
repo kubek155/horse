@@ -4,7 +4,7 @@
 // Dostęp tylko dla uid w ADMIN_UIDS
 
 const ADMIN_UIDS = [
-  "jakub_admin_uid_placeholder", // zastąp prawdziwym UID z Firebase Console
+  "VBR9IR7A74PzSZnMzRF8hLouBED2", // zastąp prawdziwym UID z Firebase Console
 ];
 
 function isAdmin() {
