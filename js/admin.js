@@ -103,6 +103,24 @@ async function renderAdminTab(tab) {
           </div>
           <input type="hidden" id="ad_ttype" value="sprint">
 
+          <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:6px;letter-spacing:1px">FILTR RZADKOŚCI KONI</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:12px" id="ad_rarity_picker">
+            ${[
+              {id:"all",     label:"Wszystkie",   c:"#8aab84"},
+              {id:"common_uncommon", label:"Zwykłe+Pospolite", c:"#909090"},
+              {id:"rare",    label:"Rzadkie",      c:"#4a7ec8"},
+              {id:"epic_legendary_mythic", label:"Epic/Mit/Prad", c:"#c9a84c"},
+              {id:"epic",    label:"Legendarne",   c:"#7b5ea7"},
+              {id:"legendary_mythic", label:"Mityczne+Pradawne", c:"#c94a6a"},
+            ].map(r=>`
+              <label onclick="document.querySelectorAll('.rarity-filter-opt').forEach(b=>b.style.borderColor='#1e3a1e');this.style.borderColor='${r.c}';document.getElementById('ad_trarity').value='${r.id}'"
+                class="rarity-filter-opt" style="display:flex;align-items:center;gap:4px;padding:7px 5px;background:#131f13;border:1px solid ${r.id==='all'?r.c:'#1e3a1e'};border-radius:7px;cursor:pointer;font-size:10px;color:${r.c};text-align:center;justify-content:center">
+                ${r.label}
+              </label>
+            `).join("")}
+          </div>
+          <input type="hidden" id="ad_trarity" value="all">
+
           <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px;letter-spacing:1px">START (za ile minut)</label>
           <input id="ad_tstart" type="number" value="60" min="1" style="width:100%;padding:8px;background:#131f13;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;margin-bottom:10px">
 
@@ -508,8 +526,10 @@ async function adminCreateTournament() {
   let maxP   = parseInt(document.getElementById("ad_tmax")?.value)||20;
 
   try {
+    let rarity = document.getElementById("ad_trarity")?.value || "all";
     await window.FB.db.collection("tournaments").add({
       name, type,
+      rarityFilter: rarity,
       startTime: Date.now() + mins*60000,
       entryFee: fee,
       prizes: [p1, p2, p3],

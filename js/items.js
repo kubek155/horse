@@ -553,20 +553,37 @@ function renderInventory() {
     let bonusHtml = (isSlot && item.bonus !== undefined)
       ? `<div class="inv-bonus">+${item.bonus} ${statIcon}</div>` : "";
     let isBox = item.name === "Skrzynka z Łupem" || item.name === "Skrzynka Startowa";
-  let useLabel = isFood ? "🍎 Karm" : isSlot ? "✨ Slot" : isPass ? "🎫 Info" : isBreed ? "🍏 Hoduj" : isBox ? "🎁 Otwórz" : "Użyj";
+    let useLabel = isFood ? "🍎 Karm" : isSlot ? "✨ Slot" : isPass ? "🎫 Info" : isBreed ? "🍏 Hoduj" : isBox ? "🎁 Otwórz" : "Użyj";
 
     let div = document.createElement("div");
     div.className = "inv-item";
     div.style.borderColor = rc;
+
+    // Ikona
+    let iconHtml = (typeof ITEM_ICONS_SVG!=="undefined" && ITEM_ICONS_SVG[item.name])
+      ? `<span style="display:inline-flex;width:36px;height:36px">${ITEM_ICONS_SVG[item.name]}</span>`
+      : data.icon;
+
     div.innerHTML = `
-      <span class="inv-icon">${(typeof ITEM_ICONS_SVG!=="undefined"&&ITEM_ICONS_SVG[item.name])?`<span style="display:inline-flex;width:36px;height:36px">${ITEM_ICONS_SVG[item.name]}</span>`:data.icon}</span>
+      <span class="inv-icon">${iconHtml}</span>
       <span class="inv-name">${item.name}</span>
       ${bonusHtml}
       <div class="inv-actions">
-        <button onclick="${isBox ? 'openLootboxWithAnimation(' + idx + ')' : 'openHorsePicker(' + idx + ')'}">${useLabel}</button>
+        <button class="inv-use-btn" data-idx="${idx}" data-isbox="${isBox}">${useLabel}</button>
         <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1)" onclick="openListItem(${idx})">🏪</button>
       </div>
     `;
+
+    // Dodaj handler przez addEventListener (bezpieczny - działa z idx)
+    div.querySelector(".inv-use-btn").addEventListener("click", () => {
+      if (isBox) {
+        if (typeof openLootboxWithAnimation === "function") openLootboxWithAnimation(idx);
+        else openHorsePicker(idx);
+      } else {
+        openHorsePicker(idx);
+      }
+    });
+
     el.appendChild(div);
   });
 }

@@ -124,12 +124,16 @@ function _renderOneTournament(container, t) {
     finished:     `<span style="font-size:9px;letter-spacing:2px;padding:3px 8px;border-radius:10px;background:rgba(144,144,144,0.1);border:1px solid #55555544;color:#888">⚫ ZAKOŃCZONY</span>`,
   }[phase];
 
+  let rfLabel = {"all":"Wszystkie","common_uncommon":"Zwykłe+Pospolite","rare":"Rzadkie","epic_legendary_mythic":"Leg/Mit/Prad","epic":"Legendarne","legendary_mythic":"Mityczne+Pradawne"}[t.rarityFilter||"all"]||"Wszystkie";
+  let rfColor = {"all":"#8aab84","common_uncommon":"#909090","rare":"#4a7ec8","epic_legendary_mythic":"#c9a84c","epic":"#7b5ea7","legendary_mythic":"#c94a6a"}[t.rarityFilter||"all"]||"#8aab84";
+  let rfBadge = t.rarityFilter && t.rarityFilter!=="all" ? `<span style="font-size:9px;padding:2px 7px;border-radius:8px;background:${rfColor}18;border:1px solid ${rfColor}44;color:${rfColor};margin-left:6px">🔒 ${rfLabel}</span>` : "";
+
   card.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
       <div style="display:flex;align-items:center;gap:10px">
         <div style="width:36px;height:36px;flex-shrink:0">${typeIcon}</div>
         <div>
-          <div style="font-family:'Cinzel',serif;font-size:15px;color:${rc}">${t.name}</div>
+          <div style="font-family:'Cinzel',serif;font-size:15px;color:${rc}">${t.name}${rfBadge}</div>
           <div style="font-size:11px;color:var(--text2);margin-top:2px">${ct?.desc||t.type}</div>
           <div style="margin-top:5px">${phaseBadge}</div>
         </div>
@@ -475,9 +479,41 @@ function openTournamentRegister(tId) {
     </div>`;
   document.body.appendChild(modal);
 
+  // Sprawdź filtr rzadkości turnieju
+  const RARITY_ORDER = ["common","uncommon","rare","epic","legendary","mythic"];
+  function horsePassesFilter(h, filter) {
+    if (!filter || filter === "all") return true;
+    if (filter === "common_uncommon") return ["common","uncommon"].includes(h.rarity);
+    if (filter === "rare") return h.rarity === "rare";
+    if (filter === "epic_legendary_mythic") return ["epic","legendary","mythic"].includes(h.rarity);
+    if (filter === "epic") return h.rarity === "epic";
+    if (filter === "legendary_mythic") return ["legendary","mythic"].includes(h.rarity);
+    return h.rarity === filter;
+  }
+
+  let rarityFilter = t?.rarityFilter || "all";
+  let filterLabel = {
+    all:"Wszystkie konie",
+    common_uncommon:"Zwykłe + Pospolite",
+    rare:"Rzadkie",
+    epic_legendary_mythic:"Legendarne, Mityczne, Pradawne",
+    epic:"Legendarne",
+    legendary_mythic:"Mityczne + Pradawne",
+  }[rarityFilter] || "Wszystkie konie";
+
+  // Pokaż info o filtrze
+  if (rarityFilter !== "all") {
+    let filterInfo = document.createElement("div");
+    filterInfo.style.cssText = "padding:8px 12px;background:rgba(201,168,76,0.08);border:1px solid #c9a84c33;border-radius:8px;font-size:11px;color:#c9a84c;margin-bottom:12px";
+    filterInfo.textContent = "🔒 Ten turniej tylko dla: " + filterLabel;
+    document.getElementById("tournRegList").before(filterInfo);
+  }
+
   let list = document.getElementById("tournRegList");
+  let hasEligible = false;
   playerHorses.forEach((h, i) => {
-    let blocked = !!h.injured || !!h.pregnant;
+    let rarityOk = horsePassesFilter(h, rarityFilter);
+    let blocked = !!h.injured || !!h.pregnant || !rarityOk;
     let rc      = (typeof RARITY_COLORS!=="undefined" ? RARITY_COLORS[h.rarity] : null) || "#8aab84";
     let div     = document.createElement("div");
     div.style.cssText = `display:flex;align-items:center;gap:8px;padding:10px;background:#131f13;border:1px solid ${blocked?"#333":rc+"33"};border-radius:8px;cursor:${blocked?"not-allowed":"pointer"};opacity:${blocked?0.4:1}`;
@@ -498,6 +534,12 @@ function openTournamentRegister(tId) {
       ${blocked?`<div style="font-size:10px;color:#c94a4a">${h.injured?"🤕 Ranny":"🤰 W ciąży"}</div>`:""}`;
     div.appendChild(info);
 
+    if (!rarityOk && !h.injured && !h.pregnant) {
+      let noEl = document.createElement("div");
+      noEl.style.cssText = "font-size:10px;color:#c94a4a;margin-top:2px";
+      noEl.textContent = "❌ Nie spełnia wymagań rzadkości";
+      div.appendChild(noEl);
+    }
     if (!blocked) div.onclick = async () => {
       modal.remove();
       if (fee > 0) { gold -= fee; saveGame(); renderAll(); }
