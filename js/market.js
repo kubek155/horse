@@ -280,7 +280,12 @@ function renderMarket() {
           </div>
           ${isOwn ? `<span class="mc-badge">Twoja oferta</span>` : `<span class="mc-seller">👤 ${offer.sellerName}</span>`}
         </div>
-        <div class="mc-stats">⚡ ${h.stats.speed} &nbsp;💪 ${h.stats.strength} &nbsp;❤️ ${h.stats.stamina} &nbsp;🍀 ${luckVal}</div>
+        <div class="mc-stats">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M9 2L4 6l2 1-2 3" stroke="#4a7ec8" stroke-width="1.3" stroke-linecap="round"/></svg>${h.stats.speed}
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="5" width="3" height="2.5" rx="1" fill="#c97c2a"/><rect x="8" y="5" width="3" height="2.5" rx="1" fill="#c97c2a"/><rect x="3.5" y="5.5" width="5" height="1.5" fill="#a06020"/></svg>${h.stats.strength}
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 11Q2 7.5 2 5Q2 3 4 3Q5.2 3 6 4.5Q6.8 3 8 3Q10 3 10 5Q10 7.5 6 11Z" stroke="#e84040" stroke-width="1.2" fill="none"/></svg>${h.stats.stamina}
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="4" cy="4" r="2.5" fill="#3a8a3a" opacity=".9"/><circle cx="8" cy="4" r="2.5" fill="#4aa04a" opacity=".9"/><circle cx="6" cy="7" r="2.5" fill="#3a8a3a" opacity=".9"/></svg>${luckVal}
+        </div>
         ${h.mutation ? `<div style="font-size:10px;color:#80d0ff;padding:2px 0">🧬 Mutacja: ${h.mutation.name} (${h.mutation.donorFlag} ${h.mutation.donor})</div>` : ""}
         <div class="mc-footer">
           <span class="mc-price">💰 ${offer.price}</span>

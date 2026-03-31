@@ -101,19 +101,21 @@
 
     <!-- STAJNIA -->
     <div id="stableSection" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div class="section-title" style="margin:0;border:none;padding:0">🐎 Stajnia</div>
-        <button onclick="openStableUpgradeScreen()" style="border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1);font-size:12px">
-          🏠 Rozbuduj stajnię · Poz. <span id="stableLevelBadge">1</span>
-        </button>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)">
-        <div class="section-title" style="margin:0;border:none;padding:0">🐎 Stajnia</div>
-        <div style="font-family:'Cinzel',serif;font-size:14px;color:var(--text2)">
-          Miejsca: <span id="stableCountDisplay" style="color:var(--gold2)">0 / 8</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:12px">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 19V9L11 3l8 6v10H3z" stroke="#8aab84" stroke-width="1.5" fill="none"/><rect x="8" y="12" width="6" height="7" rx="0.5" stroke="#8aab84" stroke-width="1.2"/><path d="M3 9h18" stroke="#8aab84" stroke-width="1" opacity="0.4"/></svg>
+          <div>
+            <div style="font-family:'Cinzel',serif;font-size:16px;color:var(--gold2)">Stajnia</div>
+            <div style="font-size:11px;color:var(--text2)">Miejsca: <span id="stableCountDisplay" style="color:#8aab84">0 / 8</span></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="breedBtn" onclick="openBreedScreen()" style="border-color:#b090e0;color:#b090e0;background:rgba(176,144,224,0.1);font-size:12px">🧬 Rozmnóż</button>
+          <button onclick="openStableUpgradeScreen()" style="border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,0.1);font-size:12px">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="vertical-align:middle;margin-right:3px"><rect x="2" y="9" width="12" height="5" rx="1" stroke="#c9a84c" stroke-width="1.3" fill="none"/><path d="M5 9V7a3 3 0 016 0v2" stroke="#c9a84c" stroke-width="1.3" fill="none"/></svg>Rozbuduj · Poz. <span id="stableLevelBadge">1</span>
+          </button>
         </div>
       </div>
-      <div style="margin-bottom:14px"><button id="breedBtn" onclick="openBreedScreen()" style="border-color:#b090e0;color:#b090e0;background:rgba(176,144,224,0.1)">🧬 Rozmnóż konie</button></div>
       <div id="horsesGrid" class="horse-grid"></div>
     </div>
 

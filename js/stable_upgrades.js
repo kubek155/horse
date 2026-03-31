@@ -170,6 +170,105 @@ function consumeMaterials(mats) {
 }
 
 // ── EKRAN ROZBUDOWY ──────────────────────────────────────
+
+// ── SVG wizualizacja stajni zależna od poziomu ─────────────
+function drawStableSVG(level) {
+  const W = 280, H = 160;
+  // Kolory per poziom
+  const COLS = {
+    1: { wall:"#5a3a1a", roof:"#8a2010", ground:"#3a2a10", detail:"#7a5a2a" },
+    2: { wall:"#6a4a2a", roof:"#a03020", ground:"#4a3a18", detail:"#9a7a3a" },
+    3: { wall:"#7a5a3a", roof:"#b04030", ground:"#5a4a20", detail:"#b08a4a" },
+    4: { wall:"#8a6a4a", roof:"#c05040", ground:"#6a5828", detail:"#c09a5a" },
+    5: { wall:"#a0804a", roof:"#c9a84c", ground:"#7a6830", detail:"#d4b870" },
+  };
+  const col = COLS[Math.min(level, 5)];
+
+  // Elementy per poziom
+  const hasTower   = level >= 3;
+  const hasWindows = level >= 2;
+  const hasWeather = level >= 4;
+  const hasGarden  = level >= 5;
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Podłoże -->
+  <rect x="0" y="130" width="${W}" height="30" fill="${col.ground}" opacity="0.6"/>
+
+  <!-- Główny budynek -->
+  <rect x="40" y="60" width="200" height="70" fill="${col.wall}" rx="2"/>
+  <rect x="40" y="60" width="200" height="8" fill="${col.detail}" opacity="0.5" rx="1"/>
+
+  <!-- Dach główny -->
+  <polygon points="30,62 140,18 250,62" fill="${col.roof}"/>
+  <polygon points="36,62 140,22 244,62" fill="${col.roof}" opacity="0.7"/>
+  <line x1="140" y1="18" x2="140" y2="62" stroke="${col.detail}" stroke-width="1.5" opacity="0.4"/>
+
+  <!-- Drzwi -->
+  <rect x="112" y="90" width="32" height="40" rx="16 16 2 2" fill="${col.detail}" opacity="0.8"/>
+  <rect x="114" y="92" width="28" height="36" rx="14 14 2 2" fill="#1a0e06" opacity="0.7"/>
+  <circle cx="138" cy="112" r="2.5" fill="${col.detail}"/>
+
+  <!-- Belki poziome -->
+  <line x1="40" y1="90" x2="240" y2="90" stroke="${col.detail}" stroke-width="1.2" opacity="0.4"/>
+  <line x1="40" y1="110" x2="112" y2="110" stroke="${col.detail}" stroke-width="1" opacity="0.3"/>
+  <line x1="144" y1="110" x2="240" y2="110" stroke="${col.detail}" stroke-width="1" opacity="0.3"/>`;
+
+  if (hasWindows) {
+    svg += `
+  <!-- Okna (poz 2+) -->
+  <rect x="52" y="70" width="28" height="20" rx="3" fill="#a8d8f0" opacity="0.4" stroke="${col.detail}" stroke-width="1"/>
+  <line x1="66" y1="70" x2="66" y2="90" stroke="${col.detail}" stroke-width="0.8" opacity="0.5"/>
+  <line x1="52" y1="80" x2="80" y2="80" stroke="${col.detail}" stroke-width="0.8" opacity="0.5"/>
+  <rect x="200" y="70" width="28" height="20" rx="3" fill="#a8d8f0" opacity="0.4" stroke="${col.detail}" stroke-width="1"/>
+  <line x1="214" y1="70" x2="214" y2="90" stroke="${col.detail}" stroke-width="0.8" opacity="0.5"/>
+  <line x1="200" y1="80" x2="228" y2="80" stroke="${col.detail}" stroke-width="0.8" opacity="0.5"/>`;
+  }
+
+  if (hasTower) {
+    svg += `
+  <!-- Wieżyczka (poz 3+) -->
+  <rect x="170" y="34" width="30" height="30" fill="${col.wall}" rx="1"/>
+  <polygon points="165,36 185,10 205,36" fill="${col.roof}"/>
+  <rect x="178" y="44" width="14" height="18" rx="7 7 1 1" fill="#1a0e06" opacity="0.6"/>`;
+  }
+
+  if (hasWeather) {
+    svg += `
+  <!-- Kurek pogodowy / złoty akcent (poz 4+) -->
+  <circle cx="140" cy="14" r="5" fill="${col.detail}" opacity="0.9"/>
+  <path d="M137 14 Q140 10 143 14" stroke="${col.detail}" stroke-width="1.5" fill="none"/>
+  <!-- Latarnie -->
+  <rect x="36" y="95" width="4" height="30" fill="${col.detail}" opacity="0.7"/>
+  <circle cx="38" cy="93" r="4" fill="#f0e070" opacity="0.6"/>
+  <rect x="240" y="95" width="4" height="30" fill="${col.detail}" opacity="0.7"/>
+  <circle cx="242" cy="93" r="4" fill="#f0e070" opacity="0.6"/>`;
+  }
+
+  if (hasGarden) {
+    svg += `
+  <!-- Ogród (poz 5 — stadnina) -->
+  <circle cx="18" cy="118" r="12" fill="#2a5a1a" opacity="0.8"/>
+  <circle cx="262" cy="118" r="12" fill="#2a5a1a" opacity="0.8"/>
+  <circle cx="12" cy="110" r="8" fill="#3a7a2a" opacity="0.7"/>
+  <circle cx="268" cy="110" r="8" fill="#3a7a2a" opacity="0.7"/>
+  <!-- Złote detale dachu -->
+  <line x1="40" y1="62" x2="240" y2="62" stroke="${col.detail}" stroke-width="2" opacity="0.5"/>`;
+  }
+
+  // Numer poziomu i słupki HP
+  svg += `
+  <!-- Pasek poziomów na dole -->
+  <g transform="translate(40,148)">`;
+  for (let i=1; i<=5; i++) {
+    let x = (i-1)*42;
+    let filled = i<=level;
+    svg += `<rect x="${x}" y="0" width="36" height="6" rx="3" fill="${filled?col.detail:"#1e2e1e"}"/>`;
+    if (i<5) svg += `<rect x="${x+36}" y="2" width="6" height="2" fill="#111" opacity="0.5"/>`;
+  }
+  svg += `</g></svg>`;
+  return svg;
+}
+
 function openStableUpgradeScreen() {
   document.getElementById("stableUpgradeOverlay")?.remove();
   let overlay = document.createElement("div");
@@ -221,13 +320,9 @@ function openStableUpgradeScreen() {
             <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end">${matRow(next.materials)}</div>
           </div>` : `<div style="color:#4ab870;font-size:13px">✅ Max poziom</div>`}
         </div>
-        <!-- Pasek -->
-        <div style="display:flex;gap:4px">
-          ${STABLE_LEVELS.map((l,i)=>`
-            <div style="flex:1;text-align:center">
-              <div style="height:5px;border-radius:2px;background:${i<lvl?"#c9a84c":"#1e3a1e"};margin-bottom:3px"></div>
-              <div style="font-size:10px;color:${i<lvl?"#c9a84c":"#4a5a4a"}">${l.icon}</div>
-            </div>`).join("")}
+        <!-- SVG stajni -->
+        <div style="border-radius:10px;overflow:hidden;margin-top:8px;opacity:0.95">
+          ${drawStableSVG(lvl)}
         </div>
       </div>
 

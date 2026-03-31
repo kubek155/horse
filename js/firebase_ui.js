@@ -193,15 +193,23 @@ function renderGlobalMarket() {
 
     if (offer.type==="horse") {
       let h = offer.horse||{};
+      let horseIconHtml = (typeof renderHorseMiniSVG==="function")
+        ? renderHorseMiniSVG(h,52)
+        : `<span style="font-size:32px">${h.flag||"🐴"}</span>`;
       div.innerHTML = `
         <div class="mc-header">
-          <span class="mc-icon">${h.flag||"🐴"}</span>
+          <span class="mc-icon" style="width:52px;height:52px;flex-shrink:0">${horseIconHtml}</span>
           <div style="flex:1">
             <div class="mc-name" style="color:${rc}">${h.name||"?"} ${isOwn?'<span style="font-size:10px;color:#c9a84c">· Twoja</span>':''}</div>
             <div class="mc-sub">${RARITY_LABELS[h.rarity]||h.rarity} · 👤 ${offer.sellerNick||"Gracz"}</div>
           </div>
         </div>
-        <div class="mc-stats">⚡${h.stats?.speed} 💪${h.stats?.strength} ❤️${h.stats?.stamina} 🍀${h.stats?.luck}</div>
+        <div class="mc-stats">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M9 2L4 6l2 1-2 3" stroke="#4a7ec8" stroke-width="1.3" stroke-linecap="round"/></svg>${h.stats?.speed}
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="5" width="3" height="2.5" rx="1" fill="#c97c2a"/><rect x="8" y="5" width="3" height="2.5" rx="1" fill="#c97c2a"/><rect x="3.5" y="5.5" width="5" height="1.5" fill="#a06020"/></svg>${h.stats?.strength}
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 11Q2 7.5 2 5Q2 3 4 3Q5.2 3 6 4.5Q6.8 3 8 3Q10 3 10 5Q10 7.5 6 11Z" stroke="#e84040" stroke-width="1.2" fill="none"/></svg>${h.stats?.stamina}
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="4" cy="4" r="2.5" fill="#3a8a3a" opacity=".9"/><circle cx="8" cy="4" r="2.5" fill="#4aa04a" opacity=".9"/><circle cx="6" cy="7" r="2.5" fill="#3a8a3a" opacity=".9"/></svg>${h.stats?.luck}
+        </div>
         <div class="mc-footer">
           <span class="mc-price">💰 ${offer.price}</span>
           ${isOwn
@@ -211,9 +219,12 @@ function renderGlobalMarket() {
     } else {
       let item = offer.item||{};
       let d    = ITEMS_DATABASE[item.name]||{icon:"📦",desc:""};
+      let itemIconHtml = (typeof renderItemIconSVG==="function")
+        ? renderItemIconSVG(item.name||"",42)
+        : `<span style="font-size:26px">${d.icon}</span>`;
       div.innerHTML = `
         <div class="mc-header">
-          <span class="mc-icon">${d.icon}</span>
+          <span class="mc-icon" style="width:44px;height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${itemIconHtml}</span>
           <div style="flex:1">
             <div class="mc-name">${item.name||"?"} ${isOwn?'<span style="font-size:10px;color:#c9a84c">· Twoja</span>':''}</div>
             <div class="mc-sub">${d.desc}${item.bonus!==undefined?` · +${item.bonus}`:""} · 👤 ${offer.sellerNick||"Gracz"}</div>
