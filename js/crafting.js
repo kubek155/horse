@@ -137,11 +137,18 @@ const RECIPES = [
 ];
 
 const CRAFT_CAT_LABELS = {
-  hodowla:"<span style='display:inline-flex;width:14px;height:14px;vertical-align:middle'><svg viewBox='0 0 18 18' fill='none'><circle cx='9' cy='9' r='7' stroke='#f0a0c8' stroke-width='1.5' fill='none'/><path d='M6 9h6M9 6v6' stroke='#f0a0c8' stroke-width='1.5'/></svg></span> Hodowla",
-  sloty:"<span style='display:inline-flex;width:14px;height:14px;vertical-align:middle'><svg viewBox='0 0 18 18' fill='none'><polygon points='9,2 11,7 16,7 12,11 14,16 9,13 4,16 6,11 2,7 7,7' stroke='#c9a84c' stroke-width='1.2' fill='none'/></svg></span> Sloty",
-  inne:"<span style='display:inline-flex;width:14px;height:14px;vertical-align:middle'><svg viewBox='0 0 18 18' fill='none'><rect x='3' y='9' width='12' height='8' rx='1.5' stroke='#8aab84' stroke-width='1.5' fill='none'/><path d='M5 9V7a4 4 0 018 0v2' stroke='#8aab84' stroke-width='1.5' fill='none'/></svg></span> Inne",
-  materiały:"<span style='display:inline-flex;width:14px;height:14px;vertical-align:middle'><svg viewBox='0 0 18 18' fill='none'><rect x='3' y='8' width='12' height='5' rx='1' stroke='#8B5E3C' stroke-width='1.5' fill='none'/><rect x='4' y='11' width='10' height='4' rx='1' stroke='#A0723A' stroke-width='1' fill='none'/></svg></span> Materiały",
-  eliksiry:"<span style='display:inline-flex;width:14px;height:14px;vertical-align:middle'><svg viewBox='0 0 18 18' fill='none'><path d='M7 3h4v4l3 7H4L7 7z' stroke='#4a7ec8' stroke-width='1.5' fill='none'/></svg></span> Eliksiry",
+  hodowla:   "Hodowla",
+  sloty:     "Sloty",
+  inne:      "Inne",
+  materiały: "Materiały",
+  eliksiry:  "Eliksiry",
+};
+const CRAFT_CAT_SVGS = {
+  hodowla:   `<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#f0a0c8" stroke-width="1.3" fill="none"/><path d="M5 8h6M8 5v6" stroke="#f0a0c8" stroke-width="1.3"/></svg>`,
+  sloty:     `<svg viewBox="0 0 16 16" fill="none"><polygon points="8,1.5 9.8,6 14.5,6 10.8,8.8 12.5,13.5 8,10.5 3.5,13.5 5.2,8.8 1.5,6 6.2,6" stroke="#c9a84c" stroke-width="1.2" fill="none"/></svg>`,
+  inne:      `<svg viewBox="0 0 16 16" fill="none"><rect x="2" y="7" width="12" height="8" rx="1" stroke="#8aab84" stroke-width="1.3" fill="none"/><rect x="5" y="5" width="6" height="4" rx="0.5" stroke="#8aab84" stroke-width="1.3" fill="none"/></svg>`,
+  materiały: `<svg viewBox="0 0 16 16" fill="none"><rect x="2" y="6" width="12" height="5" rx="1" stroke="#8B5E3C" stroke-width="1.3" fill="none"/><rect x="3" y="9" width="10" height="4" rx="0.5" stroke="#A0723A" stroke-width="1" fill="none"/></svg>`,
+  eliksiry:  `<svg viewBox="0 0 16 16" fill="none"><path d="M6 2h4v4l3 7H3L6 6z" stroke="#4a7ec8" stroke-width="1.3" fill="none"/></svg>`,
 };
 
 let craftCat = "hodowla";
@@ -166,7 +173,8 @@ function renderCraftingSection() {
       let btn = document.createElement("button");
       btn.id = `craftCat_${id}`;
       btn.className = `market-tab-btn${id===craftCat?" active":""}`;
-      btn.textContent = label;
+      let svg = CRAFT_CAT_SVGS[id] || "";
+      btn.innerHTML = `<span style="display:inline-flex;width:13px;height:13px;vertical-align:middle;margin-right:4px">${svg}</span>${label}`;
       btn.onclick = () => setCraftCat(id);
       catBar.appendChild(btn);
     });

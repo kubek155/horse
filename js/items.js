@@ -402,7 +402,10 @@ function renderInventory() {
       btn.dataset.tab = t.id;
       let count = t.id === "all" ? inventory.length
         : inventory.filter(i => getItemCategory(i.name) === t.id).length;
-      btn.innerHTML = `${t.icon} ${t.label}${count>0?` <span style="font-size:10px;opacity:0.7">(${count})</span>`:""}`;
+      let icoHtml = t.svg
+        ? `<span style="display:inline-flex;width:13px;height:13px;vertical-align:middle;margin-right:3px">${t.svg}</span>`
+        : (t.icon||"");
+      btn.innerHTML = `${icoHtml}${t.label}${count>0?` <span style="font-size:10px;opacity:0.7">(${count})</span>`:""}`;
       btn.onclick = () => setInvTab(t.id);
       tabBar.appendChild(btn);
     });
@@ -413,7 +416,12 @@ function renderInventory() {
       let count = tid === "all" ? inventory.length
         : inventory.filter(i => getItemCategory(i.name) === tid).length;
       let t = INV_TABS.find(t2=>t2.id===tid);
-      if (t) btn.innerHTML = `${t.icon} ${t.label}${count>0?` <span style="font-size:10px;opacity:0.7">(${count})</span>`:""}`;
+      if (t) {
+        let icoHtml2 = t.svg
+          ? `<span style="display:inline-flex;width:13px;height:13px;vertical-align:middle;margin-right:3px">${t.svg}</span>`
+          : (t.icon||"");
+        btn.innerHTML = `${icoHtml2}${t.label}${count>0?` <span style="font-size:10px;opacity:0.7">(${count})</span>`:""}`;
+      }
       btn.classList.toggle("active", tid === invTab);
     });
   }

@@ -250,7 +250,7 @@
     <!-- CRAFTING -->
     <div id="craftingSection" style="display:none">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">
-        <div class="section-title" style="margin:0;border:none;padding:0">⚗️ Warsztat</div>
+        <div class="section-title" style="margin:0;border:none;padding:0;display:flex;align-items:center;gap:8px"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="3" y="11" width="14" height="5" rx="1.5" stroke="#c9a84c" stroke-width="1.5" fill="none"/><rect x="6" y="9" width="8" height="4" rx="1" stroke="#c9a84c" stroke-width="1.2" fill="none"/><path d="M7 9V7a3 3 0 016 0v2" stroke="#c9a84c" stroke-width="1.3" fill="none"/><path d="M13 4L16 1M13 4l2 3" stroke="#c9a84c" stroke-width="1.3" stroke-linecap="round"/></svg> Warsztat</div>
         <div id="craftMatsBar" style="font-size:11px;color:var(--text2)"></div>
       </div>
       <!-- Kategorie -->
@@ -284,12 +284,12 @@
           <div style="width:1px;height:20px;background:var(--border)"></div>
           <div class="market-filter" style="gap:4px">
             <button data-filter="sortBy" data-val="mine"         class="active" onclick="setMarketFilter('sortBy','mine')">Moje ↑</button>
-            <button data-filter="sortBy" data-val="price_asc"                   onclick="setMarketFilter('sortBy','price_asc')">💰 ↑</button>
-            <button data-filter="sortBy" data-val="price_desc"                  onclick="setMarketFilter('sortBy','price_desc')">💰 ↓</button>
-            <button data-filter="sortBy" data-val="stat_speed"                  onclick="setMarketFilter('sortBy','stat_speed')">⚡</button>
-            <button data-filter="sortBy" data-val="stat_strength"               onclick="setMarketFilter('sortBy','stat_strength')">💪</button>
-            <button data-filter="sortBy" data-val="stat_stamina"                onclick="setMarketFilter('sortBy','stat_stamina')">❤️</button>
-            <button data-filter="sortBy" data-val="stat_luck"                   onclick="setMarketFilter('sortBy','stat_luck')">🍀</button>
+            <button data-filter="sortBy" data-val="price_asc"                   onclick="setMarketFilter('sortBy','price_asc')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="#c9a84c" stroke-width="1.2"/><text x="6" y="9" text-anchor="middle" font-size="7" fill="#c9a84c">$</text></svg> ↑</button>
+            <button data-filter="sortBy" data-val="price_desc"                  onclick="setMarketFilter('sortBy','price_desc')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="#c9a84c" stroke-width="1.2"/><text x="6" y="9" text-anchor="middle" font-size="7" fill="#c9a84c">$</text></svg> ↓</button>
+            <button data-filter="sortBy" data-val="stat_speed"  title="Szybkość" onclick="setMarketFilter('sortBy','stat_speed')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9.5 2.5L5 6.5l2 1-2.5 3" stroke="#4a7ec8" stroke-width="1.3" stroke-linecap="round"/></svg></button>
+            <button data-filter="sortBy" data-val="stat_strength" title="Siła"   onclick="setMarketFilter('sortBy','stat_strength')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="2" y="5.5" width="3" height="2.5" rx="1.2" fill="#c97c2a"/><rect x="8" y="5.5" width="3" height="2.5" rx="1.2" fill="#c97c2a"/><rect x="4.5" y="6" width="4" height="1.5" fill="#a06020"/></svg></button>
+            <button data-filter="sortBy" data-val="stat_stamina" title="Wytrzymałość" onclick="setMarketFilter('sortBy','stat_stamina')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 11Q2 7.5 2 5Q2 3 4 3Q5.5 3 6.5 4.5Q7.5 3 9 3Q11 3 11 5Q11 7.5 6.5 11Z" stroke="#e84040" stroke-width="1.2" fill="none"/></svg></button>
+            <button data-filter="sortBy" data-val="stat_luck"    title="Szczęście" onclick="setMarketFilter('sortBy','stat_luck')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="4.5" cy="4.5" r="3" fill="#3a8a3a" opacity=".9"/><circle cx="8.5" cy="4.5" r="3" fill="#4aa04a" opacity=".9"/><circle cx="6.5" cy="7.5" r="3" fill="#3a8a3a" opacity=".9"/><line x1="6.5" y1="10" x2="6.5" y2="13" stroke="#3a6a3a" stroke-width="1.3"/></svg></button>
           </div>
           <div id="myListingsCount" style="font-size:11px;color:#b090e0;margin-left:auto"></div>
         </div>
