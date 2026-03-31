@@ -809,3 +809,55 @@ button:active {
   transform: scale(0.97);
   transition: transform 0.08s ease;
 }
+
+/* =====================
+   ANIMACJA WYŚCIGU KONI
+   ===================== */
+@keyframes horseGallop {
+  0%,100% { transform: translate(-50%,-50%) translateY(0px); }
+  25%      { transform: translate(-50%,-50%) translateY(-3px) rotate(-1deg); }
+  75%      { transform: translate(-50%,-50%) translateY(-1px) rotate(1deg); }
+}
+@keyframes raceLegF {
+  0%,100% { transform: rotate(-20deg); }
+  50%     { transform: rotate(25deg); }
+}
+@keyframes raceLegB {
+  0%,100% { transform: rotate(20deg); }
+  50%     { transform: rotate(-25deg); }
+}
+@keyframes raceTail {
+  0%,100% { transform: rotate(-10deg); }
+  50%     { transform: rotate(15deg); }
+}
+@keyframes raceMane {
+  0%,100% { transform: rotate(0deg); }
+  50%     { transform: rotate(-8deg); }
+}
+@keyframes raceDust {
+  0%   { opacity:0.6; transform:scale(0.5) translateY(0); }
+  100% { opacity:0; transform:scale(2) translateY(-8px); }
+}
+.race-horse-wrap {
+  animation: horseGallop 0.32s ease-in-out infinite;
+}
+.race-horse-wrap .efl {
+  transform-box: fill-box;
+  transform-origin: top center;
+  animation: raceLegF 0.32s ease-in-out infinite alternate;
+}
+.race-horse-wrap .ebl {
+  transform-box: fill-box;
+  transform-origin: top center;
+  animation: raceLegB 0.32s ease-in-out infinite alternate-reverse;
+}
+.race-horse-wrap .etail {
+  transform-box: fill-box;
+  transform-origin: 0% 50%;
+  animation: raceTail 0.28s ease-in-out infinite alternate;
+}
+.race-horse-wrap .emane {
+  transform-box: fill-box;
+  transform-origin: right top;
+  animation: raceMane 0.28s ease-in-out infinite alternate;
+}

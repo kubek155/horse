@@ -69,58 +69,161 @@ function openExpeditionHorsePicker(locIdx) {
   pendingExpLocation = locIdx;
 
   let loc = LOCATIONS[locIdx];
-  document.getElementById("expPickerTitle").textContent    = `${loc.icon} Wyprawa do: ${loc.name}`;
-  document.getElementById("expPickerSubtitle").textContent = loc.desc;
+  let locColor = { forest:"#4a9e6a", desert:"#c9a84c", mountain:"#6ab0e0", tundra:"#4a7ec8", shadow:"#c94a6a" }[loc.bg] || "#8aab84";
 
-  let list = document.getElementById("expHorseList");
-  list.innerHTML = "";
+  // Usuń stary modal jeśli istnieje
+  document.getElementById("expPickerOverlay")?.remove();
 
-  // Konie które są już na aktywnej wyprawie
-  let busyHorseIdxs = new Set(
-    expeditions.filter(e => !e.done).map(e => e.horseIdx)
-  );
+  let overlay = document.createElement("div");
+  overlay.id = "expPickerOverlay";
+  overlay.style.cssText = `
+    position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.88);
+    display:flex;align-items:center;justify-content:center;padding:16px;
+  `;
+  overlay.onclick = e => { if(e.target===overlay) closeExpeditionHorsePicker(); };
 
+  let panel = document.createElement("div");
+  panel.style.cssText = `
+    width:100%;max-width:720px;max-height:90vh;
+    background:#0f1a0f;border:1px solid ${locColor}44;border-radius:16px;
+    display:flex;flex-direction:column;overflow:hidden;
+    box-shadow:0 0 40px rgba(0,0,0,0.8);
+  `;
+
+  // Nagłówek z tłem lokacji
+  let header = document.createElement("div");
+  header.style.cssText = `
+    padding:20px 24px;background:linear-gradient(135deg,${locColor}18,${locColor}08);
+    border-bottom:1px solid ${locColor}33;flex-shrink:0;
+    position:relative;overflow:hidden;
+  `;
+  header.innerHTML = `
+    <div style="position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:64px;opacity:0.08;pointer-events:none">${loc.icon}</div>
+    <div style="display:flex;justify-content:space-between;align-items:start">
+      <div>
+        <div style="font-size:10px;letter-spacing:3px;color:${locColor};margin-bottom:4px">WYBIERZ KONIA DO WYPRAWY</div>
+        <div style="font-family:'Cinzel',serif;font-size:18px;color:${locColor}">${loc.icon} ${loc.name}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">${loc.desc}</div>
+        <div style="display:flex;gap:12px;margin-top:8px;font-size:11px;color:var(--text2)">
+          <span>💰 ${loc.gold.min}–${loc.gold.max}</span>
+          <span>📦 <span style="color:${locColor}">${loc.reward}</span></span>
+          <span>⏱ 1 min</span>
+        </div>
+      </div>
+      <button onclick="closeExpeditionHorsePicker()" style="background:transparent;border:none;color:#4a5a4a;font-size:22px;cursor:pointer;padding:0;line-height:1;flex-shrink:0">✕</button>
+    </div>
+  `;
+  panel.appendChild(header);
+
+  // Grid koni
+  let grid = document.createElement("div");
+  grid.style.cssText = `
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+    gap:10px;padding:16px;overflow-y:auto;flex:1;
+  `;
+
+  let busyHorseIdxs = new Set(expeditions.filter(e => !e.done).map(e => e.horseIdx));
   let expLoc = LOCATIONS[pendingExpLocation];
 
   playerHorses.forEach((h, hi) => {
-    let col    = RARITY_COLORS[h.rarity] || "#8aab84";
-    let hunger = getHunger(h);
-    let hCol   = hunger > 70 ? "#c94a4a" : hunger > 40 ? "#c97c2a" : "#7ec870";
-    let age    = getHorseAgeDays(h);
-    let busy   = busyHorseIdxs.has(hi);
-    // Sprawdź wymagania krainy dla tego konkretnego konia
-    let req    = expLoc ? checkLocationRequirement(expLoc, h) : { ok: true };
+    let rc      = RARITY_COLORS[h.rarity] || "#8aab84";
+    let hunger  = getHunger(h);
+    let hCol    = hunger > 70 ? "#c94a4a" : hunger > 40 ? "#c97c2a" : "#4ab870";
+    let age     = getHorseAgeDays(h);
+    let busy    = busyHorseIdxs.has(hi);
+    let req     = expLoc ? checkLocationRequirement(expLoc, h) : { ok:true };
     let blocked = busy || !!h.injured || !req.ok;
 
-    let btn    = document.createElement("button");
-    btn.className = "modal-horse-btn";
-    btn.innerHTML = `
-      <span style="font-size:22px">${h.flag||"🐴"}</span>
-      <div style="flex:1">
-        <div class="mh-name" style="color:${col}">${h.name}${h.stars>0?" "+"⭐".repeat(h.stars):""}</div>
-        <div class="mh-stats">⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck}</div>
-        ${h.perk ? `<div style="font-size:10px;color:#e08070;margin-top:2px">${h.perk.icon} ${h.perk.name}</div>` : ""}
-        <div style="font-size:10px;color:${hCol};margin-top:2px">🍽️ Głód: ${hunger}% &nbsp; 🎂 ${age} dni</div>
-        ${busy ? `<div style="font-size:10px;color:#c97c2a;margin-top:2px">🌍 Już na wyprawie</div>` : ""}
-        ${h.injured ? `<div style="font-size:10px;color:#c94a4a;margin-top:2px">🤕 Ranny — wymaga Bandaża!</div>` : ""}
-        ${h.pregnant ? `<div style="font-size:10px;color:#f0a0c8;margin-top:2px">🤰 W ciąży! 50% ryzyko poronienia</div>` : ""}
-        ${!req.ok && !busy && !h.injured ? `<div style="font-size:10px;color:#c94a4a;margin-top:2px">🔒 ${req.label} (masz: ${req.val||0})</div>` : ""}
+    let card = document.createElement("div");
+    card.style.cssText = `
+      background:${blocked?"#0a0e0a":"#131f13"};
+      border:1px solid ${blocked?"#1a2a1a":rc+"44"};
+      border-radius:12px;padding:12px;
+      cursor:${blocked?"not-allowed":"pointer"};
+      opacity:${blocked?0.5:1};
+      transition:border-color 0.15s,background 0.15s;
+      display:flex;flex-direction:column;gap:8px;
+    `;
+
+    // SVG konia
+    let svgDiv = document.createElement("div");
+    svgDiv.style.cssText = `width:100%;height:80px;overflow:hidden;border-radius:8px;background:${rc}0a;border:1px solid ${rc}22;flex-shrink:0`;
+    if (typeof drawHorseSVG === "function") {
+      svgDiv.innerHTML = drawHorseSVG(h.breedKey||h.name, h.rarity, h.stars||0);
+      let s = svgDiv.querySelector("svg");
+      if (s) { s.setAttribute("width","100%"); s.setAttribute("height","80"); s.setAttribute("preserveAspectRatio","xMidYMid meet"); }
+    }
+    card.appendChild(svgDiv);
+
+    // Info
+    let info = document.createElement("div");
+    info.innerHTML = `
+      <div style="font-family:'Cinzel',serif;font-size:12px;color:${rc};margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+        ${h.name}${h.stars>0?" "+"⭐".repeat(h.stars):""}
+      </div>
+      <div style="font-size:10px;color:var(--text2);margin-bottom:4px">${(typeof RARITY_LABELS!=="undefined"?RARITY_LABELS[h.rarity]:h.rarity)||""} · ${h.type||""}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;font-size:10px">
+        <div style="color:var(--text2)">⚡<span style="color:var(--text)">${h.stats.speed}</span></div>
+        <div style="color:var(--text2)">💪<span style="color:var(--text)">${h.stats.strength}</span></div>
+        <div style="color:var(--text2)">❤️<span style="color:var(--text)">${h.stats.stamina}</span></div>
+        <div style="color:var(--text2)">🍀<span style="color:var(--text)">${h.stats.luck||0}</span></div>
       </div>
     `;
-    if (blocked) {
-      btn.disabled = true;
-      btn.style.cursor = "not-allowed";
-      btn.style.opacity = (!req.ok && !busy && !h.injured) ? "0.3" : "0.45";
-    } else {
-      btn.onclick = () => startExpedition(pendingExpLocation, hi);
+
+    // Status badges
+    let badges = [];
+    if (busy)        badges.push(`<span style="color:#c97c2a;font-size:9px">🌍 Na wyprawie</span>`);
+    if (h.injured)   badges.push(`<span style="color:#c94a4a;font-size:9px">🤕 Ranny</span>`);
+    if (h.pregnant)  badges.push(`<span style="color:#f0a0c8;font-size:9px">🤰 W ciąży</span>`);
+    if (!req.ok && !busy && !h.injured) badges.push(`<span style="color:#c94a4a;font-size:9px">🔒 ${req.label}</span>`);
+    if (hunger > 70) badges.push(`<span style="color:${hCol};font-size:9px">🍽️ Głód: ${hunger}%</span>`);
+
+    if (badges.length) {
+      let badgeDiv = document.createElement("div");
+      badgeDiv.style.cssText = "display:flex;flex-wrap:wrap;gap:4px;margin-top:2px";
+      badgeDiv.innerHTML = badges.join("");
+      info.appendChild(badgeDiv);
     }
-    list.appendChild(btn);
+
+    card.appendChild(info);
+
+    if (!blocked) {
+      card.onclick = () => {
+        startExpedition(pendingExpLocation, hi);
+        closeExpeditionHorsePicker();
+      };
+      card.onmouseenter = () => {
+        card.style.borderColor = rc;
+        card.style.background = rc + "0f";
+      };
+      card.onmouseleave = () => {
+        card.style.borderColor = rc + "44";
+        card.style.background = "#131f13";
+      };
+    }
+
+    grid.appendChild(card);
   });
 
-  document.getElementById("expeditionHorsePickerModal").style.display = "flex";
+  panel.appendChild(grid);
+
+  // Stopka
+  let footer = document.createElement("div");
+  footer.style.cssText = "padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0";
+  footer.innerHTML = `
+    <div style="font-size:11px;color:var(--text2)">
+      ${playerHorses.filter((_,i)=>!busyHorseIdxs.has(i)&&!playerHorses[i]?.injured).length} koni dostępnych
+    </div>
+    <button onclick="closeExpeditionHorsePicker()" style="border-color:var(--border);color:var(--text2);font-size:12px;padding:6px 16px">Anuluj</button>
+  `;
+  panel.appendChild(footer);
+
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
 }
 
 function closeExpeditionHorsePicker() {
+  document.getElementById("expPickerOverlay")?.remove();
   document.getElementById("expeditionHorsePickerModal").style.display = "none";
   pendingExpLocation = null;
 }

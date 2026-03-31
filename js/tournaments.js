@@ -304,19 +304,50 @@ function _renderRacingPhase(el, t, myId) {
 }
 
 function _calcRacePositions(entries, type, elapsed, total) {
-  let statKey = {sprint:"speed",endurance:"stamina",strength:"strength",grand_prix:null,luck:"luck"}[type];
+  // statKey: który stat decyduje o wyniku
+  let statKey = {sprint:"speed", endurance:"stamina", strength:"strength", grand_prix:null, luck:"luck"}[type];
   let progress = Math.min(1, elapsed / total);
 
-  return entries.map(e => {
+  // Każdy koń dostaje deterministyczny "score" (nie zmienia się między re-renderami)
+  let scored = entries.map(e => {
     let h    = e.horse || {};
-    let stat = statKey ? (h.stats?.[statKey]||20) : (((h.stats?.speed||20)+(h.stats?.stamina||20)+(h.stats?.strength||20)+(h.stats?.luck||20))/4);
-    // Seed deterministyczny żeby pozycja nie skakała przy każdym re-render
-    let seed = _hashStr(e.playerId + type);
-    let rand = (seed % 30) - 15; // ±15 punktów losowości
-    let score = stat + rand;
-    let pos  = Math.min(100, progress * 100 * (0.7 + (score/200)*0.6));
-    return {...e, score, pos};
-  }).sort((a,b) => b.score - a.score);
+    // Główna statystyka (0-200)
+    let stat = statKey
+      ? (h.stats?.[statKey] || 20)
+      : (((h.stats?.speed||20)+(h.stats?.stamina||20)+(h.stats?.strength||20)+(h.stats?.luck||20))/4);
+
+    // Deterministyczna "losowość" per gracz (seed z playerId + typ turnieju)
+    let seed  = _hashStr(e.playerId + type);
+    // Losowość: ±20% wartości statu (żeby słabszy koń mógł wygrać z nieco lepszym)
+    let jitter = ((seed % 200) - 100) / 100; // -1.0 do +1.0
+    let luck   = h.stats?.luck || 10;
+    let rand   = jitter * stat * 0.15 + jitter * luck * 0.05;
+
+    let score = Math.max(1, stat + rand);
+    return {...e, score};
+  });
+
+  // Sortuj wg score — lider ma najwyższy
+  scored.sort((a,b) => b.score - a.score);
+
+  // Pozycja na torze:
+  // - Lider (idx=0): zawsze nieco z przodu
+  // - Na końcu wyścigu (progress=1): lider jest na 95%, ostatni na ~65%
+  // - Wszyscy poruszają się proporcjonalnie do czasu
+  let N = scored.length;
+  return scored.map((e, i) => {
+    // Pozycja bazowa zależna od ranku w stawce
+    // Lider (i=0) → 1.0 * progress, ostatni (i=N-1) → 0.65 * progress
+    let rankFactor = 1.0 - (i / Math.max(1, N-1)) * 0.30; // 1.0 → 0.70
+    // Dodaj krzywiznę — lider przyspiesza na końcu (easing out)
+    let easedProgress = progress < 0.5
+      ? 2 * progress * progress
+      : 1 - Math.pow(-2*progress+2, 2)/2;
+    let pos = Math.min(97, easedProgress * 100 * rankFactor);
+    // Na samym końcu wyścigu — WSZYSCY dochodzą do mety
+    if (progress >= 1) pos = 95 - i * (20 / Math.max(1, N-1));
+    return {...e, pos};
+  });
 }
 
 function _hashStr(s) {
@@ -333,49 +364,87 @@ function _renderRaceTrack(tid, ranked, myId) {
   ranked.forEach((e, i) => {
     let rc    = (typeof RARITY_COLORS !== "undefined" ? RARITY_COLORS[e.horse?.rarity] : null) || "#8aab84";
     let isMe  = e.playerId === myId;
-    let left  = Math.max(2, Math.min(80, e.pos)) + "%";
+    // Tor: lewa strona = numer + start, prawa strona = meta (flaga)
+    // Koń porusza się w zakresie left: 20px → calc(100% - 60px)
+    // Używamy % z offsetem żeby koń nie wychodził poza kontenery
+    let leftPct = 3 + (e.pos / 100) * 88; // 3% → 91% (zostaje miejsce na nick + flagę)
+    leftPct = Math.max(3, Math.min(91, leftPct));
 
     let lane  = document.createElement("div");
-    lane.style.cssText = `position:relative;height:40px;margin-bottom:4px;background:${isMe?"rgba(201,168,76,0.05)":"transparent"};border-radius:6px;border:1px solid ${isMe?"#c9a84c22":"transparent"}`;
+    lane.style.cssText = `position:relative;height:44px;margin-bottom:4px;
+      background:${isMe?"rgba(201,168,76,0.05)":"rgba(0,0,0,0.1)"};
+      border-radius:6px;border:1px solid ${isMe?"#c9a84c22":"#1a2a1a"};
+      overflow:hidden`;
 
-    // Tor (linia)
+    // Tor (linia pozioma)
     let track2 = document.createElement("div");
-    track2.style.cssText = `position:absolute;top:50%;left:0;right:0;height:1px;background:${rc}22`;
+    track2.style.cssText = `position:absolute;top:50%;left:20px;right:40px;height:1px;background:${rc}18`;
     lane.appendChild(track2);
 
-    // Pozycja numer
+    // Numer miejsca (lewy skraj)
     let num = document.createElement("div");
-    num.style.cssText = `position:absolute;left:0;top:50%;transform:translateY(-50%);font-family:'Cinzel',serif;font-size:10px;color:${i<3?["#c9a84c","#8aab84","#c97c2a"][i]:"#4a5a4a"};width:16px;text-align:center`;
+    num.style.cssText = `position:absolute;left:4px;top:50%;transform:translateY(-50%);
+      font-family:'Cinzel',serif;font-size:10px;
+      color:${i===0?"#c9a84c":i===1?"#909090":i===2?"#c97c2a":"#4a5a4a"};
+      width:14px;text-align:center`;
     num.textContent = i + 1;
     lane.appendChild(num);
 
-    // Koń (animowany)
+    // Koń + nick (animowany)
     let horseEl = document.createElement("div");
-    horseEl.style.cssText = `position:absolute;top:50%;left:${left};transform:translate(-50%,-50%);transition:left 1.5s cubic-bezier(0.25,0.46,0.45,0.94);display:flex;align-items:center;gap:4px`;
+    horseEl.dataset.tid  = tid;
+    horseEl.dataset.rank = i;
+    horseEl.style.cssText = `
+      position:absolute;top:50%;left:${leftPct}%;
+      transform:translate(-50%,-50%);
+      transition:left 1s ease-out;
+      display:flex;align-items:center;gap:4px;
+      z-index:2;
+    `;
 
-    // Mini SVG konia
+    // Mini SVG konia z animacją biegu
     let svgWrap = document.createElement("div");
-    svgWrap.style.cssText = `width:32px;height:26px;overflow:hidden;border-radius:4px;background:${rc}18;border:1px solid ${rc}33`;
-    if (e.horse && typeof drawHorseSVG === "function") {
+    svgWrap.className = "race-horse-wrap";
+    svgWrap.style.cssText = `width:40px;height:32px;overflow:visible;flex-shrink:0`;
+    if (e.horse && typeof buildExpHorseSVG === "function") {
+      // Użyj SVG konia z ekspedycji - ma klasy .efl .ebl .etail .emane
+      let h2 = e.horse;
+      let vis = (typeof getBreedVisual==="function") ? getBreedVisual(h2.breedKey||h2.name) : {coat:"#8B6914",mane:"#4a2e00"};
+      svgWrap.innerHTML = buildExpHorseSVG(vis.coat||"#8B6914", vis.mane||"#4a2e00");
+      let svgEl = svgWrap.querySelector("svg");
+      if (svgEl) { svgEl.setAttribute("width","40"); svgEl.setAttribute("height","32"); }
+    } else if (e.horse && typeof drawHorseSVG === "function") {
       svgWrap.innerHTML = drawHorseSVG(e.horse.breedKey||e.horse.name, e.horse.rarity, 0);
       let svgEl = svgWrap.querySelector("svg");
-      if (svgEl) { svgEl.setAttribute("width","32"); svgEl.setAttribute("height","26"); }
+      if (svgEl) { svgEl.setAttribute("width","40"); svgEl.setAttribute("height","32"); }
     } else {
-      svgWrap.innerHTML = `<div style="font-size:20px;text-align:center;line-height:26px">🐴</div>`;
+      svgWrap.innerHTML = `<span style="font-size:22px;line-height:32px;display:block;text-align:center">🐴</span>`;
     }
     horseEl.appendChild(svgWrap);
 
-    // Nick
+    // Nick (tylko jeśli widoczny - nie nachodzi na inne)
     let nick = document.createElement("div");
-    nick.style.cssText = `font-size:9px;color:${rc};white-space:nowrap;max-width:60px;overflow:hidden;text-overflow:ellipsis`;
-    nick.textContent = e.horse?.name||e.playerNick||"?";
+    nick.style.cssText = `font-size:9px;color:${rc};white-space:nowrap;max-width:55px;
+      overflow:hidden;text-overflow:ellipsis;
+      text-shadow:0 0 6px #000,0 0 3px #000`;
+    nick.textContent = (e.horse?.name||e.playerNick||"?").split(" ")[0];
     horseEl.appendChild(nick);
+
+    // Pył za koniem (widoczny podczas wyścigu)
+    let dust = document.createElement("div");
+    dust.style.cssText = `position:absolute;top:65%;pointer-events:none`;
+    dust.innerHTML = `
+      <div style="width:6px;height:6px;border-radius:50%;background:rgba(139,105,20,0.35);display:inline-block;animation:raceDust 0.5s ease-out infinite 0s"></div>
+      <div style="width:4px;height:4px;border-radius:50%;background:rgba(139,105,20,0.25);display:inline-block;animation:raceDust 0.5s ease-out infinite 0.2s;margin-left:4px"></div>
+    `;
+    horseEl.appendChild(dust);
 
     lane.appendChild(horseEl);
 
-    // Meta (flaga)
+    // Meta (flaga) — prawy skraj
     let flag = document.createElement("div");
-    flag.style.cssText = `position:absolute;right:0;top:50%;transform:translateY(-50%);font-size:14px;opacity:0.4`;
+    flag.style.cssText = `position:absolute;right:4px;top:50%;transform:translateY(-50%);
+      font-size:16px;opacity:0.5;z-index:1`;
     flag.textContent = "🏁";
     lane.appendChild(flag);
 
@@ -391,31 +460,47 @@ function _renderFinishedPhase(el, t, myId, ct) {
     return;
   }
 
-  let ranked = _calcRacePositions(entries, t.type, 10*60*1000, 10*60*1000);
+  let ranked  = _calcRacePositions(entries, t.type, 10*60*1000, 10*60*1000);
   let prizes  = t.prizes || [0,0,0];
-
-  let myRank = ranked.findIndex(e => e.playerId === myId);
+  let myRank  = ranked.findIndex(e => e.playerId === myId);
   let myPrize = myRank >= 0 && myRank < prizes.length ? prizes[myRank] : 0;
 
+  // ── Auto-payout: wypłać nagrodę graczowi (raz, po zakończeniu) ──
+  let payKey = "hh_tourn_paid_" + t.id;
+  if (myPrize > 0 && !localStorage.getItem(payKey)) {
+    localStorage.setItem(payKey, "1");
+    gold = (gold||0) + myPrize;
+    saveGame();
+    // Powiadom
+    let medalNames = ["🥇 1. miejsce","🥈 2. miejsce","🥉 3. miejsce"];
+    if (typeof addNotification==="function") addNotification("tournament_win",
+      `${medalNames[myRank]||"Turniej"}: ${t.name}`,
+      `+💰${myPrize} złota! Koń: ${ranked[myRank]?.horse?.name||"?"}`
+    );
+    if (typeof log==="function") log(`🏆 Nagroda turnieju: ${medalNames[myRank]||"Nagroda"} · +💰${myPrize}!`);
+    if (typeof renderAll==="function") setTimeout(renderAll, 300);
+  }
+
+  let medals = ["🥇","🥈","🥉"];
   let podium = ranked.slice(0,3).map((e,i) => {
-    let medals = ["🥇","🥈","🥉"];
     let rc = (typeof RARITY_COLORS!=="undefined" ? RARITY_COLORS[e.horse?.rarity] : null)||"#8aab84";
-    return `<div style="flex:1;text-align:center;padding:10px 6px;background:#0a140a;border-radius:8px;border:1px solid ${rc}22">
-      <div style="font-size:20px">${medals[i]}</div>
-      <div class="fin-svg-${t.id}-${i}" style="width:48px;height:38px;margin:4px auto;overflow:hidden;border-radius:5px;background:var(--panel);border:1px solid ${rc}22"></div>
-      <div style="font-size:11px;color:${rc};font-family:'Cinzel',serif;margin-top:3px">${e.horse?.name||"?"}</div>
+    return `<div style="flex:1;text-align:center;padding:10px 6px;background:#0a140a;border-radius:8px;border:1px solid ${rc}${i===0?"66":"22"};${i===0?"box-shadow:0 0 12px "+rc+"22":""}">
+      <div style="font-size:${i===0?"28":"22"}px;margin-bottom:4px">${medals[i]}</div>
+      <div class="fin-svg-${t.id}-${i}" style="width:${i===0?56:44}px;height:${i===0?46:36}px;margin:0 auto 4px;overflow:hidden;border-radius:5px;background:var(--panel);border:1px solid ${rc}33"></div>
+      <div style="font-size:${i===0?12:10}px;color:${rc};font-family:'Cinzel',serif">${e.horse?.name||"?"}</div>
       <div style="font-size:10px;color:var(--text2)">${e.playerNick||"Gracz"}</div>
-      ${prizes[i]?`<div style="font-size:11px;color:#c9a84c;margin-top:4px">+💰${prizes[i]}</div>`:""}
+      ${prizes[i]?`<div style="font-size:11px;color:#c9a84c;margin-top:4px;font-family:'Cinzel',serif">+💰${prizes[i]}</div>`:""}
+      ${e.playerId===myId?`<div style="font-size:9px;color:#4ab870;margin-top:2px">(Ty)</div>`:""}
     </div>`;
   }).join("");
 
   el.innerHTML = `
-    <div style="background:#0a0e0a;border-radius:10px;padding:12px;border:1px solid #c9a84c22">
-      <div style="font-size:10px;color:#c9a84c;letter-spacing:2px;margin-bottom:10px">🏆 WYNIKI</div>
-      <div style="display:flex;gap:6px;margin-bottom:12px">${podium}</div>
-      ${myPrize > 0 ? `<div style="padding:8px;background:rgba(201,168,76,0.1);border:1px solid #c9a84c44;border-radius:8px;text-align:center;font-family:'Cinzel',serif;color:#c9a84c">
-        🎉 Twoja nagroda: +💰${myPrize}
-      </div>` : ""}
+    <div style="background:#0a0e0a;border-radius:10px;padding:14px;border:1px solid #c9a84c33">
+      <div style="font-size:10px;color:#c9a84c;letter-spacing:2px;margin-bottom:12px">🏆 WYNIKI TURNIEJU</div>
+      <div style="display:flex;gap:6px;align-items:flex-end;margin-bottom:12px">${podium}</div>
+      ${myPrize > 0 ? `<div style="padding:10px;background:rgba(201,168,76,0.12);border:1px solid #c9a84c55;border-radius:8px;text-align:center;font-family:'Cinzel',serif;color:#c9a84c">
+        🎉 Nagroda wypłacona: +💰${myPrize}
+      </div>` : (myRank>=0?`<div style="padding:8px;background:var(--panel2);border-radius:8px;text-align:center;font-size:12px;color:var(--text2)">Ukończyłeś na miejscu ${myRank+1} — bez nagrody</div>`:"") }
     </div>
   `;
 
@@ -424,8 +509,10 @@ function _renderFinishedPhase(el, t, myId, ct) {
     setTimeout(() => {
       let slot = el.querySelector(".fin-svg-" + t.id + "-" + i);
       if (slot && e.horse && typeof drawHorseSVG === "function") {
+        let w = i===0?56:44, h2 = i===0?46:36;
         slot.innerHTML = drawHorseSVG(e.horse.breedKey||e.horse.name, e.horse.rarity, 0);
-        let svgEl = slot.querySelector("svg"); if(svgEl){svgEl.setAttribute("width","48");svgEl.setAttribute("height","38");}
+        let svgEl = slot.querySelector("svg");
+        if (svgEl) { svgEl.setAttribute("width",w); svgEl.setAttribute("height",h2); }
       }
     }, 0);
   });

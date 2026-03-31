@@ -7,6 +7,52 @@ let _gwTimers = [];  // globalny tracker timerów — czyszczone przy re-render
 
 
 // ── Render sekcji giveaway ─────────────────────────────────
+
+// ── Auto-payout giveaway ────────────────────────────────────
+function _tryPayoutGiveaway(g, myId) {
+  if (!g.winner || g.winner.uid !== myId) return;
+  let payKey = "hh_giveaway_paid_" + g.id;
+  if (localStorage.getItem(payKey)) return; // już wypłacono
+  localStorage.setItem(payKey, "1");
+
+  let msg = "";
+  if (g.rewardType === "gold") {
+    let amt = g.rewardAmount || 0;
+    gold = (gold||0) + amt;
+    saveGame();
+    msg = `+💰${amt} złota`;
+    log(`🎡 Wygrałeś Giveaway! ${msg}`);
+  } else if (g.rewardType === "item") {
+    let item = g.rewardItem || "Skrzynka z Łupem";
+    inventory.push({ name:item, obtained:Date.now() });
+    saveGame();
+    msg = item;
+    log(`🎡 Wygrałeś Giveaway! Nagroda: ${item}`);
+  } else if (g.rewardType === "horse") {
+    let rarity = g.rewardRarity || "rare";
+    if (typeof generateHorse === "function") {
+      let h = generateHorse(rarity);
+      let limit = typeof getStableLimit==="function" ? getStableLimit() : 8;
+      if (playerHorses.length >= limit) {
+        inventory.push({ name:"Transporter Konia", obtained:Date.now(), horse:h });
+      } else {
+        playerHorses.push(h);
+      }
+      saveGame();
+      msg = `${h.flag||"🐴"} ${h.name}`;
+      log(`🎡 Wygrałeś Giveaway! Koń: ${msg}`);
+    }
+  }
+
+  if (typeof addNotification==="function") {
+    addNotification("tournament_win",
+      `🎡 WYGRAŁEŚ GIVEAWAY!`,
+      `${g.title||"Giveaway"} · Nagroda: ${msg}`
+    );
+  }
+  if (typeof renderAll==="function") setTimeout(renderAll, 500);
+}
+
 function renderGiveawaySection() {
   let el = document.getElementById("giveawaySection");
   if (!el) return;
@@ -146,10 +192,12 @@ function _renderGiveawayCard(container, g) {
       _renderGwParticipants(g.id, updPart, myId);
       _renderGwAction(g.id, updated, myId, myNick, updJoined, updWinner, updPhase);
 
-      // Jeśli nowy zwycięzca — uruchom koło
+      // Jeśli nowy zwycięzca — uruchom koło i wypłać nagrodę
       if (updated.winner && !g.winner) {
         g.winner = updated.winner;
         _spinWheel(g.id, updPart, updated.winner, rewardColor);
+        // Auto-payout jeśli to ja wygrałem
+        _tryPayoutGiveaway(updated, myId);
       }
     });
 }
