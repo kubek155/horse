@@ -199,7 +199,7 @@ function renderCraftingGrid() {
     div.style.cssText = `background:#131f13;border:1px solid ${can?"#c9a84c44":"#1e3a1e"};border-radius:12px;padding:14px`;
     div.innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <span style="font-size:28px">${recipe.icon}</span>
+        <span style="display:inline-flex;width:36px;height:36px">${(typeof ITEM_ICONS_SVG!=="undefined"&&ITEM_ICONS_SVG[recipe.result])?ITEM_ICONS_SVG[recipe.result]:recipe.icon}</span>
         <div>
           <div style="font-family:'Cinzel',serif;font-size:13px;color:${can?"#c9a84c":"var(--text)"}">
             ${recipe.result}${recipe.qty>1?` ×${recipe.qty}`:""}
@@ -215,7 +215,7 @@ function renderCraftingGrid() {
             let ok   = have >= ing.qty;
             let d    = ITEMS_DATABASE[ing.name]||{icon:"📦"};
             return `<span style="font-size:11px;padding:2px 8px;border-radius:5px;background:${ok?"rgba(74,184,112,0.1)":"rgba(201,74,74,0.1)"};border:1px solid ${ok?"#4ab87044":"#c94a4a44"};color:${ok?"#4ab870":"#c94a4a"}">
-              ${d.icon} ${ing.name} ${have}/${ing.qty}
+              <span style="display:inline-flex;width:16px;height:16px;vertical-align:middle">${(typeof ITEM_ICONS_SVG!=="undefined"&&ITEM_ICONS_SVG[ing.name])?ITEM_ICONS_SVG[ing.name]:d.icon}</span> ${ing.name} ${have}/${ing.qty}
             </span>`;
           }).join("")}
         </div>

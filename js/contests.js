@@ -453,41 +453,41 @@ function renderResults(el) {
 }
 
 // ── Render inline (zamiast overlay) ───────────────────────
+const CONTEST_TYPE_SVGS = {
+  sprint:    `<svg viewBox="0 0 40 40" fill="none"><path d="M22 6L14 22l5 0L16 34l12-16h-6z" fill="#f0d040" stroke="#c9a800" stroke-width="1"/></svg>`,
+  endurance: `<svg viewBox="0 0 40 40" fill="none"><path d="M20 32Q6 22 6 14Q6 8 12 8Q16 8 20 13Q24 8 28 8Q34 8 34 14Q34 22 20 32Z" fill="#e84040"/><path d="M20 28Q10 20 10 14Q10 11 13 11Q16 11 20 16" fill="#ff7070" opacity="0.4"/></svg>`,
+  strength:  `<svg viewBox="0 0 40 40" fill="none"><rect x="6" y="18" width="8" height="6" rx="3" fill="#c97c2a"/><rect x="26" y="18" width="8" height="6" rx="3" fill="#c97c2a"/><rect x="12" y="20" width="16" height="2" fill="#a06020"/><rect x="14" y="16" width="4" height="10" rx="1" fill="#c97c2a"/><rect x="22" y="16" width="4" height="10" rx="1" fill="#c97c2a"/></svg>`,
+  luck:      `<svg viewBox="0 0 40 40" fill="none"><circle cx="16" cy="16" r="7" fill="#3a8a3a"/><circle cx="24" cy="16" r="7" fill="#4aa04a"/><circle cx="20" cy="22" r="7" fill="#3a8a3a"/><line x1="20" y1="26" x2="20" y2="34" stroke="#3a6a3a" stroke-width="2"/></svg>`,
+  grand_prix:`<svg viewBox="0 0 40 40" fill="none"><path d="M14 8h12l2 6h4l-3 6h2l-4 8H13l-4-8h2L8 14h4z" fill="#c9a84c"/><rect x="16" y="28" width="8" height="4" rx="1" fill="#a08030"/><rect x="12" y="32" width="16" height="3" rx="1" fill="#a08030"/></svg>`,
+};
+
 function renderContestsInline() {
   let el = document.getElementById("contestsInlineContent");
   if (!el) return;
   let lvl = typeof getPlayerLevel === "function" ? getPlayerLevel() : 1;
-
   el.innerHTML = "";
-
-  // Siatka typów zawodów
   let grid = document.createElement("div");
-  grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px";
+  grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px";
 
   CONTEST_TYPES.forEach(type => {
     let locked = lvl < type.minLevel;
+    let svg = CONTEST_TYPE_SVGS[type.id] || "";
     let div    = document.createElement("div");
-    div.style.cssText = `
-      background:var(--panel2);border:1px solid ${locked?"#1e2e1e":type.color+"44"};
-      border-radius:12px;padding:16px;opacity:${locked?0.45:1};
-      display:flex;flex-direction:column;gap:6px;
-    `;
+    div.className = "shop-item";
+    div.style.cssText = `border:1px solid ${locked?"#1e2e1e":type.color+"44"};opacity:${locked?0.45:1}`;
     div.innerHTML = `
-      <div style="font-size:28px">${type.icon}</div>
-      <div style="font-family:'Cinzel',serif;font-size:13px;color:${locked?"#555":type.color}">${type.name}</div>
-      <div style="font-size:11px;color:var(--text2);flex:1;line-height:1.4">${type.desc}</div>
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2)">
-        <span>Wpisowe: <span style="color:${locked?"#555":"#c97c2a"}">💰${type.entryFee}</span></span>
-        <span>🥇 <span style="color:${locked?"#555":"#c9a84c"}">💰${type.prizes[0]}</span></span>
+      <div class="si-icon"><div style="width:44px;height:44px">${svg}</div></div>
+      <div class="si-name" style="color:${locked?"#555":type.color}">${type.name}</div>
+      <div class="si-desc">${type.desc}</div>
+      <div class="si-price" style="display:flex;justify-content:space-between">
+        <span>💰 ${type.entryFee}</span>
+        <span style="color:#c9a84c">🥇 ${type.prizes[0]}</span>
       </div>
       ${locked
-        ? `<div style="font-size:11px;color:#555">🔒 Wymaga poziomu ${type.minLevel}</div>`
-        : `<button onclick="startContestInline('${type.id}')" style="
-            border-color:${type.color};color:${type.color};
-            background:${type.color}11;font-size:12px;
-            font-family:'Cinzel',serif;letter-spacing:0.5px">
+        ? `<div style="font-size:11px;color:#555;margin-top:4px">🔒 Wymaga poz. ${type.minLevel}</div>`
+        : `<button class="si-buy btn-gold" onclick="startContestInline('${type.id}')" style="border-color:${type.color};color:${type.color};background:${type.color}11">
             🏁 Startuj
-          </button>`
+           </button>`
       }
     `;
     grid.appendChild(div);

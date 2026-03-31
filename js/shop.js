@@ -124,7 +124,7 @@ function renderShop() {
       }
 
       div.innerHTML = `
-        <div class="si-icon">${item.icon}</div>
+        <div class="si-icon">${(typeof ITEM_ICONS_SVG!=="undefined"&&ITEM_ICONS_SVG[item.name])?`<div style="width:44px;height:44px">${ITEM_ICONS_SVG[item.name]}</div>`:item.icon}</div>
         <div class="si-name" ${item.globalLimit?`style="color:var(--gold)"`:""}>${item.name} ${statusBadge}</div>
         <div class="si-desc">${item.desc}</div>
         ${extraDesc}

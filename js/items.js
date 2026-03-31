@@ -495,7 +495,7 @@ function renderInventory() {
       }
     } else {
       div.innerHTML = `
-        <span class="inv-icon">${data.icon}</span>
+        <span class="inv-icon">${(typeof ITEM_ICONS_SVG!=="undefined"&&ITEM_ICONS_SVG[item.name])?`<span style="display:inline-flex;width:36px;height:36px">${ITEM_ICONS_SVG[item.name]}</span>`:data.icon}</span>
         <span class="inv-name">${item.name}</span>
         ${bonusHtml}
         <div class="inv-actions">
