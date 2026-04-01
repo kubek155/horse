@@ -575,90 +575,48 @@ window.addEventListener("beforeunload", () => {
 });
 
 // ── Rejestracja do turnieju ────────────────────────────────
+function _horsePasses(h, rarityFilter) {
+  if (!rarityFilter || rarityFilter === "all") return true;
+  if (rarityFilter === "common_uncommon")       return ["common","uncommon"].includes(h.rarity);
+  if (rarityFilter === "rare")                  return h.rarity === "rare";
+  if (rarityFilter === "epic_legendary_mythic") return ["epic","legendary","mythic"].includes(h.rarity);
+  if (rarityFilter === "epic")                  return h.rarity === "epic";
+  if (rarityFilter === "legendary_mythic")      return ["legendary","mythic"].includes(h.rarity);
+  return h.rarity === rarityFilter;
+}
+
 function openTournamentRegister(tId) {
-  let t    = _activeTourneys.find(t2=>t2.id===tId);
-  let fee  = t?.entryFee || 0;
+  let t   = _activeTourneys.find(t2=>t2.id===tId);
+  let fee = t?.entryFee || 0;
   if (gold < fee) { log("⚠️ Za mało złota!"); return; }
 
-  let modal = document.createElement("div");
-  modal.id   = "tournRegModal";
-  modal.style.cssText = "position:fixed;inset:0;z-index:9200;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center";
-  modal.innerHTML = `
-    <div style="background:#0f1a0f;border:1px solid #c9a84c44;border-radius:14px;padding:22px;width:340px;max-height:80vh;overflow-y:auto">
-      <div style="font-family:'Cinzel',serif;font-size:13px;color:#c9a84c;margin-bottom:14px">🏁 Wybierz konia · Wpisowe: 💰${fee}</div>
-      <div id="tournRegList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px"></div>
-      <button onclick="document.getElementById('tournRegModal').remove()" style="width:100%;border-color:#333;color:#666">Anuluj</button>
-    </div>`;
-  document.body.appendChild(modal);
-
-  // Sprawdź filtr rzadkości turnieju
-  const RARITY_ORDER = ["common","uncommon","rare","epic","legendary","mythic"];
-  function horsePassesFilter(h, filter) {
-    if (!filter || filter === "all") return true;
-    if (filter === "common_uncommon") return ["common","uncommon"].includes(h.rarity);
-    if (filter === "rare") return h.rarity === "rare";
-    if (filter === "epic_legendary_mythic") return ["epic","legendary","mythic"].includes(h.rarity);
-    if (filter === "epic") return h.rarity === "epic";
-    if (filter === "legendary_mythic") return ["legendary","mythic"].includes(h.rarity);
-    return h.rarity === filter;
-  }
-
   let rarityFilter = t?.rarityFilter || "all";
-  let filterLabel = {
-    all:"Wszystkie konie",
-    common_uncommon:"Zwykłe + Pospolite",
-    rare:"Rzadkie",
-    epic_legendary_mythic:"Legendarne, Mityczne, Pradawne",
-    epic:"Legendarne",
-    legendary_mythic:"Mityczne + Pradawne",
-  }[rarityFilter] || "Wszystkie konie";
+  let rfLabel = {all:"",common_uncommon:"Zwykłe+Pospolite",rare:"Rzadkie",
+    epic_legendary_mythic:"Leg/Mit/Prad",epic:"Legendarne",legendary_mythic:"Mityczne+Pradawne"}[rarityFilter]||"";
+  let subtitle = fee > 0 ? `Wpisowe: 💰${fee}` : "Bez wpisowego";
+  if (rfLabel) subtitle += ` · Tylko: ${rfLabel}`;
 
-  // Pokaż info o filtrze
-  if (rarityFilter !== "all") {
-    let filterInfo = document.createElement("div");
-    filterInfo.style.cssText = "padding:8px 12px;background:rgba(201,168,76,0.08);border:1px solid #c9a84c33;border-radius:8px;font-size:11px;color:#c9a84c;margin-bottom:12px";
-    filterInfo.textContent = "🔒 Ten turniej tylko dla: " + filterLabel;
-    document.getElementById("tournRegList").before(filterInfo);
-  }
+  let busyIdxs = new Set(expeditions.filter(e=>!e.done).map(e=>e.horseIdx));
 
-  let list = document.getElementById("tournRegList");
-  let hasEligible = false;
-  playerHorses.forEach((h, i) => {
-    let rarityOk = horsePassesFilter(h, rarityFilter);
-    let blocked = !!h.injured || !!h.pregnant || !rarityOk;
-    let rc      = (typeof RARITY_COLORS!=="undefined" ? RARITY_COLORS[h.rarity] : null) || "#8aab84";
-    let div     = document.createElement("div");
-    div.style.cssText = `display:flex;align-items:center;gap:8px;padding:10px;background:#131f13;border:1px solid ${blocked?"#333":rc+"33"};border-radius:8px;cursor:${blocked?"not-allowed":"pointer"};opacity:${blocked?0.4:1}`;
-
-    // Mini SVG
-    let svgWrap = document.createElement("div");
-    svgWrap.style.cssText = "width:44px;height:36px;overflow:hidden;border-radius:5px;background:var(--panel);flex-shrink:0";
-    if (typeof drawHorseSVG==="function") {
-      svgWrap.innerHTML = drawHorseSVG(h.breedKey||h.name, h.rarity, h.stars||0);
-      let svgEl = svgWrap.querySelector("svg"); if(svgEl){svgEl.setAttribute("width","44");svgEl.setAttribute("height","36");}
-    }
-    div.appendChild(svgWrap);
-
-    let info = document.createElement("div");
-    info.style.flex="1";
-    info.innerHTML = `<div style="font-size:12px;color:${rc};font-family:'Cinzel',serif">${h.name}</div>
-      <div style="font-size:10px;color:var(--text2)">⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck||0}</div>
-      ${blocked?`<div style="font-size:10px;color:#c94a4a">${h.injured?"🤕 Ranny":"🤰 W ciąży"}</div>`:""}`;
-    div.appendChild(info);
-
-    if (!rarityOk && !h.injured && !h.pregnant) {
-      let noEl = document.createElement("div");
-      noEl.style.cssText = "font-size:10px;color:#c94a4a;margin-top:2px";
-      noEl.textContent = "❌ Nie spełnia wymagań rzadkości";
-      div.appendChild(noEl);
-    }
-    if (!blocked) div.onclick = async () => {
-      modal.remove();
+  openHorsePickerModal({
+    title:       t?.name || "Turniej",
+    subtitle,
+    accentColor: "#c9a84c",
+    filterFn: (h, hi) => {
+      let badges = [];
+      let blocked = false;
+      if (busyIdxs.has(hi))           { badges.push({text:"Na wyprawie",color:"#c97c2a"}); blocked=true; }
+      if (h.injured)                  { badges.push({text:"🤕 Ranny",color:"#c94a4a"}); blocked=true; }
+      if (h.pregnant)                 { badges.push({text:"🤰 W ciąży",color:"#f0a0c8"}); blocked=true; }
+      if (!_horsePasses(h,rarityFilter)){ badges.push({text:"❌ Zła rzadkość",color:"#c94a4a"}); blocked=true; }
+      return {blocked, badges};
+    },
+    onSelect: async (hi) => {
+      let h = playerHorses[hi];
       if (fee > 0) { gold -= fee; saveGame(); renderAll(); }
       await window.FB.registerForTournament(h, tId);
       log(`🏁 ${h.name} zapisany do turnieju!`);
       renderTournamentsSection();
-    };
-    list.appendChild(div);
+    },
   });
 }

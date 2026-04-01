@@ -288,51 +288,39 @@ let breedPickerTarget = null;
 
 function openBreedHorsePicker(slot) {
   breedPickerTarget = slot;
-  let panel = document.getElementById("breedHorsePickerPanel");
-  let list  = document.getElementById("breedPickerList");
-  let title = document.getElementById("breedPickerTitle");
-  title.textContent = slot === "A" ? "WYBIERZ OGIERA ♂" : "WYBIERZ KLACZ ♀";
-  list.innerHTML = "";
+  let needGender = slot === "A" ? "male" : "female";
+  let genderLabel = needGender === "male" ? "♂ Ogier" : "♀ Klacz";
+  let genderColor = needGender === "male" ? "#4a7ec8" : "#f0a0c8";
 
-  let targetGender = slot === "A" ? "male" : "female";
-  let otherIdx     = slot === "A" ? breedSlotB : breedSlotA;
-
-  playerHorses.forEach((h, i) => {
-    if (i === otherIdx) return;
-    let hGender  = h.gender || "male";
-    let wrongSex  = hGender !== targetGender;
-    let maxPreg   = {common:3,uncommon:4,rare:5,epic:6,legendary:7,mythic:8}[h.rarity]||3;
-    let usedPreg  = h.pregnancyCount||0;
-    let exhausted = hGender==="female" && usedPreg>=maxPreg;
-    let pregnant  = !!h.pregnant;
-    let blocked   = wrongSex || exhausted || pregnant;
-    let rc        = RARITY_COLORS[h.rarity] || "#8aab84";
-    let gc        = hGender === "male" ? "#6ab0e0" : "#e080a0";
-    let statusNote = exhausted ? `<div style="font-size:10px;color:#c94a4a">✕ Wyczerpany limit ciąż (${usedPreg}/${maxPreg})</div>`
-      : pregnant ? `<div style="font-size:10px;color:#f0a0c8">🤰 W ciąży</div>`
-      : hGender==="female" ? `<div style="font-size:10px;color:#4ab870">Ciąże: ${usedPreg}/${maxPreg}</div>`
-      : "";
-    let btn = document.createElement("div");
-    btn.style.cssText = `
-      display:flex;align-items:center;gap:10px;padding:10px;
-      background:#131f13;border:1px solid ${blocked ? "#c94a4a33" : rc+"33"};
-      border-radius:8px;cursor:${blocked?"not-allowed":"pointer"};
-      opacity:${blocked ? 0.35 : 1};
-    `;
-    btn.innerHTML = `
-      <span style="font-size:20px">${h.flag||"🐴"}</span>
-      <div style="flex:1">
-        <div style="font-size:12px;color:${rc};font-family:'Cinzel',serif">${h.name} <span style="color:${gc}">${hGender==="male"?"♂":"♀"}</span></div>
-        <div style="font-size:10px;color:var(--text2)">⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina} 🍀${h.stats.luck}</div>
-        ${statusNote}
-      </div>
-    `;
-    if (!blocked) btn.onclick = () => selectBreedSlot(slot, i);
-    list.appendChild(btn);
+  openHorsePickerModal({
+    title:       `Wybierz ${genderLabel}`,
+    subtitle:    slot==="A" ? "Wybierz ojca (ogiera) do hodowli" : "Wybierz matkę (klacz) do hodowli",
+    accentColor: genderColor,
+    filterFn: (h, hi) => {
+      let badges = [];
+      let blocked = false;
+      if (h.gender !== needGender) { badges.push({text:"Zła płeć",color:"#555"}); blocked=true; }
+      else {
+        if (h.pregnant) { badges.push({text:"🤰 W ciąży",color:"#f0a0c8"}); blocked=true; }
+        if (h.injured)  { badges.push({text:"🤕 Ranny",color:"#c94a4a"}); blocked=true; }
+        // Sprawdź czy już wybrany w drugim slocie
+        let otherIdx = slot === "A" ? breedSlotB : breedSlotA;
+        if (otherIdx !== null && otherIdx === hi) { badges.push({text:"Już wybrany",color:"#c97c2a"}); blocked=true; }
+        if (!blocked) {
+          let maxPreg = typeof MAX_PREGNANCIES!=="undefined" ? MAX_PREGNANCIES[h.rarity]||3 : 3;
+          let pregCount = h.pregnancyCount || 0;
+          if (pregCount >= maxPreg) { badges.push({text:`Limit ciąż ${pregCount}/${maxPreg}`,color:"#c94a4a"}); blocked=true; }
+          else badges.push({text:`Ciąże: ${pregCount}/${maxPreg}`,color:"#4ab870"});
+        }
+      }
+      return {blocked, badges};
+    },
+    onSelect: (hi) => {
+      selectBreedSlot(slot, hi);
+    },
   });
-
-  panel.style.display = "block";
 }
+
 
 function closeBreedHorsePicker() {
   document.getElementById("breedHorsePickerPanel").style.display = "none";

@@ -231,7 +231,7 @@ function _renderGwAction(gid, g, myId, myNick, hasJoined, isWinner, phase) {
         <div style="font-family:'Cinzel',serif;font-size:14px;color:${isMe?"#c9a84c":"#4ab870"}">
           ${isMe?"🎊 WYGRAŁEŚ!":"Zwycięzca: "+g.winner.nick}
         </div>
-        ${isMe?`<div style="font-size:12px;color:var(--text2);margin-top:6px">Nagroda zostanie wysłana przez admina</div>`:""}
+        ${isMe?`<div style="font-size:11px;color:#4ab870;margin-top:6px">✅ Nagroda wypłacona automatycznie!</div>`:""}
       </div>`;
     return;
   }
@@ -359,7 +359,15 @@ function _spinWheel(gid, participants, winner, rewardColor) {
         ctx.font = "bold 16px 'Cinzel'";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("🎡", cx, cy);
+        // SVG-like circle w środku zamiast emoji
+        ctx.fillStyle = rewardColor;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 8, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.fillStyle = "#0a1a0a";
+        ctx.beginPath();
+        ctx.arc(cx, cy, 5, 0, 2*Math.PI);
+        ctx.fill();
 
         // Strzałka (wskaźnik) na górze — środek ekranu
         ctx.beginPath();
@@ -423,7 +431,7 @@ function _showWheelWinner(el, winner, color) {
     <div style="font-size:40px;margin-bottom:8px">🎉</div>
     <div style="font-family:'Cinzel',serif;font-size:20px;color:${color}">ZWYCIĘZCA!</div>
     <div style="font-family:'Cinzel',serif;font-size:26px;color:#d4e8d0;margin:8px 0">${winner.nick || "Gracz"}</div>
-    <div style="font-size:12px;color:var(--text2)">Gratulacje! Nagroda zostanie dostarczona przez admina.</div>
+    <div style="font-size:12px;color:#4ab870;margin-top:4px">✅ Nagroda została wypłacona automatycznie!</div>
   `;
   el.appendChild(popup);
 }

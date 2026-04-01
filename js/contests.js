@@ -219,40 +219,33 @@ function renderPickHorse(el) {
     <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Wybierz konia do zawodów:</div>
     <div id="contestHorseList" style="display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto"></div>
   `;
-  let list = document.getElementById("contestHorseList");
-  playerHorses.forEach((h, i) => {
-    let rc       = RARITY_COLORS[h.rarity]||"#8aab84";
-    let score    = Math.round(calcContestScore(h, type));
-    let mainStat = type.stat ? h.stats[type.stat] : (h.stats.speed+h.stats.strength+h.stats.stamina+h.stats.luck);
-    let blocked  = !!h.injured || !!h.pregnant;
-    let blockNote = h.injured ? '<span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.injured:""}</span> Ranny' : h.pregnant ? '<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 11Q2 7.5 2 5Q2 3 4 3Q5.2 3 6 4.5Q6.8 3 8 3Q10 3 10 5Q10 7.5 6 11Z" stroke="#f0a0c8" stroke-width="1.3" fill="none"/></svg> W ciąży' : "";
+  // Zamknij modal i użyj uniwersalnego pickera
+  let contestModal = document.getElementById("contestModal");
+  if (contestModal) contestModal.style.display = "none";
 
-    let div = document.createElement("div");
-    div.style.cssText = `
-      display:flex;align-items:center;gap:10px;padding:10px;
-      background:#131f13;border:1px solid ${blocked?"#333":rc+"33"};
-      border-radius:8px;cursor:${blocked?"not-allowed":"pointer"};
-      opacity:${blocked?0.4:1};transition:all 0.15s;
-    `;
-    div.innerHTML = `
-      <span style="display:inline-flex;width:36px;height:36px;flex-shrink:0;border-radius:6px;overflow:hidden;border:1px solid ${rc}33">${typeof renderHorseMiniSVG==="function"?renderHorseMiniSVG(h,36):(h.flag||"🐴")}</span>
-      <div style="flex:1">
-        <div style="font-size:12px;color:${rc};font-family:'Cinzel',serif">${h.name} ${h.gender==="male"?"♂":"♀"}</div>
-        <div style="font-size:10px;color:var(--text2);display:flex;gap:6px;align-items:center;"><span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.speed:""}</span>${h.stats.speed} <span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.strength:""}</span>${h.stats.strength} <span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.stamina:""}</span>${h.stats.stamina} <span style="display:inline-flex;width:11px;height:11px">${typeof UI_ICONS!=="undefined"?UI_ICONS.luck:""}</span>${h.stats.luck}</div>
-        ${blocked ? `<div style="font-size:10px;color:#c94a4a;margin-top:2px">${blockNote}</div>` : ""}
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:11px;color:var(--text2)">Szacowany wynik</div>
-        <div style="font-family:'Cinzel',serif;font-size:16px;color:${type.color}">${mainStat}</div>
-      </div>
-    `;
-    if (!blocked) div.onclick = () => {
-      contestState.horse = i;
+  openHorsePickerModal({
+    title:       type.name || "Zawody",
+    subtitle:    type.desc || "",
+    accentColor: type.color || "#c9a84c",
+    filterFn: (h, hi) => {
+      let badges = [];
+      let blocked = false;
+      if (h.injured)  { badges.push({text:"🤕 Ranny",color:"#c94a4a"}); blocked=true; }
+      if (h.pregnant) { badges.push({text:"🤰 W ciąży",color:"#f0a0c8"}); blocked=true; }
+      if (!blocked) {
+        let score = Math.round(calcContestScore(h, type));
+        let mainStat = type.stat ? h.stats[type.stat] : (h.stats.speed+h.stats.strength+h.stats.stamina+h.stats.luck);
+        badges.push({text:"Wynik: "+mainStat, color: type.color||"#8aab84"});
+      }
+      return {blocked, badges};
+    },
+    onSelect: (hi) => {
+      contestState.horse = hi;
       contestState.rivals = generateRivals(type, typeof getPlayerLevel==="function"?getPlayerLevel():1);
       contestState.step = "preview";
+      if (contestModal) contestModal.style.display = "flex";
       renderContestStep();
-    };
-    list.appendChild(div);
+    },
   });
 }
 
