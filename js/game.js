@@ -26,7 +26,7 @@ Object.defineProperty(window, 'inventory', {
 let market       = [];
 let quests       = [];   // aktywne dzienne questy
 
-const STABLE_LIMIT = 8;
+var STABLE_LIMIT = 8; // zostanie nadpisany przez patchStableLimit()
 
 // =====================
 // SAVE / LOAD
@@ -62,12 +62,20 @@ function _sectionVisible(id) {
   return el && el.style.display !== "none";
 }
 
+// ── Dirty flag — renderuj tylko gdy zmienił się stan ──
+let _lastRenderHash = "";
+function _getRenderHash() {
+  return gold+"_"+playerHorses.length+"_"+inventory.length;
+}
+
 function renderAll() {
-  // Renderuj tylko widoczne sekcje (oprócz zawsze potrzebnych)
   renderLimitBar();
+  let hash = _getRenderHash();
+  let changed = hash !== _lastRenderHash;
+  if (changed) _lastRenderHash = hash;
   // renderExpeditions jest w setInterval co 1s — nie przebudowuj co 5s
-  if (_sectionVisible("stable"))    renderHorses();
-  if (_sectionVisible("inventory"))  renderInventory();
+  if (_sectionVisible("stable")    && changed)  renderHorses();
+  if (_sectionVisible("inventory") && changed)  renderInventory();
   if (_sectionVisible("shop"))       renderShop();
   if (_sectionVisible("market"))       renderMarket();
   if (_sectionVisible("globalmarket")) { if(typeof renderGlobalMarketSection==="function") renderGlobalMarketSection(); }

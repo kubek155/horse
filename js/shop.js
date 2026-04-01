@@ -92,6 +92,23 @@ function buyItem(idx) {
 function renderShop() {
   document.querySelectorAll("#goldCount, #shopGoldDisplay").forEach(el => { if(el) el.textContent=gold; });
 
+  // Koń handlarza — deterministyczny kolor per seed dnia
+  let merchantEl = document.getElementById("shopMerchantHorse");
+  if (merchantEl && !merchantEl.dataset.rendered) {
+    merchantEl.dataset.rendered = "1";
+    // Losowy koń handlarza oparty na seed dnia
+    let d = new Date();
+    let seed = d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+    let coats = ["#8B4513","#C8A860","#4a3520","#D4A76A","#7a5a30","#2a1a0a","#c9a884","#8a6a40"];
+    let manes  = ["#3a2010","#7a5a20","#1a0a00","#4a3010","#8a6a30","#0a0500","#c9a060","#6a4a20"];
+    let ci = seed % coats.length;
+    if (typeof buildExpHorseSVG === "function") {
+      merchantEl.innerHTML = buildExpHorseSVG(coats[ci], manes[ci]);
+      let svg = merchantEl.querySelector("svg");
+      if (svg) { svg.setAttribute("width","160"); svg.setAttribute("height","130"); }
+    }
+  }
+
   let itemsGrid = document.getElementById("shopItemsGrid");
   if (!itemsGrid) return;
   itemsGrid.innerHTML = "";

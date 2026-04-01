@@ -770,38 +770,52 @@ function openSlotPicker(horseIdx, slotIdx) {
   if (!eligible.length) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text2)">
       <div style="font-size:36px;margin-bottom:8px;opacity:0.4">🧪</div>
-      <div style="font-size:14px">Brak przedmiotów do slotów w ekwipunku</div>
+      <div style="font-size:14px">Brak przedmiotów do slotów</div>
       <div style="font-size:12px;margin-top:6px;color:#4a5a4a">Kup Piorun, Kowadło, Koniczynę lub Serce w Sklepie</div>
     </div>`;
   } else {
+    // Grupuj po nazwie+bonusie aby unikać powtórzeń na ekranie
+    let slotGroups = {};
     eligible.forEach(({item, i}) => {
-      let data = ITEMS_DATABASE[item.name] || {icon:"📦", desc:""};
-      let isSlot = !!data.isSlotItem;
-      let isElixir = !!data.isElixir;
-      let statColor = {speed:"#4a7ec8", strength:"#c97c2a", stamina:"#c94a4a", luck:"#4ab870"}[data.stat] || "#c9a84c";
-      let statIcon = typeof ITEM_ICONS_SVG!=="undefined" && ITEM_ICONS_SVG[item.name] ? ITEM_ICONS_SVG[item.name] : `<span style="font-size:32px">${data.icon}</span>`;
+      let key = item.name + "_" + (item.bonus||0);
+      if (!slotGroups[key]) slotGroups[key] = { item, indices:[], data:ITEMS_DATABASE[item.name]||{} };
+      slotGroups[key].indices.push(i);
+    });
+
+    Object.values(slotGroups).forEach(({item, indices, data}) => {
+      let count = indices.length;
+      let firstIdx = indices[0];
+      let statColor = {speed:"#4a7ec8",strength:"#c97c2a",stamina:"#c94a4a",luck:"#4ab870"}[data.stat] || "#c9a84c";
+      let statIcon = typeof ITEM_ICONS_SVG!=="undefined" && ITEM_ICONS_SVG[item.name]
+        ? ITEM_ICONS_SVG[item.name]
+        : `<span style="font-size:32px">${data.icon||"📦"}</span>`;
 
       let card = document.createElement("div");
       card.style.cssText = `background:#131f13;border:1px solid ${statColor}33;border-radius:12px;padding:0;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;transition:border-color 0.12s,background 0.12s,transform 0.1s`;
 
-      // Icon area
+      // Icon area z badge ilości
       let iconArea = document.createElement("div");
-      iconArea.style.cssText = `width:100%;height:90px;display:flex;align-items:center;justify-content:center;background:${statColor}08;border-bottom:1px solid ${statColor}18`;
-      iconArea.innerHTML = `<div style="width:56px;height:56px;display:flex;align-items:center;justify-content:center">${statIcon}</div>`;
+      iconArea.style.cssText = `width:100%;height:80px;display:flex;align-items:center;justify-content:center;background:${statColor}08;border-bottom:1px solid ${statColor}18;position:relative`;
+      iconArea.innerHTML = `<div style="width:48px;height:48px;display:flex;align-items:center;justify-content:center">${statIcon}</div>`;
+      if (count > 1) {
+        let badge = document.createElement("span");
+        badge.style.cssText = `position:absolute;top:5px;right:6px;font-size:9px;padding:2px 6px;border-radius:8px;background:rgba(0,0,0,0.7);color:${statColor};border:1px solid ${statColor}44;font-family:'Cinzel',serif`;
+        badge.textContent = "×" + count;
+        iconArea.appendChild(badge);
+      }
       card.appendChild(iconArea);
 
-      // Info
       let info = document.createElement("div");
-      info.style.cssText = "padding:10px 12px 12px";
-      let bonusStr = item.bonus !== undefined ? `<span style="font-family:'Cinzel',serif;font-size:16px;color:${statColor}"> +${item.bonus}</span>` : "";
+      info.style.cssText = "padding:8px 10px 10px";
+      let bonusStr = item.bonus !== undefined ? `<span style="font-family:'Cinzel',serif;font-size:14px;color:${statColor}"> +${item.bonus}</span>` : "";
       info.innerHTML = `
-        <div style="font-family:'Cinzel',serif;font-size:12px;color:${statColor};margin-bottom:3px">${item.name}${bonusStr}</div>
-        <div style="font-size:10px;color:var(--text2);margin-bottom:8px">${data.desc||""}</div>
-        <button style="width:100%;border-color:${statColor};color:${statColor};background:${statColor}11;font-size:11px;font-family:'Cinzel',serif;padding:6px">✨ Wyposażaj</button>
+        <div style="font-family:'Cinzel',serif;font-size:11px;color:${statColor};margin-bottom:2px">${item.name}${bonusStr}</div>
+        <div style="font-size:9px;color:var(--text2);margin-bottom:6px">${data.desc||""}</div>
+        <button style="width:100%;border-color:${statColor};color:${statColor};background:${statColor}11;font-size:10px;font-family:'Cinzel',serif;padding:5px">✨ Wyposażaj</button>
       `;
       card.appendChild(info);
 
-      card.onclick = () => { equipItemToSlot(horseIdx, slotIdx, i); closeSlotPicker(); };
+      card.onclick = () => { equipItemToSlot(horseIdx, slotIdx, firstIdx); closeSlotPicker(); };
       card.onmouseenter = () => { card.style.borderColor=statColor; card.style.background=statColor+"0c"; card.style.transform="translateY(-1px)"; };
       card.onmouseleave = () => { card.style.borderColor=statColor+"33"; card.style.background="#131f13"; card.style.transform=""; };
 
