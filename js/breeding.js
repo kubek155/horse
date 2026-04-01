@@ -296,6 +296,8 @@ function openBreedHorsePicker(slot) {
     title:       `Wybierz ${genderLabel}`,
     subtitle:    slot==="A" ? "Wybierz ojca (ogiera) do hodowli" : "Wybierz matkę (klacz) do hodowli",
     accentColor: genderColor,
+    context:     "HODOWLI",
+    bgIcon:      slot==="A" ? "♂" : "♀",
     filterFn: (h, hi) => {
       let badges = [];
       let blocked = false;

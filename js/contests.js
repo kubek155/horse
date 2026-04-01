@@ -227,6 +227,8 @@ function renderPickHorse(el) {
     title:       type.name || "Zawody",
     subtitle:    type.desc || "",
     accentColor: type.color || "#c9a84c",
+    context:     "ZAWODÓW",
+    bgIcon:      "🌟",
     filterFn: (h, hi) => {
       let badges = [];
       let blocked = false;

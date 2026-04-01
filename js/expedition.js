@@ -147,7 +147,7 @@ function openExpeditionHorsePicker(locIdx) {
 
     // SVG konia
     let svgDiv = document.createElement("div");
-    svgDiv.style.cssText = `width:100%;height:80px;overflow:hidden;border-radius:8px;background:${rc}0a;border:1px solid ${rc}22;flex-shrink:0`;
+    svgDiv.style.cssText = `width:100%;height:120px;overflow:hidden;border-radius:8px;background:${rc}08;border:1px solid ${rc}18;flex-shrink:0;position:relative`;
     if (typeof drawHorseSVG === "function") {
       svgDiv.innerHTML = drawHorseSVG(h.breedKey||h.name, h.rarity, h.stars||0);
       let s = svgDiv.querySelector("svg");
@@ -162,11 +162,11 @@ function openExpeditionHorsePicker(locIdx) {
         ${h.name}${h.stars>0?" "+"⭐".repeat(h.stars):""}
       </div>
       <div style="font-size:10px;color:var(--text2);margin-bottom:4px">${(typeof RARITY_LABELS!=="undefined"?RARITY_LABELS[h.rarity]:h.rarity)||""} · ${h.type||""}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;font-size:10px">
-        <div style="color:var(--text2)">⚡<span style="color:var(--text)">${h.stats.speed}</span></div>
-        <div style="color:var(--text2)">💪<span style="color:var(--text)">${h.stats.strength}</span></div>
-        <div style="color:var(--text2)">❤️<span style="color:var(--text)">${h.stats.stamina}</span></div>
-        <div style="color:var(--text2)">🍀<span style="color:var(--text)">${h.stats.luck||0}</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;font-size:11px;margin-top:2px">
+        <div style="display:flex;align-items:center;gap:3px"><svg viewBox="0 0 12 12" fill="none" width="11" height="11"><path d="M9 2.5L5.5 6l2 1L5 10" stroke="#4a7ec8" stroke-width="1.4" stroke-linecap="round"/></svg><span style="color:#4a7ec8;font-family:'Cinzel',serif">${h.stats.speed}</span></div>
+        <div style="display:flex;align-items:center;gap:3px"><svg viewBox="0 0 12 12" fill="none" width="11" height="11"><rect x="1.5" y="4.5" width="2" height="3" rx="1" fill="#c97c2a"/><rect x="8.5" y="4.5" width="2" height="3" rx="1" fill="#c97c2a"/><rect x="3" y="5.2" width="6" height="1.6" fill="#c97c2a"/></svg><span style="color:#c97c2a;font-family:'Cinzel',serif">${h.stats.strength}</span></div>
+        <div style="display:flex;align-items:center;gap:3px"><svg viewBox="0 0 12 12" fill="none" width="11" height="11"><path d="M6 10.5Q2 7.5 2 5Q2 3 4 3Q5.2 3 6 4.5Q6.8 3 8 3Q10 3 10 5Q10 7.5 6 10.5Z" stroke="#c94a4a" stroke-width="1.3" fill="rgba(201,74,74,0.2)"/></svg><span style="color:#c94a4a;font-family:'Cinzel',serif">${h.stats.stamina}</span></div>
+        <div style="display:flex;align-items:center;gap:3px"><svg viewBox="0 0 12 12" fill="none" width="11" height="11"><circle cx="4" cy="4" r="2.5" fill="#3a8a3a" opacity=".9"/><circle cx="8" cy="4" r="2.5" fill="#4aa04a" opacity=".9"/><circle cx="6" cy="7.5" r="2.5" fill="#3a8a3a" opacity=".9"/><line x1="6" y1="10" x2="6" y2="12" stroke="#3a6a3a" stroke-width="1.2"/></svg><span style="color:#4ab870;font-family:'Cinzel',serif">${h.stats.luck||0}</span></div>
       </div>
     `;
 

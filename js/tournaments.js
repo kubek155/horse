@@ -602,6 +602,8 @@ function openTournamentRegister(tId) {
     title:       t?.name || "Turniej",
     subtitle,
     accentColor: "#c9a84c",
+    context:     "TURNIEJU",
+    bgIcon:      "🏆",
     filterFn: (h, hi) => {
       let badges = [];
       let blocked = false;
