@@ -374,7 +374,7 @@ function _renderRaceTrack(tid, ranked, myId) {
     lane.style.cssText = `position:relative;height:54px;margin-bottom:6px;
       background:${isMe?"rgba(201,168,76,0.05)":"rgba(0,0,0,0.1)"};
       border-radius:6px;border:1px solid ${isMe?"#c9a84c22":"#1a2a1a"};
-      overflow:hidden`;
+      overflow:visible`;
 
     // Tor (linia pozioma)
     let track2 = document.createElement("div");

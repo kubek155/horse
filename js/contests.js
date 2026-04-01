@@ -330,52 +330,116 @@ function renderRace(el) {
   let results = contestState.results;
   let horse   = playerHorses[contestState.horse];
   let rc      = RARITY_COLORS[horse.rarity]||"#8aab84";
+  let N       = results.length;
+  let laneH   = Math.max(52, Math.min(72, Math.floor(340 / N)));
+  let totalH  = N * laneH + 20;
 
   el.innerHTML = `
-    <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:#8aab84;text-align:center;margin-bottom:16px">${type.icon} WYŚCIG TRWA...</div>
-    <div style="position:relative;background:#131f13;border-radius:10px;overflow:hidden;margin-bottom:16px;height:260px">
-      <div style="position:absolute;inset:0;background:linear-gradient(180deg,#0a0e1a,#0f2f0f 80%,#1a5a1a)"></div>
-      <!-- Linia mety -->
-      <div style="position:absolute;right:60px;top:0;bottom:0;width:2px;background:rgba(255,255,255,0.15);border-right:2px dashed rgba(255,255,255,0.1)"></div>
-      <div style="position:absolute;right:52px;top:8px;font-size:10px;color:rgba(255,255,255,0.4);writing-mode:vertical-rl">META</div>
-      <!-- Konie -->
-      <div id="raceTrack" style="position:absolute;inset:10px 70px 10px 10px;display:flex;flex-direction:column;gap:6px"></div>
+    <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:#8aab84;text-align:center;margin-bottom:12px">${type.icon} WYŚCIG TRWA...</div>
+    <div style="position:relative;background:#131f13;border-radius:10px;margin-bottom:12px;height:${totalH}px;">
+      <div style="position:absolute;inset:0;background:linear-gradient(180deg,#0a0e1a,#0f2f0f 80%,#1a5a1a);border-radius:10px;"></div>
+      <!-- Linia mety — prawa krawędź (offset 68px od prawej) -->
+      <div style="position:absolute;top:0;bottom:0;right:68px;width:2px;background:rgba(255,255,255,0.2);z-index:2;"></div>
+      <div style="position:absolute;top:6px;right:70px;font-size:9px;color:rgba(255,255,255,0.35);writing-mode:vertical-rl;letter-spacing:1px;">META 🏁</div>
+      <!-- Tor koni -->
+      <div id="raceTrack" style="position:absolute;top:10px;bottom:10px;left:0;right:70px;"></div>
     </div>
-    <button id="raceSkipBtn" onclick="finishRace()" style="width:100%;border-color:#333;color:#666;font-size:12px">Pomiń animację →</button>
+    <button onclick="finishRace()" style="width:100%;border-color:#333;color:#555;font-size:11px;padding:6px">Pomiń →</button>
   `;
 
   let track = document.getElementById("raceTrack");
-  let maxScore = results[0].score;
+  if (!track) return;
+  let maxScore = Math.max(...results.map(r=>r.score), 1);
 
   results.forEach((entry, i) => {
-    let pct   = 0;
-    let finalPct = (entry.score / maxScore) * 85;
-    let erc   = RARITY_COLORS[entry.rarity]||"#8aab84";
-    let row   = document.createElement("div");
-    row.style.cssText = "position:relative;flex:1;display:flex;align-items:center;";
-    row.innerHTML = `
-      <div class="race-horse-dot" data-idx="${i}" style="
-        position:absolute;left:0%;font-size:16px;
-        transition:left 0.05s linear;
-        filter:drop-shadow(0 0 4px ${entry.isPlayer?rc:erc}88);
-      ">${entry.flag}</div>
-      <div style="position:absolute;right:-60px;font-size:10px;color:${entry.isPlayer?rc:"#4a5a4a"};white-space:nowrap;overflow:hidden;width:58px;text-overflow:ellipsis">${entry.name}</div>
-    `;
-    track.appendChild(row);
+    let erc      = RARITY_COLORS[entry.rarity]||"#8aab84";
+    let finalPct = (entry.score / maxScore) * 88; // max 88% (meta przy 90%)
 
-    // Animuj
-    let start = Date.now();
-    let duration = 2500 + Math.random()*800;
-    let dot = row.querySelector(".race-horse-dot");
-    function animate() {
-      let elapsed = Date.now()-start;
-      let t = Math.min(1, elapsed/duration);
-      let ease = t<0.5 ? 2*t*t : -1+(4-2*t)*t;
-      let curPct = ease*finalPct;
-      dot.style.left = curPct+"%";
-      if (t < 1) requestAnimationFrame(animate);
-      else if (i === results.length-1) {
-        setTimeout(finishRace, 500);
+    // Pasek toru
+    let lane = document.createElement("div");
+    lane.style.cssText = `
+      position:absolute;left:0;right:0;
+      top:${i*(100/N)}%;height:${100/N}%;
+      display:flex;align-items:center;
+      border-bottom:1px solid ${erc}18;
+    `;
+
+    // Numer miejsca
+    let numEl = document.createElement("div");
+    numEl.style.cssText = `position:absolute;left:4px;font-size:9px;color:${i<3?["#c9a84c","#909090","#c97c2a"][i]:"#4a5a4a"};font-family:'Cinzel',serif;z-index:3`;
+    numEl.textContent = i+1;
+    lane.appendChild(numEl);
+
+    // Koń SVG — animowany
+    let horseWrap = document.createElement("div");
+    horseWrap.className = "race-horse-wrap"; // CSS animacja biegania
+    horseWrap.style.cssText = `
+      position:absolute;
+      left:2%;
+      top:50%;transform:translateY(-50%);
+      width:52px;height:${laneH-8}px;
+      overflow:visible;
+      z-index:4;
+      transition:left 0.12s linear;
+    `;
+
+    // SVG konia z buildExpHorseSVG
+    if (typeof buildExpHorseSVG === "function") {
+      let vis = (typeof getBreedVisual === "function")
+        ? getBreedVisual(entry.breedKey||entry.name)
+        : { coat:"#8B6914", mane:"#4a2e00" };
+      horseWrap.innerHTML = buildExpHorseSVG(vis.coat||"#8B6914", vis.mane||"#4a2e00");
+      let svg = horseWrap.querySelector("svg");
+      if (svg) {
+        svg.setAttribute("width", "52");
+        svg.setAttribute("height", String(laneH - 8));
+      }
+    } else {
+      horseWrap.innerHTML = `<span style="font-size:${laneH-12}px;line-height:1">🐴</span>`;
+    }
+    lane.appendChild(horseWrap);
+
+    // Nazwa konia (prawa strona, poza torem)
+    let nameEl = document.createElement("div");
+    nameEl.style.cssText = `
+      position:absolute;right:-68px;width:66px;
+      font-size:9px;color:${entry.isPlayer?rc:"#4a5a4a"};
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+      font-family:'Cinzel',serif;
+    `;
+    nameEl.textContent = (entry.name||"?").split(" ")[0];
+    lane.appendChild(nameEl);
+
+    // Pył za koniem (pozycjonowany w lane)
+    let dust = document.createElement("div");
+    dust.style.cssText = "position:absolute;top:55%;pointer-events:none;opacity:0.6;left:2%;";
+    dust.innerHTML = `
+      <div style="width:5px;height:5px;border-radius:50%;background:rgba(139,105,20,0.5);display:inline-block;animation:raceDust 0.4s ease-out infinite 0s"></div>
+      <div style="width:3px;height:3px;border-radius:50%;background:rgba(139,105,20,0.35);display:inline-block;animation:raceDust 0.4s ease-out infinite 0.18s;margin-left:4px"></div>
+    `;
+    lane.appendChild(dust);  // dust jest w lane, pozycjonowany razem z horseWrap
+    track.appendChild(lane);
+
+    // Animacja ruchu
+    let startTime = null;
+    let duration  = 2800 + (1 - entry.score/maxScore)*600 + Math.random()*300;
+    let _running  = true;
+
+    function animate(ts) {
+      if (!_running) return;
+      // Sprawdź czy element jest nadal w DOM (user opuścił sekcję)
+      if (!document.getElementById("raceTrack")) { _running = false; return; }
+      if (!startTime) startTime = ts;
+      let t    = Math.min(1, (ts - startTime) / duration);
+      let ease = t < 0.5 ? 2*t*t : -1 + (4-2*t)*t;
+      let cur  = 2 + ease * (finalPct - 2);
+      horseWrap.style.left = cur + "%";
+      dust.style.left = Math.max(0, cur - 4) + "%";
+
+      if (t < 1) {
+        requestAnimationFrame(animate);
+      } else if (i === results.length - 1) {
+        setTimeout(() => { if (document.getElementById("raceTrack")) finishRace(); }, 600);
       }
     }
     requestAnimationFrame(animate);
