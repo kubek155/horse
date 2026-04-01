@@ -424,7 +424,7 @@ function typeBonusLabel(h) {
 // =====================
 function breedHorses(idxA, idxB) {
   if (idxA===idxB)                       { log("⚠️ Wybierz dwa różne konie!"); return; }
-  if (playerHorses.length>=STABLE_LIMIT) { log("⚠️ Stajnia pełna!"); return; }
+  if (playerHorses.length>=(typeof getStableLimit==="function"?getStableLimit():8)) { log("⚠️ Stajnia pełna!"); return; }
   // Sprawdź czy gracz ma Jabłko Sfinksa
   let appleIdx = inventory.findIndex(i => i.name === "Jabłko Sfinksa");
   if (appleIdx === -1) { log("⚠️ Rozmnażanie wymaga 🍏 Jabłka Sfinksa! Znajdź je na wyprawie."); return; }
@@ -534,7 +534,7 @@ let breedFirstIdx = null;
 
 function openBreedModal() {
   if (playerHorses.length<2)             { log("⚠️ Potrzebujesz co najmniej 2 koni!"); return; }
-  if (playerHorses.length>=STABLE_LIMIT) { log("⚠️ Stajnia pełna!"); return; }
+  if (playerHorses.length>=(typeof getStableLimit==="function"?getStableLimit():8)) { log("⚠️ Stajnia pełna!"); return; }
   breedFirstIdx=null;
   renderBreedModal();
   document.getElementById("breedModal").style.display="flex";
@@ -609,10 +609,10 @@ function renderHorses() {
   let count=playerHorses.length;
 
   let countEl=document.getElementById("stableCountDisplay");
-  if(countEl){ countEl.textContent=`${count} / ${STABLE_LIMIT}`; countEl.style.color=count>=STABLE_LIMIT?"#c94a4a":"var(--gold2)"; }
+  if(countEl){ countEl.textContent=`${count} / ${typeof getStableLimit==="function"?getStableLimit():8}`; countEl.style.color=count>=(typeof getStableLimit==="function"?getStableLimit():8)?"#c94a4a":"var(--gold2)"; }
 
   let breedBtn=document.getElementById("breedBtn");
-  if(breedBtn) breedBtn.disabled=count<2||count>=STABLE_LIMIT;
+  if(breedBtn) breedBtn.disabled=count<2||count>=(typeof getStableLimit==="function"?getStableLimit():8);
 
   if(!count){
     el.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🐴</div>Brak koni — idź na wyprawę!</div>`;

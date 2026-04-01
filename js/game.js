@@ -64,6 +64,7 @@ function _sectionVisible(id) {
 
 // ── Dirty flag — renderuj tylko gdy zmienił się stan ──
 let _lastRenderHash = "";
+let _forceNextRender = true; // wymuś przy starcie i przy zmianie sekcji
 function _getRenderHash() {
   return gold+"_"+playerHorses.length+"_"+inventory.length;
 }
@@ -71,8 +72,8 @@ function _getRenderHash() {
 function renderAll() {
   renderLimitBar();
   let hash = _getRenderHash();
-  let changed = hash !== _lastRenderHash;
-  if (changed) _lastRenderHash = hash;
+  let changed = hash !== _lastRenderHash || _forceNextRender;
+  if (changed) { _lastRenderHash = hash; _forceNextRender = false; }
   // renderExpeditions jest w setInterval co 1s — nie przebudowuj co 5s
   if (_sectionVisible("stable")    && changed)  renderHorses();
   if (_sectionVisible("inventory") && changed)  renderInventory();
@@ -115,10 +116,18 @@ function renderAll() {
 function showSection(s) {
   ["expedition","stable","inventory","shop","crafting","market","globalmarket","quests","encyclopedia","drops","contests","tournaments","notifications","ranking","events","giveaway","guild"].forEach(sec => {
     document.getElementById(sec + "Section").style.display = "none";
-    document.getElementById("menu-" + sec).classList.remove("active");
+    document.getElementById("menu-" + sec)?.classList.remove("active");
   });
   document.getElementById(s + "Section").style.display = "block";
-  document.getElementById("menu-" + s).classList.add("active");
+  document.getElementById("menu-" + s)?.classList.add("active");
+  _forceNextRender = true; // zawsze odświeżaj przy zmianie sekcji
+  // Natychmiastowy render dla sekcji bez osobnych handlerów
+  if (s === "stable"    && typeof renderHorses==="function")    renderHorses();
+  if (s === "inventory" && typeof renderInventory==="function") renderInventory();
+  if (s === "shop"      && typeof renderShop==="function")      renderShop();
+  if (s === "market"    && typeof renderMarket==="function")    renderMarket();
+  if (s === "quests"    && typeof renderQuests==="function")    renderQuests();
+  if (s === "drops"     && typeof renderDropHistory==="function") renderDropHistory();
   if (s === "tournaments") {
     if (typeof renderTournamentsSection === "function") renderTournamentsSection();
   }

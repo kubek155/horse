@@ -32,7 +32,7 @@ function birthFoal(mare) {
   let p = mare.pregnant;
   mare.pregnant = null;
 
-  if (playerHorses.length >= STABLE_LIMIT) {
+  if (playerHorses.length >= (typeof getStableLimit==="function"?getStableLimit():STABLE_LIMIT)) {
     // Stajnia pełna — foal do transportera
     let foal = generateFoalFromPregnancy(p);
     inventory.push({ name:"Transporter Konia", obtained:Date.now(), horse:foal });
@@ -186,7 +186,7 @@ function rollBreedRarity(hA, hB, hasNectar) {
 // =====================
 function openBreedScreen() {
   if (playerHorses.length < 2) { log("⚠️ Potrzebujesz co najmniej 2 koni!"); return; }
-  if (playerHorses.length >= STABLE_LIMIT) { log("⚠️ Stajnia pełna!"); return; }
+  if (playerHorses.length >= (typeof getStableLimit==="function"?getStableLimit():STABLE_LIMIT)) { log("⚠️ Stajnia pełna!"); return; }
 
   breedSlotA = null; breedSlotB = null;
   breedItems = { nectar: false, compass: false, bloodElixir: false, moonstone: false };

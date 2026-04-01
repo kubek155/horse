@@ -22,7 +22,7 @@ function openHorsePicker(itemIdx) {
   if (itemData.isTransporter) {
     let transporterItem = inventory[itemIdx];
     if (!transporterItem || !transporterItem.horse) { log("⚠️ Pusty transporter!"); return; }
-    if (playerHorses.length >= STABLE_LIMIT) {
+    if (playerHorses.length >= (typeof getStableLimit==="function"?getStableLimit():STABLE_LIMIT)) {
       log(`⚠️ Stajnia nadal pełna! Zwolnij miejsce dla ${transporterItem.horse.name}.`);
       return;
     }
@@ -181,7 +181,7 @@ function _doOpenLootBox(itemIdx) {
       let horseSvgStr = (typeof drawHorseSVG === "function")
         ? drawHorseSVG(h.breedKey||h.name, h.rarity, h.stars) : null;
 
-      if (playerHorses.length >= STABLE_LIMIT) {
+      if (playerHorses.length >= (typeof getStableLimit==="function"?getStableLimit():STABLE_LIMIT)) {
         // Sprawdź limit transporterów
         let transporterCount = inventory.filter(i => (ITEMS_DATABASE[i.name]||{}).isTransporter && i.horse).length;
         if (transporterCount >= 10) {
@@ -340,7 +340,7 @@ function openTransporterModal(itemIdx, h, fee) {
 function confirmTransporter(itemIdx, fee) {
   let transporterItem = inventory[itemIdx];
   if (!transporterItem || !transporterItem.horse) return;
-  if (playerHorses.length >= STABLE_LIMIT) { log("⚠️ Stajnia nadal pełna!"); return; }
+  if (playerHorses.length >= (typeof getStableLimit==="function"?getStableLimit():STABLE_LIMIT)) { log("⚠️ Stajnia nadal pełna!"); return; }
   if (gold < fee) { log("⚠️ Za mało złota!"); return; }
 
   gold -= fee;
@@ -870,7 +870,7 @@ function openStarterBoxAnimation(itemIdx) {
   // Daj nagrody
   gold += bonusGold;
   inventory.push({ name:bonusItem, obtained:Date.now() });
-  if (playerHorses.length < STABLE_LIMIT) {
+  if (playerHorses.length < (typeof getStableLimit==="function"?getStableLimit():STABLE_LIMIT)) {
     playerHorses.push(h);
   } else {
     inventory.push({ name:"Transporter Konia", obtained:Date.now(), horse:h });

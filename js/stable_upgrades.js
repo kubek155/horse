@@ -142,9 +142,20 @@ function getStableLimit() {
   return STABLE_LEVELS[Math.min(getStableLevel()-1, STABLE_LEVELS.length-1)].horses;
 }
 function patchStableLimit() {
-  Object.defineProperty(window, 'STABLE_LIMIT', {
-    get: ()=>getStableLimit(), configurable:true,
-  });
+  // Bezpieczna aktualizacja — nie używamy defineProperty bo może kolidować z var
+  try {
+    Object.defineProperty(window, 'STABLE_LIMIT', {
+      get: ()=>getStableLimit(), configurable:true, enumerable:true,
+    });
+  } catch(e) {
+    // Fallback: bezpośrednia aktualizacja
+    window.STABLE_LIMIT = getStableLimit();
+  }
+}
+
+// Aktualizuj STABLE_LIMIT przy każdym upgrade (wywoływane z upgradeStable)
+function refreshStableLimit() {
+  try { window.STABLE_LIMIT = getStableLimit(); } catch(e) {}
 }
 
 // Globalne pasywne bonusy
@@ -471,6 +482,7 @@ function upgradeStable() {
   saveGame(); renderAll();
   document.getElementById("stableUpgradeOverlay")?.remove();
   openStableUpgradeScreen();
+  refreshStableLimit(); // Natychmiastowa aktualizacja limitu
   log(`🏠 Stajnia rozbudowana do poziomu ${lvl+1}! Limit: ${getStableLimit()} koni.`);
   if (typeof addNotification==="function") addNotification("level_up",
     `Stajnia — Poziom ${lvl+1}!`, `Nowy limit: ${getStableLimit()} koni`);
