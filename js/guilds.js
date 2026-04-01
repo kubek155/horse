@@ -163,6 +163,14 @@ function _renderMyGuild(el, g) {
       <div>
         <div style="background:#131f13;border:1px solid #1e3a1e;border-radius:14px;padding:20px;margin-bottom:16px">
           <div style="font-family:'Cinzel',serif;font-size:12px;color:#8aab84;margin-bottom:14px;letter-spacing:1px">👥 CZŁONKOWIE</div>
+          ${isLeader && (g.pendingRequests||[]).length > 0 ? `<div style="margin-bottom:12px;padding:10px;background:rgba(201,168,76,0.06);border:1px solid #c9a84c33;border-radius:10px">
+            <div style="font-size:9px;letter-spacing:2px;color:#c9a84c;margin-bottom:8px">📨 WNIOSKI (${(g.pendingRequests||[]).length})</div>
+            ${(g.pendingRequests||[]).map(req=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0a140a;border-radius:8px;margin-bottom:5px;border:1px solid #c9a84c22">
+              <div style="flex:1"><div style="font-size:12px;color:#c9a84c">${req.nick}</div><div style="font-size:10px;color:var(--text2)">Poz.${req.level||1} · 🐴${req.horseCount||0}</div></div>
+              <button onclick="approveMember('${g.id}','${req.uid||""}','${req.nick||""}',${req.level||1},${req.horseCount||0})" style="font-size:9px;border-color:#4ab87044;color:#4ab870;background:rgba(74,184,112,0.1);padding:3px 8px">✅</button>
+              <button onclick="rejectMember('${g.id}','${req.uid||""}')" style="font-size:9px;border-color:#c94a4a44;color:#c94a4a;padding:3px 8px">✕</button>
+            </div>`).join("")}
+          </div>` : ""}
           <div id="guildMemberList" style="max-height:320px;overflow-y:auto">
             ${members.map(m => `
               <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#0a140a;border-radius:8px;margin-bottom:6px;border:1px solid ${m.uid===g.leaderId?"#c9a84c22":"var(--border)"}">
@@ -196,43 +204,62 @@ function _renderMyGuild(el, g) {
 function _guildXpNeeded(level) { return level * 500; }
 function _guildUpgradeCost(level) { return level * 3000; }
 
+const GUILD_BUILDING_SVGS = {
+  stable:   `<svg viewBox="0 0 40 40" fill="none" width="32" height="32"><path d="M6 34V18L20 8l14 10v16H6z" stroke="#8aab84" stroke-width="1.8" fill="rgba(138,171,132,0.1)"/><rect x="15" y="22" width="10" height="12" rx="1" stroke="#8aab84" stroke-width="1.5" fill="none"/><path d="M6 18h28" stroke="#8aab84" stroke-width="1.3" opacity="0.5"/><circle cx="20" cy="14" r="2" fill="#8aab84" opacity="0.6"/></svg>`,
+  forge:    `<svg viewBox="0 0 40 40" fill="none" width="32" height="32"><rect x="8" y="20" width="24" height="12" rx="2" stroke="#c97c2a" stroke-width="1.8" fill="rgba(201,124,42,0.1)"/><path d="M14 20V14M26 20V14" stroke="#c97c2a" stroke-width="2" stroke-linecap="round"/><rect x="10" y="12" width="20" height="4" rx="1" stroke="#c97c2a" stroke-width="1.5" fill="none"/><path d="M16 26h8M16 29h5" stroke="#c97c2a" stroke-width="1.3" opacity="0.7"/></svg>`,
+  market:   `<svg viewBox="0 0 40 40" fill="none" width="32" height="32"><path d="M6 16h28l-2 16H8L6 16z" stroke="#4a7ec8" stroke-width="1.8" fill="rgba(74,126,200,0.1)"/><path d="M13 16V11a7 5 0 0114 0v5" stroke="#4a7ec8" stroke-width="1.5" fill="none"/><line x1="12" y1="23" x2="28" y2="23" stroke="#4a7ec8" stroke-width="1.2" opacity="0.5"/></svg>`,
+  academy:  `<svg viewBox="0 0 40 40" fill="none" width="32" height="32"><rect x="8" y="18" width="24" height="16" rx="2" stroke="#c9a84c" stroke-width="1.8" fill="rgba(201,168,76,0.1)"/><path d="M20 8L34 14H6L20 8z" stroke="#c9a84c" stroke-width="1.5" fill="rgba(201,168,76,0.15)"/><rect x="16" y="26" width="8" height="8" rx="1" stroke="#c9a84c" stroke-width="1.3" fill="none"/></svg>`,
+  treasury: `<svg viewBox="0 0 40 40" fill="none" width="32" height="32"><rect x="7" y="14" width="26" height="18" rx="3" stroke="#4ab870" stroke-width="1.8" fill="rgba(74,184,112,0.1)"/><circle cx="20" cy="23" r="5" stroke="#4ab870" stroke-width="1.5" fill="none"/><path d="M20 19v8M16 23h8" stroke="#4ab870" stroke-width="1.3"/><rect x="14" y="11" width="12" height="5" rx="1.5" stroke="#4ab870" stroke-width="1.5" fill="none"/></svg>`,
+};
+
+const GUILD_BG_BY_LEVEL = [
+  "linear-gradient(135deg,#0a1a0a 0%,#0f2a0f 100%)",
+  "linear-gradient(135deg,#0a1a0f 0%,#0a2a1a 100%)",
+  "linear-gradient(135deg,#0f1a0a 0%,#1a2a0f 100%)",
+  "linear-gradient(135deg,#1a1a0a 0%,#2a250f 100%)",
+  "linear-gradient(135deg,#1a100a 0%,#2a1a0f 100%)",
+];
+
+function _getGuildBg(level) {
+  return GUILD_BG_BY_LEVEL[Math.min((level||1)-1, GUILD_BG_BY_LEVEL.length-1)];
+}
+
 function _renderGuildBuildings(g) {
   const BUILDINGS = [
-    { id:"stable",   name:"Wspólna Stajnia",   icon:"🏠", desc:"Zwiększa limit koni każdego członka o 2", maxLevel:5, cost:2000, bonusDesc:"+2 miejsc w stajni na poziom" },
-    { id:"forge",    name:"Kuźnia Gildii",      icon:"⚒️",  desc:"-5% szans kontuzji koni", maxLevel:3, cost:3000, bonusDesc:"-5% kontuzji na poziom" },
-    { id:"market",   name:"Rynek Gildii",       icon:"🏪", desc:"+5% do cen sprzedaży na rynku", maxLevel:3, cost:4000, bonusDesc:"+5% ceny na poziom" },
-    { id:"academy",  name:"Akademia Jeźdźców",  icon:"📚", desc:"+10% XP z wypraw", maxLevel:5, cost:2500, bonusDesc:"+10% XP na poziom" },
-    { id:"treasury", name:"Bankier Gildii",     icon:"💎", desc:"+2% bonus złota z wypraw", maxLevel:5, cost:3500, bonusDesc:"+2% złota na poziom" },
+    { id:"stable",   name:"Wspólna Stajnia",   color:"#8aab84", desc:"Zwiększa limit koni każdego członka o 2", maxLevel:5, cost:2000, bonusDesc:"+2 miejsc w stajni na poziom" },
+    { id:"forge",    name:"Kuźnia Gildii",      color:"#c97c2a", desc:"-5% szans kontuzji koni", maxLevel:3, cost:3000, bonusDesc:"-5% kontuzji na poziom" },
+    { id:"market",   name:"Rynek Gildii",       color:"#4a7ec8", desc:"+5% do cen sprzedaży na rynku", maxLevel:3, cost:4000, bonusDesc:"+5% ceny na poziom" },
+    { id:"academy",  name:"Akademia Jeźdźców",  color:"#c9a84c", desc:"+10% XP z wypraw", maxLevel:5, cost:2500, bonusDesc:"+10% XP na poziom" },
+    { id:"treasury", name:"Bankier Gildii",     color:"#4ab870", desc:"+2% bonus złota z wypraw", maxLevel:5, cost:3500, bonusDesc:"+2% złota na poziom" },
   ];
 
   let buildings = g.buildings || {};
-
-  return `<div style="display:flex;flex-direction:column;gap:8px">
-    ${BUILDINGS.map(b => {
-      let lvl = buildings[b.id] || 0;
-      let maxed = lvl >= b.maxLevel;
-      let cost  = b.cost * (lvl + 1);
-      return `
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0a140a;border-radius:8px;border:1px solid ${maxed?"#c9a84c22":"var(--border)"}">
-          <div style="font-size:22px;flex-shrink:0">${b.icon}</div>
-          <div style="flex:1;min-width:0">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
-              <span style="font-size:12px;color:${maxed?"#c9a84c":"var(--text)"};font-family:'Cinzel',serif">${b.name}</span>
-              <span style="font-size:9px;padding:1px 6px;border-radius:8px;background:${maxed?"rgba(201,168,76,0.15)":"var(--panel2)"};color:${maxed?"#c9a84c":"var(--text2)"}">Poz. ${lvl}/${b.maxLevel}</span>
-            </div>
-            <div style="font-size:10px;color:var(--text2)">${b.bonusDesc}</div>
-            <!-- Pasek poziomu -->
-            <div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:4px">
-              <div style="height:100%;width:${(lvl/b.maxLevel)*100}%;background:#c9a84c;border-radius:2px"></div>
-            </div>
+  let rows = BUILDINGS.map(b => {
+    let lvl   = buildings[b.id] || 0;
+    let maxed = lvl >= b.maxLevel;
+    let cost  = b.cost * (lvl + 1);
+    let pct   = (lvl / b.maxLevel) * 100;
+    let svg   = GUILD_BUILDING_SVGS[b.id] || "";
+    return `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#0a140a;border-radius:10px;border:1px solid ${maxed?b.color+"44":"var(--border)"};transition:border-color 0.2s">
+        <div style="flex-shrink:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center">${svg}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+            <span style="font-size:12px;color:${maxed?b.color:"var(--text)"};font-family:'Cinzel',serif">${b.name}</span>
+            <span style="font-size:9px;padding:1px 6px;border-radius:8px;background:${maxed?b.color+"22":"var(--panel2)"};color:${maxed?b.color:"var(--text2)"}">Poz. ${lvl}/${b.maxLevel}</span>
           </div>
-          ${maxed
-            ? `<div style="font-size:10px;color:#c9a84c">MAX</div>`
-            : `<button onclick="upgradeGuildBuilding('${g?.id}','${b.id}',${cost})" style="font-size:9px;border-color:#4a7ec844;color:#4a7ec8;background:rgba(74,126,200,0.08);padding:4px 8px;white-space:nowrap;flex-shrink:0">⬆️${cost}💰</button>`
-          }
-        </div>`;
-    }).join("")}
-  </div>`;
+          <div style="font-size:10px;color:var(--text2)">${b.bonusDesc}</div>
+          <div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:5px">
+            <div style="height:100%;width:${pct}%;background:${b.color};border-radius:2px;transition:width 0.5s"></div>
+          </div>
+        </div>
+        ${maxed
+          ? `<div style="font-size:10px;color:${b.color};font-family:'Cinzel',serif">MAX</div>`
+          : `<button onclick="upgradeGuildBuilding('${g?.id}','${b.id}',${cost})" style="font-size:9px;border-color:${b.color}44;color:${b.color};background:${b.color}10;padding:5px 10px;white-space:nowrap;flex-shrink:0;border-radius:8px">⬆️ ${cost}💰</button>`
+        }
+      </div>`;
+  }).join("");
+  return `<div style="display:flex;flex-direction:column;gap:6px">${rows}</div>`;
 }
 
 // ── Wyszukiwanie gildii ─────────────────────────────────────
@@ -272,7 +299,7 @@ async function searchGuilds() {
             <div style="font-size:11px;color:var(--text2)">Poziom ${g.level||1} · 👥 ${members.length}/${maxM} · 👑 ${g.leaderNick||"?"}</div>
             <div style="font-size:10px;color:var(--text2);margin-top:2px">${(g.description||"").slice(0,60)}${(g.description||"").length>60?"…":""}</div>
           </div>
-          <button onclick="joinGuildById('${g.id}')" ${full?"disabled":""} style="font-size:11px;border-color:${full?"#333":"#4a7ec8"};color:${full?"#555":"#4a7ec8"};background:${full?"transparent":"rgba(74,126,200,0.1)"};flex-shrink:0;padding:6px 12px">${full?"Pełna":"Dołącz"}</button>
+          <button onclick="joinGuildById('${g.id}')" ${full?"disabled":""} style="font-size:11px;border-color:${full?"#333":"#4a7ec8"};color:${full?"#555":"#4a7ec8"};background:${full?"transparent":"rgba(74,126,200,0.1)"};flex-shrink:0;padding:6px 12px">${full?"Pełna":"Wyślij wniosek"}</button>
         </div>
       `;
       el.appendChild(row);
@@ -325,17 +352,48 @@ async function joinGuildById(guildId) {
     let ref  = window.FB.db.collection("guilds").doc(guildId);
     let snap = await ref.get();
     if (!snap.exists) return;
-    let g       = snap.data();
-    let maxM    = 5 + (g.level||1)*2;
-    if ((g.members||[]).length >= maxM) { log("⚠️ Gildia jest pełna!"); return; }
+    let g = snap.data();
     if ((g.memberIds||[]).includes(myId)) { log("Już jesteś w tej gildii!"); return; }
-
+    let pending = g.pendingRequests || [];
+    if (pending.some(r=>r.uid===myId)) { log("⚠️ Wniosek już wysłany! Poczekaj na odpowiedź lidera."); return; }
     let playerLevel = typeof getPlayerLevel==="function" ? getPlayerLevel() : 1;
     await ref.update({
-      memberIds: firebase.firestore.FieldValue.arrayUnion(myId),
-      members:   firebase.firestore.FieldValue.arrayUnion({ uid:myId, nick:myNick, level:playerLevel, horseCount:playerHorses.length }),
+      pendingRequests: firebase.firestore.FieldValue.arrayUnion({
+        uid:myId, nick:myNick, level:playerLevel,
+        horseCount:playerHorses.length, sentAt:Date.now()
+      })
     });
-    log("🏰 Dołączono do gildii \"" + g.name + "\"!");
+    log("📨 Wniosek wysłany do gildii \"" + g.name + "\"! Poczekaj na akceptację lidera.");
+    renderGuildSection();
+  } catch(e) { log("⚠️ Błąd: " + e.message); }
+}
+
+async function approveMember(guildId, uid, nick, level, horseCount) {
+  if (!window.FB) return;
+  try {
+    let ref  = window.FB.db.collection("guilds").doc(guildId);
+    let snap = await ref.get();
+    let g    = snap.data();
+    let maxM = 5 + (g.level||1)*2;
+    if ((g.members||[]).length >= maxM) { log("⚠️ Gildia jest pełna!"); return; }
+    await ref.update({
+      memberIds: firebase.firestore.FieldValue.arrayUnion(uid),
+      members:   firebase.firestore.FieldValue.arrayUnion({ uid, nick, level:level||1, horseCount:horseCount||0 }),
+      pendingRequests: (g.pendingRequests||[]).filter(r=>r.uid!==uid),
+    });
+    log("✅ " + nick + " dołączył do gildii!");
+    renderGuildSection();
+  } catch(e) { log("⚠️ Błąd: " + e.message); }
+}
+
+async function rejectMember(guildId, uid) {
+  if (!window.FB) return;
+  try {
+    let ref  = window.FB.db.collection("guilds").doc(guildId);
+    let snap = await ref.get();
+    let g    = snap.data();
+    await ref.update({ pendingRequests: (g.pendingRequests||[]).filter(r=>r.uid!==uid) });
+    log("❌ Wniosek odrzucony.");
     renderGuildSection();
   } catch(e) { log("⚠️ Błąd: " + e.message); }
 }

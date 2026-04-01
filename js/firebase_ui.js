@@ -162,57 +162,122 @@ function renderGlobalMarketSection() {
   renderGlobalMarketList2();
 }
 
+// Stan filtrów rynku globalnego
+let _gmFilters = { type:"all", rarity:"all", sortBy:"price_asc" };
+
+function setGlobalMarketFilter2(key, val) {
+  _gmFilters[key] = val;
+  document.querySelectorAll(`[data-gm-filter="${key}"]`).forEach(b =>
+    b.classList.toggle("active", b.dataset.val === val));
+  renderGlobalMarketList2();
+}
+
 function renderGlobalMarketList2() {
   let el = document.getElementById("globalMarketList2");
   if (!el) return;
-  let offers = (globalMarketOffers||[]);
-  let typeF = "all"; // można dodać filtry
+  let myId = window.FB?.getPlayerId();
+  let offers = [...(globalMarketOffers||[])];
+
+  // Filtry
+  if (_gmFilters.type !== "all") offers = offers.filter(o => o.type === _gmFilters.type);
+  if (_gmFilters.rarity !== "all") offers = offers.filter(o => {
+    if (o.type === "horse") return o.horse?.rarity === _gmFilters.rarity;
+    return (typeof ITEMS_DATABASE!=="undefined" && ITEMS_DATABASE[o.item?.name]?.rarity) === _gmFilters.rarity;
+  });
+  // Sortowanie
+  if (_gmFilters.sortBy === "price_asc")  offers.sort((a,b) => a.price - b.price);
+  if (_gmFilters.sortBy === "price_desc") offers.sort((a,b) => b.price - a.price);
+  if (_gmFilters.sortBy === "stat_speed")    offers = offers.filter(o=>o.type==="horse").sort((a,b)=>(b.horse?.stats?.speed||0)-(a.horse?.stats?.speed||0));
+  if (_gmFilters.sortBy === "mine") offers.sort((a,_b) => a.sellerId===myId ? -1 : 1);
+
   if (!offers.length) {
-    el.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🌐</div>Brak ofert na rynku globalnym</div>`;
+    el.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🌐</div>Brak ofert pasujących do filtrów</div>`;
     return;
   }
   el.innerHTML = "";
-  // Użyj tej samej logiki renderowania co renderGlobalMarket ale do globalMarketList2
-  let myId = window.FB.getPlayerId();
-  offers.forEach((offer, i) => {
+
+  const STAT_SVGS = {
+    speed:    `<svg viewBox="0 0 12 12" fill="none" width="11" height="11"><path d="M9 2.5L5.5 6l2 1L5 10" stroke="#4a7ec8" stroke-width="1.4" stroke-linecap="round"/></svg>`,
+    strength: `<svg viewBox="0 0 12 12" fill="none" width="11" height="11"><rect x="1.5" y="4.5" width="2" height="3" rx="1" fill="#c97c2a"/><rect x="8.5" y="4.5" width="2" height="3" rx="1" fill="#c97c2a"/><rect x="3" y="5.2" width="6" height="1.6" fill="#c97c2a"/></svg>`,
+    stamina:  `<svg viewBox="0 0 12 12" fill="none" width="11" height="11"><path d="M6 10.5Q2 7.5 2 5Q2 3 4 3Q5.2 3 6 4.5Q6.8 3 8 3Q10 3 10 5Q10 7.5 6 10.5Z" stroke="#c94a4a" stroke-width="1.3" fill="rgba(201,74,74,0.2)"/></svg>`,
+    luck:     `<svg viewBox="0 0 12 12" fill="none" width="11" height="11"><circle cx="4" cy="4" r="2.5" fill="#3a8a3a" opacity=".9"/><circle cx="8" cy="4" r="2.5" fill="#4aa04a" opacity=".9"/><circle cx="6" cy="7.5" r="2.5" fill="#3a8a3a" opacity=".9"/><line x1="6" y1="10" x2="6" y2="12" stroke="#3a6a3a" stroke-width="1.2"/></svg>`,
+  };
+
+  offers.forEach(offer => {
     let isHorse = offer.type === "horse";
-    let h = offer.horse;
+    let h    = offer.horse;
     let item = offer.item;
-    let rc = isHorse ? (RARITY_COLORS[h?.rarity]||"#8aab84") : "#4a7ec8";
+    let rc   = isHorse ? (RARITY_COLORS[h?.rarity]||"#8aab84") : "#4a7ec8";
+    let rl   = isHorse ? ((typeof RARITY_LABELS!=="undefined"?RARITY_LABELS[h?.rarity]:h?.rarity)||"") : "";
     let isMine = offer.sellerId === myId;
 
     let card = document.createElement("div");
-    card.className = "mc-card";
-    card.style.borderColor = rc + "44";
+    card.style.cssText = `background:#131f13;border:1px solid ${rc}33;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:border-color 0.12s,transform 0.1s`;
 
     if (isHorse && h) {
-      let svgDiv = document.createElement("div");
-      svgDiv.style.cssText = "width:100%;height:70px;overflow:hidden;border-radius:7px;background:var(--panel);margin-bottom:8px;border:1px solid "+rc+"22";
-      svgDiv.innerHTML = typeof drawHorseSVG==="function" ? drawHorseSVG(h.breedKey||h.name,h.rarity,h.stars||0) : "🐴";
-      let svgEl = svgDiv.querySelector("svg"); if(svgEl){svgEl.setAttribute("width","100%");svgEl.setAttribute("height","70");}
-      card.appendChild(svgDiv);
+      // SVG konia - duże jak w horse picker
+      let svgWrap = document.createElement("div");
+      svgWrap.style.cssText = `width:100%;height:120px;overflow:hidden;background:${rc}08;border-bottom:1px solid ${rc}18;position:relative`;
+      svgWrap.innerHTML = typeof drawHorseSVG==="function" ? drawHorseSVG(h.breedKey||h.name,h.rarity,h.stars||0) : "";
+      let svgEl = svgWrap.querySelector("svg");
+      if (svgEl) { svgEl.setAttribute("width","100%"); svgEl.setAttribute("height","120"); svgEl.setAttribute("preserveAspectRatio","xMidYMid meet"); }
+      // Rarity badge overlay
+      let rarBadge = document.createElement("div");
+      rarBadge.style.cssText = `position:absolute;bottom:5px;left:6px;font-size:9px;padding:2px 7px;border-radius:8px;background:rgba(0,0,0,0.65);color:${rc};border:1px solid ${rc}44;font-family:'Cinzel',serif`;
+      rarBadge.textContent = rl;
+      svgWrap.appendChild(rarBadge);
+      card.appendChild(svgWrap);
+
+      // Info z pełnymi statystykami
+      let info = document.createElement("div");
+      info.style.cssText = "padding:10px 11px 10px";
+      info.innerHTML = `
+        <div style="font-family:'Cinzel',serif;font-size:12px;color:${rc};margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h.name||"?"}</div>
+        <div style="font-size:10px;color:var(--text2);margin-bottom:6px">${h.type||""} ${h.gender==="male"?"♂":"♀"}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;font-size:11px;margin-bottom:8px">
+          <span style="display:flex;align-items:center;gap:3px">${STAT_SVGS.speed}<span style="color:#4a7ec8;font-family:'Cinzel',serif">${h.stats?.speed||0}</span></span>
+          <span style="display:flex;align-items:center;gap:3px">${STAT_SVGS.strength}<span style="color:#c97c2a;font-family:'Cinzel',serif">${h.stats?.strength||0}</span></span>
+          <span style="display:flex;align-items:center;gap:3px">${STAT_SVGS.stamina}<span style="color:#c94a4a;font-family:'Cinzel',serif">${h.stats?.stamina||0}</span></span>
+          <span style="display:flex;align-items:center;gap:3px">${STAT_SVGS.luck}<span style="color:#4ab870;font-family:'Cinzel',serif">${h.stats?.luck||0}</span></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="font-family:'Cinzel',serif;font-size:14px;color:#c9a84c">💰${offer.price}</div>
+          <div style="font-size:10px;color:var(--text2)">${offer.sellerNick||"?"}</div>
+        </div>
+        ${isMine
+          ? `<button onclick="cancelGlobalListing_ext('${offer.id}')" style="width:100%;font-size:10px;border-color:#c94a4a44;color:#c94a4a">Wycofaj</button>`
+          : `<button onclick="buyGlobal_ext('${offer.id}')" style="width:100%;font-size:11px;border-color:${rc};color:${rc};background:${rc}11;font-family:'Cinzel',serif">💰 Kup</button>`}
+      `;
+      card.appendChild(info);
+
     } else if (item) {
+      // Item card
       let iconDiv = document.createElement("div");
-      iconDiv.style.cssText = "width:44px;height:44px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center";
-      iconDiv.innerHTML = (typeof ITEM_ICONS_SVG!=="undefined"&&ITEM_ICONS_SVG[item.name])||`<span style="font-size:32px">${(typeof ITEMS_DATABASE!=="undefined"&&ITEMS_DATABASE[item.name]?.icon)||"📦"}</span>`;
+      iconDiv.style.cssText = `width:100%;height:80px;display:flex;align-items:center;justify-content:center;background:#0a140a;border-bottom:1px solid var(--border)`;
+      let iconSvg = (typeof ITEM_ICONS_SVG!=="undefined"&&ITEM_ICONS_SVG[item.name]);
+      iconDiv.innerHTML = iconSvg ? `<div style="width:48px;height:48px">${iconSvg}</div>` : `<span style="font-size:36px">${(typeof ITEMS_DATABASE!=="undefined"&&ITEMS_DATABASE[item.name]?.icon)||"📦"}</span>`;
       card.appendChild(iconDiv);
+
+      let info2 = document.createElement("div");
+      info2.style.cssText = "padding:10px 11px 10px";
+      let itemRc = RARITY_COLORS[(typeof ITEMS_DATABASE!=="undefined"&&ITEMS_DATABASE[item.name]?.rarity)||"common"]||"#8aab84";
+      info2.innerHTML = `
+        <div style="font-family:'Cinzel',serif;font-size:12px;color:${itemRc};margin-bottom:4px">${item.name}</div>
+        <div style="font-size:10px;color:var(--text2);margin-bottom:8px">${(typeof ITEMS_DATABASE!=="undefined"&&ITEMS_DATABASE[item.name]?.desc)||""}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="font-family:'Cinzel',serif;font-size:14px;color:#c9a84c">💰${offer.price}</div>
+          <div style="font-size:10px;color:var(--text2)">${offer.sellerNick||"?"}</div>
+        </div>
+        ${isMine
+          ? `<button onclick="cancelGlobalListing_ext('${offer.id}')" style="width:100%;font-size:10px;border-color:#c94a4a44;color:#c94a4a">Wycofaj</button>`
+          : `<button onclick="buyGlobal_ext('${offer.id}')" style="width:100%;font-size:11px;border-color:#4a7ec8;color:#4a7ec8;background:rgba(74,126,200,0.1);font-family:'Cinzel',serif">💰 Kup</button>`}
+      `;
+      card.appendChild(info2);
     }
 
-    let name = isHorse ? (h?.name||"Koń") : (item?.name||"Przedmiot");
-    let sub  = isHorse ? `${(typeof RARITY_LABELS!=="undefined"?RARITY_LABELS[h?.rarity]:h?.rarity)||""} · ⚡${h?.stats?.speed} 💪${h?.stats?.strength}` : "";
+    card.onmouseenter = () => { card.style.borderColor=rc; card.style.transform="translateY(-1px)"; };
+    card.onmouseleave = () => { card.style.borderColor=rc+"33"; card.style.transform=""; };
 
-    card.innerHTML += `
-      <div class="mc-name" style="color:${rc}">${name}</div>
-      <div class="mc-sub">${sub}</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
-        <div class="mc-price">💰${offer.price}</div>
-        <div style="font-size:10px;color:var(--text2)">${offer.sellerNick||"?"}</div>
-      </div>
-      ${isMine
-        ? `<button onclick="cancelGlobalListing_ext('${offer.id}')" style="width:100%;margin-top:8px;font-size:10px;border-color:#c94a4a44;color:#c94a4a">Wycofaj</button>`
-        : `<button onclick="buyGlobal_ext('${offer.id}')" style="width:100%;margin-top:8px;font-size:10px;border-color:${rc};color:${rc};background:${rc}11">💰 Kup</button>`
-      }
-    `;
     el.appendChild(card);
   });
 }

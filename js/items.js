@@ -647,11 +647,12 @@ function openSlotPicker(horseIdx, slotIdx) {
   if (!h) return;
   pendingSlot = { horseIdx, slotIdx };
 
-  let rarCol = RARITY_COLORS[h.rarity] || "#8aab84";
-  document.getElementById("slotPickerSubtitle").innerHTML =
-    `<span style="color:${rarCol}">${h.flag||"🐴"} ${h.name}</span> — Slot ${slotIdx+1}/${h.itemSlots}`;
+  let rc = RARITY_COLORS[h.rarity] || "#8aab84";
+  let rl = (typeof RARITY_LABELS!=="undefined" ? RARITY_LABELS[h.rarity] : "") || "";
 
-  // Tylko elixiry statystyk z ekwipunku
+  // Usuń poprzedni
+  document.getElementById("slotPickerOverlay")?.remove();
+
   let eligible = inventory
     .map((item,i) => ({item,i}))
     .filter(({item}) => {
@@ -659,34 +660,93 @@ function openSlotPicker(horseIdx, slotIdx) {
       return d.isSlotItem || d.isElixir || SLOT_ITEMS.includes(item.name);
     });
 
-  let list = document.getElementById("slotPickerList");
-  list.innerHTML = "";
+  let overlay = document.createElement("div");
+  overlay.id = "slotPickerOverlay";
+  overlay.style.cssText = "position:fixed;inset:0;z-index:960;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;padding:16px";
+  overlay.onclick = e => { if(e.target===overlay) closeSlotPicker(); };
+
+  let panel = document.createElement("div");
+  panel.style.cssText = `width:100%;max-width:700px;max-height:90vh;background:#0f1a0f;border:1px solid ${rc}44;border-radius:16px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 60px rgba(0,0,0,0.9)`;
+
+  // Header
+  let svgHorse = typeof drawHorseSVG==="function" ? drawHorseSVG(h.breedKey||h.name, h.rarity, h.stars||0) : "";
+  let header = document.createElement("div");
+  header.style.cssText = `padding:18px 24px;background:linear-gradient(135deg,${rc}14,${rc}05);border-bottom:1px solid ${rc}33;flex-shrink:0`;
+  header.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:64px;height:52px;overflow:hidden;border-radius:8px;background:${rc}0a;border:1px solid ${rc}22;flex-shrink:0">${svgHorse ? svgHorse.replace(/width="[^"]*"/,'width="64"').replace(/height="[^"]*"/,'height="52"') : ""}</div>
+        <div>
+          <div style="font-size:9px;letter-spacing:3px;color:${rc};margin-bottom:3px">WYBIERZ PRZEDMIOT DO SLOTU</div>
+          <div style="font-family:'Cinzel',serif;font-size:16px;color:${rc}">${h.name}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">${rl} · Slot ${slotIdx+1}/${h.itemSlots}</div>
+        </div>
+      </div>
+      <button onclick="closeSlotPicker()" style="background:transparent;border:none;color:#4a5a4a;font-size:22px;cursor:pointer;padding:0">✕</button>
+    </div>
+  `;
+  panel.appendChild(header);
+
+  // Grid przedmiotów
+  let grid = document.createElement("div");
+  grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;padding:16px;overflow-y:auto;flex:1";
 
   if (!eligible.length) {
-    list.innerHTML = `<div class="empty"><div class="empty-icon">🧪</div>Brak eliksirów statystyk w ekwipunku</div>`;
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text2)">
+      <div style="font-size:36px;margin-bottom:8px;opacity:0.4">🧪</div>
+      <div style="font-size:14px">Brak przedmiotów do slotów w ekwipunku</div>
+      <div style="font-size:12px;margin-top:6px;color:#4a5a4a">Kup Piorun, Kowadło, Koniczynę lub Serce w Sklepie</div>
+    </div>`;
   } else {
     eligible.forEach(({item, i}) => {
-      let data = ITEMS_DATABASE[item.name] || { icon:"📦" };
-      let btn  = document.createElement("button");
-      btn.className = "modal-horse-btn";
-      let bonusStr = item.bonus !== undefined ? ` <span style="color:var(--gold2);font-size:11px">(+${item.bonus})</span>` : "";
-      btn.innerHTML = `
-        <span style="font-size:22px">${data.icon}</span>
-        <div style="flex:1">
-          <div class="mh-name">${item.name}${bonusStr}</div>
-          <div class="mh-stats" style="color:var(--text2)">${data.desc}</div>
-        </div>
-        <span style="font-size:11px;color:var(--gold2)">Wyposażaj</span>
+      let data = ITEMS_DATABASE[item.name] || {icon:"📦", desc:""};
+      let isSlot = !!data.isSlotItem;
+      let isElixir = !!data.isElixir;
+      let statColor = {speed:"#4a7ec8", strength:"#c97c2a", stamina:"#c94a4a", luck:"#4ab870"}[data.stat] || "#c9a84c";
+      let statIcon = typeof ITEM_ICONS_SVG!=="undefined" && ITEM_ICONS_SVG[item.name] ? ITEM_ICONS_SVG[item.name] : `<span style="font-size:32px">${data.icon}</span>`;
+
+      let card = document.createElement("div");
+      card.style.cssText = `background:#131f13;border:1px solid ${statColor}33;border-radius:12px;padding:0;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;transition:border-color 0.12s,background 0.12s,transform 0.1s`;
+
+      // Icon area
+      let iconArea = document.createElement("div");
+      iconArea.style.cssText = `width:100%;height:90px;display:flex;align-items:center;justify-content:center;background:${statColor}08;border-bottom:1px solid ${statColor}18`;
+      iconArea.innerHTML = `<div style="width:56px;height:56px;display:flex;align-items:center;justify-content:center">${statIcon}</div>`;
+      card.appendChild(iconArea);
+
+      // Info
+      let info = document.createElement("div");
+      info.style.cssText = "padding:10px 12px 12px";
+      let bonusStr = item.bonus !== undefined ? `<span style="font-family:'Cinzel',serif;font-size:16px;color:${statColor}"> +${item.bonus}</span>` : "";
+      info.innerHTML = `
+        <div style="font-family:'Cinzel',serif;font-size:12px;color:${statColor};margin-bottom:3px">${item.name}${bonusStr}</div>
+        <div style="font-size:10px;color:var(--text2);margin-bottom:8px">${data.desc||""}</div>
+        <button style="width:100%;border-color:${statColor};color:${statColor};background:${statColor}11;font-size:11px;font-family:'Cinzel',serif;padding:6px">✨ Wyposażaj</button>
       `;
-      btn.onclick = () => { equipItemToSlot(horseIdx, slotIdx, i); closeSlotPicker(); };
-      list.appendChild(btn);
+      card.appendChild(info);
+
+      card.onclick = () => { equipItemToSlot(horseIdx, slotIdx, i); closeSlotPicker(); };
+      card.onmouseenter = () => { card.style.borderColor=statColor; card.style.background=statColor+"0c"; card.style.transform="translateY(-1px)"; };
+      card.onmouseleave = () => { card.style.borderColor=statColor+"33"; card.style.background="#131f13"; card.style.transform=""; };
+
+      grid.appendChild(card);
     });
   }
+  panel.appendChild(grid);
 
-  document.getElementById("slotPickerModal").style.display = "flex";
+  // Footer
+  let footer = document.createElement("div");
+  footer.style.cssText = "padding:10px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0";
+  footer.innerHTML = `<div style="font-size:11px;color:var(--text2)">${eligible.length} przedmiotów dostępnych</div>
+    <button onclick="closeSlotPicker()" style="border-color:var(--border);color:var(--text2);font-size:12px;padding:6px 18px">Anuluj</button>`;
+  panel.appendChild(footer);
+
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
 }
 
 function closeSlotPicker() {
+  document.getElementById("slotPickerOverlay")?.remove();
   document.getElementById("slotPickerModal").style.display = "none";
   pendingSlot = null;
 }
