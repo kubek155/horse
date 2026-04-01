@@ -272,7 +272,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 /* ===================== INVENTORY ===================== */
 .inv-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 10px;
   align-items: start;  /* nie rozciągaj kart */
 }
@@ -860,4 +860,29 @@ button:active {
   transform-box: fill-box;
   transform-origin: right top;
   animation: raceMane 0.28s ease-in-out infinite alternate;
+}
+
+/* =====================
+   EKWIPUNEK — nowe karty ze sliderem
+   ===================== */
+#inventoryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 2px solid var(--panel);
 }

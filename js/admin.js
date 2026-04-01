@@ -639,29 +639,60 @@ async function renderAdminTab(tab) {
 
 
 // ── Zarządzanie menu ───────────────────────────────────────
-function saveMenuSettings() {
+async function saveMenuSettings() {
   // Zbierz ukryte menu
   let hidden = [];
   document.querySelectorAll("[data-menu-id]").forEach(cb => {
     if (!cb.checked) hidden.push(cb.dataset.menuId);
   });
-  localStorage.setItem("hh_hidden_menus", JSON.stringify(hidden));
-
-  // Zbierz kolejność
   let order = window._adminMenuReorderData || [];
+
+  // Zapisz do Firebase (dla wszystkich graczy)
+  if (window.FB && window.FB.db) {
+    try {
+      await window.FB.db.collection("config").doc("menu_settings").set({
+        hidden: hidden,
+        order:  order.length ? order : null,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedBy: window.FB.getPlayerNick() || "Admin",
+      });
+      log("🧭 Ustawienia menu zapisane dla wszystkich graczy!");
+    } catch(e) {
+      log("⚠️ Błąd Firebase: " + e.message + " — zapisano lokalnie");
+    }
+  }
+
+  // Też lokalnie (backup)
+  localStorage.setItem("hh_hidden_menus", JSON.stringify(hidden));
   if (order.length) localStorage.setItem("hh_menu_order", JSON.stringify(order));
 
-  // Zastosuj natychmiast
   applyMenuSettings();
-  log("🧭 Ustawienia menu zapisane i zastosowane!");
 }
 
-function resetMenuOrder() {
+async function resetMenuOrder() {
+  if (window.FB && window.FB.db) {
+    try {
+      await window.FB.db.collection("config").doc("menu_settings").delete();
+    } catch(e) {}
+  }
   localStorage.removeItem("hh_menu_order");
   localStorage.removeItem("hh_hidden_menus");
   applyMenuSettings();
   renderAdminTab("menu");
-  log("↺ Menu zresetowane do domyślnego");
+  log("↺ Menu zresetowane do domyślnego dla wszystkich graczy");
+}
+
+async function loadMenuSettingsFromFirebase() {
+  // Ładuj ustawienia z Firebase przy starcie
+  if (!window.FB || !window.FB.db) return;
+  try {
+    let snap = await window.FB.db.collection("config").doc("menu_settings").get();
+    if (!snap.exists) return;
+    let data = snap.data();
+    if (data.hidden) localStorage.setItem("hh_hidden_menus", JSON.stringify(data.hidden));
+    if (data.order)  localStorage.setItem("hh_menu_order",   JSON.stringify(data.order));
+    applyMenuSettings();
+  } catch(e) { console.warn("loadMenuSettings:", e.message); }
 }
 
 function applyMenuSettings() {
@@ -688,9 +719,12 @@ function applyMenuSettings() {
   }
 }
 
-// Zastosuj ustawienia przy starcie
+// Zastosuj ustawienia przy starcie — z Firebase dla wszystkich graczy
 document.addEventListener("DOMContentLoaded", () => {
-  setTimeout(applyMenuSettings, 500);
+  setTimeout(() => {
+    applyMenuSettings(); // najpierw z localStorage (szybko)
+    loadMenuSettingsFromFirebase(); // potem Firebase (aktualne dla wszystkich)
+  }, 800);
 });
 
 async function adminCreateTournament() {

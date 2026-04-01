@@ -1,3 +1,14 @@
+// ── Zakładki sklepu ────────────────────────────────────────
+function switchShopTab(tab) {
+  ["shop","daily"].forEach(t => {
+    let btn = document.getElementById("shopTabBtn_" + t);
+    let cnt = document.getElementById("shopTabContent_" + t);
+    if (btn) btn.classList.toggle("active", t === tab);
+    if (cnt) cnt.style.display = t === tab ? "" : "none";
+  });
+  if (tab === "daily" && typeof renderDailyMarket === "function") renderDailyMarket();
+}
+
 
 // rareShop — 5% szans że item pojawi się w danym oknie 48h
 function isRareShopAvailable(item) {

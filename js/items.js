@@ -62,42 +62,43 @@ function openHorsePicker(itemIdx) {
     ? "Wybierz konia do nakarmienia:"
     : "Na którego konia użyć przedmiotu?";
 
-  let list = document.getElementById("modalHorseList");
-  list.innerHTML = "";
+  // Użyj uniwersalnego pickera koni
+  let data2  = ITEMS_DATABASE[item.name] || {};
+  let isFood2 = !!data2.isFood;
+  let accentCol = {speed:"#4a7ec8",strength:"#c97c2a",stamina:"#c94a4a",luck:"#4ab870"}[data2.stat] || "#c9a84c";
+  let iconSvg = (typeof ITEM_ICONS_SVG!=="undefined"&&ITEM_ICONS_SVG[item.name])
+    ? `<div style="width:36px;height:36px">${ITEM_ICONS_SVG[item.name]}</div>`
+    : `<span style="font-size:24px">${data2.icon||"📦"}</span>`;
 
-  playerHorses.forEach((h, hi) => {
-    let age         = getHorseAgeDays(h);
-    let hunger      = getHunger(h);
-    let rarityColor = { common:"#8aab84", rare:"#7b5ea7", epic:"#c97c2a", legendary:"#c9a84c" }[h.group] || "#8aab84";
-    let hungerColor = hunger > 70 ? "#c94a4a" : hunger > 40 ? "#c97c2a" : "#7ec870";
-
-    let btn = document.createElement("button");
-    btn.className = "modal-horse-btn";
-    // Sprawdź czy eliksir już użyty na tym koniu
-    let curItem  = inventory[pendingItemIdx] || {};
-    let curData  = ITEMS_DATABASE[curItem.name] || {};
-    let alreadyUsed = curData.isElixir && h.usedElixirs?.[curItem.name];
-    let rarC = RARITY_COLORS[h.rarity]||"#8aab84";
-    btn.innerHTML = `
-      <span style="font-size:20px">${h.flag||"🐴"}</span>
-      <div style="flex:1">
-        <div class="mh-name" style="color:${rarC}">${h.name} ${h.stars > 0 ? "⭐".repeat(h.stars) : ""}</div>
-        <div class="mh-stats" style="color:var(--text2)">⚡${h.stats.speed} 💪${h.stats.strength} ❤️${h.stats.stamina}</div>
-        ${isFood ? `<div style="font-size:11px;color:${hungerColor};margin-top:2px">🍽️ Głód: ${hunger}%</div>` : ""}
-        ${alreadyUsed ? `<div style="font-size:11px;color:#c94a4a;margin-top:2px">✕ Już użyto na tym koniu</div>` : ""}
-      </div>
-      <div class="mh-age">🎂 ${age} dni</div>
-    `;
-    if (alreadyUsed) btn.disabled = true;
-    btn.onclick = () => { applyItemToHorse(pendingItemIdx, hi); closeModal(); };
-    list.appendChild(btn);
+  openHorsePickerModal({
+    title:       item.name,
+    subtitle:    isFood2 ? "Wybierz konia do nakarmienia" : "Na którego konia użyć przedmiotu?",
+    accentColor: accentCol,
+    context:     "UŻYCIA PRZEDMIOTU",
+    bgIcon:      data2.icon||"📦",
+    extraInfo:   `<span>${data2.desc||""}</span>`,
+    filterFn: (h, hi) => {
+      let badges = [];
+      let blocked = false;
+      let hunger  = typeof getHunger==="function" ? getHunger(h) : 0;
+      let hCol    = hunger>70?"#c94a4a":hunger>40?"#c97c2a":"#4ab870";
+      let curItem2 = inventory[itemIdx]||{};
+      let curData2 = ITEMS_DATABASE[curItem2.name]||{};
+      if (curData2.isElixir && h.usedElixirs?.[curItem2.name]) {
+        badges.push({text:"Już użyto",color:"#c94a4a"}); blocked=true;
+      }
+      if (isFood2) badges.push({text:`Głód: ${hunger}%`,color:hCol});
+      return {blocked, badges};
+    },
+    onSelect: (hi) => {
+      applyItemToHorse(itemIdx, hi);
+    },
   });
-
-  document.getElementById("horsePickerModal").style.display = "flex";
 }
 
 function closeModal() {
-  document.getElementById("horsePickerModal").style.display = "none";
+  document.getElementById("horsePickerModal")?.style && (document.getElementById("horsePickerModal").style.display = "none");
+  document.getElementById("universalHorsePicker")?.remove();
   pendingItemIdx = null;
 }
 
@@ -539,52 +540,127 @@ function renderInventory() {
     }
   }
 
-  // ── SEKCJA ZWYKŁYCH PRZEDMIOTÓW ──
-  regularItems.forEach((item) => {
-    let idx     = inventory.indexOf(item);
-    let data    = ITEMS_DATABASE[item.name] || { icon:"📦", desc:"" };
+  // ── SEKCJA ZWYKŁYCH PRZEDMIOTÓW — zgrupowane, z licznikiem i sliderem ──
+  // Grupuj po nazwie (slot itemy osobno bo mają różne bonusy)
+  let groups = {};
+  regularItems.forEach(item => {
+    let data = ITEMS_DATABASE[item.name] || {};
+    let key  = data.isSlotItem ? item.name + "_" + (item.bonus||0) : item.name;
+    if (!groups[key]) groups[key] = { item, indices:[], name:item.name, data };
+    groups[key].indices.push(inventory.indexOf(item));
+  });
+
+  Object.values(groups).forEach(g => {
+    let { item, indices, data } = g;
+    let count   = indices.length;
+    let idx     = indices[0]; // indeks pierwszego
     let isSlot  = !!data.isSlotItem;
     let isFood  = !!data.isFood;
     let isPass  = !!data.isPass;
     let isBreed = !!data.isBreedItem;
-    let statIcon = { speed:"⚡", strength:"💪", stamina:"❤️", luck:"🍀" }[data.stat] || "";
-    let rc       = { rare:"#4a7ec8", epic:"#7b5ea7", legendary:"#c9a84c", uncommon:"#8aab84" }[data.rarity] || "var(--border)";
+    let isBox   = item.name === "Skrzynka z Łupem" || item.name === "Skrzynka Startowa";
+    let rc = (typeof RARITY_COLORS!=="undefined" ? RARITY_COLORS[data.rarity] : null) || "#8aab84";
+    let useLabel = isFood ? "Karm" : isSlot ? "Slot" : isPass ? "Info" : isBreed ? "Hoduj" : isBox ? "Otwórz" : "Użyj";
 
-    let bonusHtml = (isSlot && item.bonus !== undefined)
-      ? `<div class="inv-bonus">+${item.bonus} ${statIcon}</div>` : "";
-    let isBox = item.name === "Skrzynka z Łupem" || item.name === "Skrzynka Startowa";
-    let useLabel = isFood ? "🍎 Karm" : isSlot ? "✨ Slot" : isPass ? "🎫 Info" : isBreed ? "🍏 Hoduj" : isBox ? "🎁 Otwórz" : "Użyj";
-
-    let div = document.createElement("div");
-    div.className = "inv-item";
-    div.style.borderColor = rc;
-
-    // Ikona
     let iconHtml = (typeof ITEM_ICONS_SVG!=="undefined" && ITEM_ICONS_SVG[item.name])
-      ? `<span style="display:inline-flex;width:36px;height:36px">${ITEM_ICONS_SVG[item.name]}</span>`
-      : data.icon;
+      ? `<div style="width:44px;height:44px;flex-shrink:0">${ITEM_ICONS_SVG[item.name]}</div>`
+      : `<div style="font-size:32px;flex-shrink:0;line-height:1">${data.icon||"📦"}</div>`;
 
-    div.innerHTML = `
-      <span class="inv-icon">${iconHtml}</span>
-      <span class="inv-name">${item.name}</span>
-      ${bonusHtml}
-      <div class="inv-actions">
-        <button class="inv-use-btn" data-idx="${idx}" data-isbox="${isBox}">${useLabel}</button>
-        <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1)" onclick="openListItem(${idx})">🏪</button>
-      </div>
+    let card = document.createElement("div");
+    card.style.cssText = `
+      background:#131f13;border:1px solid ${rc}33;border-radius:12px;
+      overflow:hidden;display:flex;flex-direction:column;
+      transition:border-color 0.12s;
     `;
 
-    // Dodaj handler przez addEventListener (bezpieczny - działa z idx)
-    div.querySelector(".inv-use-btn").addEventListener("click", () => {
+    // Górna część: ikona + info
+    let top = document.createElement("div");
+    top.style.cssText = "display:flex;align-items:center;gap:12px;padding:12px 14px;";
+
+    // Ikona w kółku
+    let iconWrap = document.createElement("div");
+    iconWrap.style.cssText = `width:52px;height:52px;border-radius:10px;background:${rc}0a;border:1px solid ${rc}22;display:flex;align-items:center;justify-content:center;flex-shrink:0`;
+    iconWrap.innerHTML = iconHtml;
+    top.appendChild(iconWrap);
+
+    let info = document.createElement("div");
+    info.style.cssText = "flex:1;min-width:0";
+    let bonusStr = (isSlot && item.bonus !== undefined) ? ` <span style="color:${rc};font-size:11px">+${item.bonus}</span>` : "";
+    info.innerHTML = `
+      <div style="font-family:'Cinzel',serif;font-size:12px;color:${rc};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.name}${bonusStr}</div>
+      <div style="font-size:10px;color:var(--text2);margin-top:2px">${data.desc||""}</div>
+    `;
+
+    // Badge ilości
+    let countBadge = document.createElement("div");
+    countBadge.style.cssText = `flex-shrink:0;min-width:28px;height:28px;border-radius:14px;background:${rc}22;border:1px solid ${rc}44;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:12px;color:${rc};padding:0 6px`;
+    countBadge.textContent = "×" + count;
+    top.appendChild(info);
+    top.appendChild(countBadge);
+    card.appendChild(top);
+
+    // Slider ilości (tylko jeśli count > 1 i to item "jednorazowy" — nie slot/box)
+    let useCount = 1;
+    if (count > 1 && (isFood || (!isSlot && !isBox && !isPass && !isBreed))) {
+      let sliderRow = document.createElement("div");
+      sliderRow.style.cssText = `padding:0 14px 8px;display:flex;align-items:center;gap:8px`;
+      sliderRow.innerHTML = `
+        <span style="font-size:10px;color:var(--text2);flex-shrink:0">Ilość:</span>
+        <input type="range" min="1" max="${count}" value="1" step="1"
+          style="flex:1;accent-color:${rc};height:4px;cursor:pointer"
+          oninput="this.nextElementSibling.textContent=this.value">
+        <span style="font-size:11px;color:${rc};font-family:'Cinzel',serif;min-width:18px;text-align:right">1</span>
+      `;
+      card.appendChild(sliderRow);
+    }
+
+    // Przyciski
+    let actions = document.createElement("div");
+    actions.style.cssText = `display:flex;gap:0;border-top:1px solid ${rc}18`;
+
+    let useBtn = document.createElement("button");
+    useBtn.style.cssText = `flex:1;border:none;border-right:1px solid ${rc}18;color:${rc};background:${rc}0a;font-size:11px;padding:8px;border-radius:0;cursor:pointer;font-family:'Cinzel',serif`;
+    useBtn.textContent = useLabel;
+    useBtn.onclick = () => {
+      // Pobierz ilość ze slidera jeśli istnieje
+      let slider  = card.querySelector("input[type=range]");
+      let howMany = slider ? parseInt(slider.value) : 1;
       if (isBox) {
         if (typeof openLootboxWithAnimation === "function") openLootboxWithAnimation(idx);
         else openHorsePicker(idx);
+      } else if (isPass || isBreed) {
+        openHorsePicker(idx);
+      } else if (isFood && howMany > 1) {
+        // Multi-karmienie: pokaż picker koni, użyj tyle razy
+        window._pendingMultiUse = { indices: indices.slice(0, howMany) };
+        openHorsePickerModal({
+          title: `${item.name} ×${howMany}`,
+          subtitle: `Nakarm konia ${howMany} razy`,
+          accentColor: rc,
+          context: "KARMIENIA",
+          filterFn: (h, hi) => ({blocked:!!h.injured, badges: []}),
+          onSelect: (hi) => {
+            let toUse = window._pendingMultiUse?.indices || [idx];
+            toUse.forEach(i2 => applyItemToHorse(i2, hi));
+            renderAll();
+          },
+        });
       } else {
         openHorsePicker(idx);
       }
-    });
+    };
+    actions.appendChild(useBtn);
 
-    el.appendChild(div);
+    let sellBtn = document.createElement("button");
+    sellBtn.style.cssText = `width:44px;border:none;color:#b090e0;background:rgba(123,94,167,0.08);font-size:11px;padding:8px;border-radius:0;cursor:pointer`;
+    sellBtn.textContent = "🏪";
+    sellBtn.onclick = () => openListItem(idx);
+    actions.appendChild(sellBtn);
+
+    card.appendChild(actions);
+    card.onmouseenter = () => card.style.borderColor = rc + "77";
+    card.onmouseleave = () => card.style.borderColor = rc + "33";
+    el.appendChild(card);
   });
 }
 

@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 1. Start gry lokalnie — natychmiast
   loadGame();
+  // Załaduj ustawienia menu z Firebase po 2s (Firebase musi się zainicjować)
+  setTimeout(() => { if(typeof loadMenuSettingsFromFirebase==="function") loadMenuSettingsFromFirebase(); }, 2000);
 
   if (playerHorses.length === 0 && !localStorage.getItem("hh_starter_given")) {
     // Daj starter loot box z gwarantowanym koniem

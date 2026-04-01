@@ -132,6 +132,15 @@
 
     <!-- SKLEP -->
     <div id="shopSection" style="display:none">
+      <div style="display:flex;gap:6px;margin-bottom:14px">
+        <button id="shopTabBtn_shop"  class="market-tab-btn active" onclick="switchShopTab('shop')">
+          <svg width="12" height="12" viewBox="0 0 14 14" fill="none" style="margin-right:4px;vertical-align:middle"><path d="M2 4h10l-1 8H3L2 4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>Sklep
+        </button>
+        <button id="shopTabBtn_daily" class="market-tab-btn" onclick="switchShopTab('daily')">
+          <svg width="12" height="12" viewBox="0 0 14 14" fill="none" style="margin-right:4px;vertical-align:middle"><rect x="1" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/><line x1="1" y1="6" x2="13" y2="6" stroke="currentColor" stroke-width="1"/></svg>Dzienny Rynek
+        </button>
+      </div>
+      <div id="shopTabContent_shop">
       <div class="section-title"><svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M3 4h12l-1.5 6H4.5L3 4z" stroke="#c9a84c" stroke-width="1.3" fill="none"/><path d="M4.5 10v4h9v-4" stroke="#c9a84c" stroke-width="1.3" fill="none"/></svg> Sklep</div>
 
       <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center">
@@ -149,8 +158,19 @@
         <h4>PRZEDMIOTY</h4>
         <div id="shopItemsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px"></div>
       </div>
+      </div><!-- end shopTabContent_shop -->
 
-
+      <!-- DZIENNY RYNEK -->
+      <div id="shopTabContent_daily" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding:10px 16px;background:rgba(74,184,112,0.06);border:1px solid #4ab87033;border-radius:10px">
+          <div>
+            <div style="font-family:'Cinzel',serif;font-size:13px;color:#4ab870">Dzienny Rynek</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px">Losowe przedmioty · Zmieniają się codziennie o północy · Limit zakupu na dzień</div>
+          </div>
+          <div id="dailyMarketTimer" style="font-size:11px;color:var(--text2);text-align:right;font-family:'Cinzel',serif"></div>
+        </div>
+        <div id="dailyMarketGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px"></div>
+      </div>
     </div>
 
 
@@ -488,6 +508,7 @@
 <script src="js/gym.js"></script>
 <script src="js/giveaway.js"></script>
 <script src="js/guilds.js"></script>
+<script src="js/daily_market.js"></script>
 <script src="js/lootbox_anim.js"></script>
 <script src="main.js"></script>
 <!-- Firebase SDK przez CDN - szybsze niż dynamic import -->
