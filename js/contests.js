@@ -351,7 +351,7 @@ function renderRace(el) {
 
   results.forEach(function(entry, i) {
     var erc = RARITY_COLORS[entry.rarity] || "#8aab84";
-    var finalPct = (entry.score / maxScore) * 92;
+    var finalPct = (entry.score / maxScore) * 88; // koniec max 88%
 
     var lane = document.createElement("div");
     lane.style.cssText = "position:relative;height:" + laneH + "px;margin-bottom:5px;border-bottom:1px solid " + erc + "12";
@@ -423,11 +423,11 @@ function renderRace(el) {
     var t    = Math.min(1, (ts - startTime) / duration);
     var ease = t < 0.5 ? 2*t*t : -1 + (4 - 2*t)*t;
 
+    var maxSc = Math.max.apply(null, results.map(function(r){return r.score;}).concat([1]));
     horseContainers.forEach(function(obj) {
-      // Prędkość bazuje na wyniku: lepszy score → szybciej dobiega
-      var indivT = Math.min(1, t * (0.7 + (obj.entry.score / Math.max.apply(null, results.map(function(r){return r.score;}).concat([1]))) * 0.3));
-      var indivEase = indivT < 0.5 ? 2*indivT*indivT : -1 + (4-2*indivT)*indivT;
-      var cur = indivEase * obj.finalPct;
+      // Quad-out: szybki start, płynne hamowanie
+      var indivEase = 1 - Math.pow(1 - t, 2);
+      var cur = 5 + indivEase * (obj.finalPct - 5);
       obj.hc.style.left = cur + "%";
     });
 

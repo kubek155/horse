@@ -291,7 +291,7 @@ function _renderRacingPhase(el, t, myId) {
   }
 
   // Oblicz pozycje koni na podstawie statystyk + losowości
-  let ranked = _calcRacePositions(entries, t.type, Date.now() - (t.startTime||0), 10*60*1000);
+  let ranked = _calcRacePositions(entries, t.type, Date.now() - (t.startTime||0), 2*60*1000);
 
   el.innerHTML = `
     <div style="background:#0a0e0a;border-radius:10px;overflow:hidden;border:1px solid #c94a4a33;padding:12px">
@@ -308,45 +308,37 @@ function _calcRacePositions(entries, type, elapsed, total) {
   let statKey = {sprint:"speed", endurance:"stamina", strength:"strength", grand_prix:null, luck:"luck"}[type];
   let progress = Math.min(1, elapsed / total);
 
-  // Każdy koń dostaje deterministyczny "score" (nie zmienia się między re-renderami)
+  // Każdy koń dostaje deterministyczny "score"
   let scored = entries.map(e => {
     let h    = e.horse || {};
-    // Główna statystyka (0-200)
     let stat = statKey
       ? (h.stats?.[statKey] || 20)
       : (((h.stats?.speed||20)+(h.stats?.stamina||20)+(h.stats?.strength||20)+(h.stats?.luck||20))/4);
-
-    // Deterministyczna "losowość" per gracz (seed z playerId + typ turnieju)
-    let seed  = _hashStr(e.playerId + type);
-    // Losowość: ±20% wartości statu (żeby słabszy koń mógł wygrać z nieco lepszym)
-    let jitter = ((seed % 200) - 100) / 100; // -1.0 do +1.0
+    let seed   = _hashStr(e.playerId + type);
+    let jitter = ((seed % 200) - 100) / 100;
     let luck   = h.stats?.luck || 10;
-    let rand   = jitter * stat * 0.15 + jitter * luck * 0.05;
-
-    let score = Math.max(1, stat + rand);
-    return {...e, score};
+    let rand   = jitter * stat * 0.12 + jitter * luck * 0.04;
+    return {...e, score: Math.max(1, stat + rand)};
   });
 
-  // Sortuj wg score — lider ma najwyższy
   scored.sort((a,b) => b.score - a.score);
 
-  // Pozycja na torze:
-  // - Lider (idx=0): zawsze nieco z przodu
-  // - Na końcu wyścigu (progress=1): lider jest na 95%, ostatni na ~65%
-  // - Wszyscy poruszają się proporcjonalnie do czasu
   let N = scored.length;
+  let maxScore = scored[0].score;
+
   return scored.map((e, i) => {
-    // Pozycja bazowa zależna od ranku w stawce
-    // Lider (i=0) → 1.0 * progress, ostatni (i=N-1) → 0.65 * progress
-    let rankFactor = 1.0 - (i / Math.max(1, N-1)) * 0.30; // 1.0 → 0.70
-    // Dodaj krzywiznę — lider przyspiesza na końcu (easing out)
-    let easedProgress = progress < 0.5
-      ? 2 * progress * progress
-      : 1 - Math.pow(-2*progress+2, 2)/2;
-    let pos = Math.min(97, easedProgress * 100 * rankFactor);
-    // Na samym końcu wyścigu — WSZYSCY dochodzą do mety
-    if (progress >= 1) pos = 95 - i * (20 / Math.max(1, N-1));
-    return {...e, pos};
+    // speedFactor: lider=1.0, ostatni=0.72 (różnica widoczna)
+    let speedFactor = 0.72 + (e.score / maxScore) * 0.28;
+    let pos;
+    if (progress >= 1) {
+      pos = 60 + speedFactor * 32; // finał: 60%→92%
+    } else {
+      // Quad-out: szybki start, powolniejsze dobieganie
+      let eased = 1 - Math.pow(1 - progress, 2);
+      // START od 8% (widoczna pozycja), koniec przy ~92%
+      pos = 8 + eased * 84 * speedFactor;
+    }
+    return {...e, pos: Math.min(95, pos)};
   });
 }
 
@@ -373,7 +365,7 @@ function _renderRaceTrack(tid, ranked, myId) {
       "background:" + (isMe ? "rgba(201,168,76,0.06)" : "rgba(0,0,0,0.12)"),
       "border-radius:6px",
       "border:1px solid " + (isMe ? "#c9a84c22" : "#1a2a1a"),
-      "overflow:hidden"
+      "overflow:visible"
     ].join(";");
 
     // Linia toru
@@ -393,14 +385,15 @@ function _renderRaceTrack(tid, ranked, myId) {
     flag.textContent = "🏁";
     lane.appendChild(flag);
 
-    // Kontener konia - left = 20px + pct*0.88% żeby zostało miejsce na flagę
+    // Kontener konia: pos 0→95 mapuje na left 2%→90%
+    // Tor ma padding-left:20px i padding-right:50px w kontenerze
     let hc = document.createElement("div");
     hc.style.cssText = [
       "position:absolute",
       "bottom:3px",
-      "left:calc(20px + " + (pct * 0.88) + "%)",
+      "left:" + (pct * 0.91) + "%",
       "width:52px", "height:44px",
-      "transition:left 0.4s linear",
+      "transition:left 0.35s linear",
       "overflow:visible"
     ].join(";");
 
