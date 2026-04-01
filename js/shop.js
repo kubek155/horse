@@ -1,13 +1,5 @@
-// ── Zakładki sklepu ────────────────────────────────────────
-function switchShopTab(tab) {
-  ["shop","daily"].forEach(t => {
-    let btn = document.getElementById("shopTabBtn_" + t);
-    let cnt = document.getElementById("shopTabContent_" + t);
-    if (btn) btn.classList.toggle("active", t === tab);
-    if (cnt) cnt.style.display = t === tab ? "" : "none";
-  });
-  if (tab === "daily" && typeof renderDailyMarket === "function") renderDailyMarket();
-}
+// switchShopTab - nieużywane w nowym layoucie, zachowane dla kompatybilności
+function switchShopTab(tab) {}
 
 
 // rareShop — 5% szans że item pojawi się w danym oknie 48h
@@ -48,9 +40,16 @@ function incShopBought(item) {
   localStorage.setItem(key, JSON.stringify(data));
 }
 function getShopLimit(item) {
-  if (item.limitQty)   return item.limitQty;
-  if (item.dailyLimit) return item.dailyLimit;
-  return Infinity;
+  // Jeśli jest limitQtyMin/Max — losuj deterministycznie per okno 48h
+  if (item.limitQtyMin !== undefined && item.limitQtyMax !== undefined) {
+    let win = Math.floor(Date.now() / (48*3600000));
+    let seed = 0;
+    let key = item.name + "_qty_" + win;
+    for (let i=0;i<key.length;i++) seed = (seed*31+key.charCodeAt(i)) & 0x7fffffff;
+    let range = item.limitQtyMax - item.limitQtyMin + 1;
+    return item.limitQtyMin + (Math.abs(seed) % range);
+  }
+  return item.limitQty || 99;
 }
 function shopTimeLeft(item) {
   let data = getShopBought(item);
@@ -187,4 +186,7 @@ function renderShop() {
   // Ukryj sekcję koni
   let horsesSection = document.getElementById("shopHorsesSection");
   if (horsesSection) horsesSection.style.display = "none";
+
+  // Wyrenderuj też dzienny rynek
+  if (typeof renderDailyMarket === "function") renderDailyMarket();
 }

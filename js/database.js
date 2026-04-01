@@ -361,10 +361,10 @@ const SHOP_ITEMS = [
   // Skrzynki i odmłodzenie — zawsze, limit 48h
   { name:"Skrzynka z Łupem",    price:600,  icon:"📦", desc:"Losowy koń lub przedmiot!",         limitHours:48, limitQty:3 },
   { name:"Eliksir Odmłodzenia", price:1600, icon:"🧪", desc:"Odmładza konia",                    limitHours:48, limitQty:2 },
-  // Hodowla — 5% szans na pojawienie się (limit 48h)
-  { name:"Jabłko Sfinksa",      price:1200, icon:"🍏", desc:"Wymagane do rozmnażania",           limitHours:48, limitQty:3,   rareShop:true, rareChance:0.05 },
-  { name:"Boski Nektar",        price:1600, icon:"🌟", desc:"+50% szans na mutację",             limitHours:48, limitQty:1,   rareShop:true, rareChance:0.05 },
-  { name:"Eliksir Krwi",        price:1000, icon:"🩸", desc:"Potomek dziedziczy krew silniejszego", limitHours:48, limitQty:1, rareShop:true, rareChance:0.05 },
+  // Hodowla — 4% szans na pojawienie się, limit 1-3 sztuki (losowany deterministycznie)
+  { name:"Jabłko Sfinksa",      price:1200, icon:"🍏", desc:"Wymagane do rozmnażania",           limitHours:48, limitQtyMin:1, limitQtyMax:3, rareShop:true, rareChance:0.04 },
+  { name:"Boski Nektar",        price:1600, icon:"🌟", desc:"+50% szans na mutację",             limitHours:48, limitQtyMin:1, limitQtyMax:2, rareShop:true, rareChance:0.04 },
+  { name:"Eliksir Krwi",        price:1000, icon:"🩸", desc:"Potomek dziedziczy krew silniejszego", limitHours:48, limitQtyMin:1, limitQtyMax:2, rareShop:true, rareChance:0.04 },
 ];
 
 const QUEST_TEMPLATES = [

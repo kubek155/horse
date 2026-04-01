@@ -323,6 +323,9 @@ function openTransporterModal(itemIdx, h, fee) {
         </button>
         <button style="flex:1" onclick="document.getElementById('transporterModal').remove()">Anuluj</button>
       </div>
+      <button style="width:100%;margin-top:8px;border-color:#c94a4a33;color:#c94a4a;background:transparent;font-size:11px" onclick="discardTransporter(${itemIdx})">
+        🗑️ Porzuć konia (bez odbioru)
+      </button>
     </div>
   `;
 
@@ -509,6 +512,7 @@ function renderInventory() {
         <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
           <button onclick="openHorsePicker(${idx})" style="border-color:${hrc};color:${hrc};background:${hrc}11;font-size:11px;padding:4px 10px;white-space:nowrap">🧳 Odbierz</button>
           <button style="border-color:#7b5ea7;color:#b090e0;background:rgba(123,94,167,0.1);font-size:11px;padding:4px 10px" onclick="openListItem(${idx})">🏪 Sprzedaj</button>
+          <button style="border-color:#c94a4a44;color:#c94a4a;font-size:11px;padding:4px 10px" onclick="discardTransporter(${idx})">🗑️ Wyrzuć</button>
         </div>
       `;
       tGrid.appendChild(card);
@@ -675,6 +679,44 @@ const SLOT_ITEMS = ["Eliksir Szybkości","Eliksir Siły","Eliksir Wytrzymałośc
 let pendingSlot = null; // { horseIdx, slotIdx }
 
 // Otwiera picker wyboru konia dla itemu (przedmiot inicjuje wybór konia)
+// ── Wyrzucenie konia z transportera ───────────────────────
+function discardTransporter(itemIdx) {
+  let item = inventory[itemIdx];
+  if (!item || !item.horse) return;
+  let h = item.horse;
+  let rc = (typeof RARITY_COLORS!=="undefined" && RARITY_COLORS[h.rarity]) || "#8aab84";
+
+  // Potwierdzenie
+  let confirmDiv = document.createElement("div");
+  confirmDiv.id = "discardConfirm";
+  confirmDiv.style.cssText = "position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center";
+  confirmDiv.innerHTML = `
+    <div style="background:var(--panel);border:2px solid #c94a4a66;border-radius:14px;padding:24px;max-width:320px;width:90%;text-align:center">
+      <div style="font-size:32px;margin-bottom:8px">⚠️</div>
+      <div style="font-family:'Cinzel',serif;font-size:14px;color:#c94a4a;margin-bottom:8px">Porzucić konia?</div>
+      <div style="font-size:13px;color:var(--text);margin-bottom:4px;font-family:'Cinzel',serif;color:${rc}">${h.name}</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:16px">Tej operacji nie można cofnąć. Koń zostanie trwale utracony.</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="document.getElementById('discardConfirm').remove()" style="flex:1;border-color:var(--border);color:var(--text2)">Anuluj</button>
+        <button onclick="_confirmDiscardTransporter(${itemIdx})" style="flex:1;border-color:#c94a4a;color:#c94a4a;background:rgba(201,74,74,0.1)">🗑️ Porzuć</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(confirmDiv);
+  document.getElementById("transporterModal")?.remove();
+}
+
+function _confirmDiscardTransporter(itemIdx) {
+  let item = inventory[itemIdx];
+  if (!item) return;
+  let horseName = item.horse?.name || "Koń";
+  inventory.splice(itemIdx, 1);
+  saveGame(); renderAll();
+  document.getElementById("discardConfirm")?.remove();
+  log(`🗑️ ${horseName} porzucony z transportera.`);
+}
+
+
 function openSlotPickerForItem(itemIdx) {
   if (playerHorses.length === 0) { log("⚠️ Brak koni z wolnymi slotami!"); return; }
   let horsesWithSlots = playerHorses
