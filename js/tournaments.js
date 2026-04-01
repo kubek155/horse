@@ -362,109 +362,95 @@ function _renderRaceTrack(tid, ranked, myId) {
   track.innerHTML = "";
 
   ranked.forEach((e, i) => {
-    let rc    = (typeof RARITY_COLORS !== "undefined" ? RARITY_COLORS[e.horse?.rarity] : null) || "#8aab84";
-    let isMe  = e.playerId === myId;
-    // Tor: lewa strona = numer + start, prawa strona = meta (flaga)
-    // Koń porusza się w zakresie left: 20px → calc(100% - 60px)
-    // Używamy % z offsetem żeby koń nie wychodził poza kontenery
-    let leftPct = 3 + (e.pos / 100) * 88; // 3% → 91% (zostaje miejsce na nick + flagę)
-    leftPct = Math.max(3, Math.min(91, leftPct));
+    let rc   = (typeof RARITY_COLORS !== "undefined" ? RARITY_COLORS[e.horse?.rarity] : null) || "#8aab84";
+    let isMe = e.playerId === myId;
+    let pct  = Math.max(0, Math.min(97, e.pos || 0));
 
-    let lane  = document.createElement("div");
-    lane.style.cssText = `position:relative;height:60px;margin-bottom:6px;
-      background:${isMe?"rgba(201,168,76,0.05)":"rgba(0,0,0,0.1)"};
-      border-radius:6px;border:1px solid ${isMe?"#c9a84c22":"#1a2a1a"};
-      overflow:visible`;
+    // Lane
+    let lane = document.createElement("div");
+    lane.style.cssText = [
+      "position:relative", "height:52px", "margin-bottom:4px",
+      "background:" + (isMe ? "rgba(201,168,76,0.06)" : "rgba(0,0,0,0.12)"),
+      "border-radius:6px",
+      "border:1px solid " + (isMe ? "#c9a84c22" : "#1a2a1a"),
+      "overflow:hidden"
+    ].join(";");
 
-    // Tor (linia pozioma)
-    let track2 = document.createElement("div");
-    track2.style.cssText = `position:absolute;top:50%;left:20px;right:40px;height:1px;background:${rc}18`;
-    lane.appendChild(track2);
+    // Linia toru
+    let torLine = document.createElement("div");
+    torLine.style.cssText = "position:absolute;top:50%;left:22px;right:38px;height:1px;background:" + rc + "15";
+    lane.appendChild(torLine);
 
-    // Numer miejsca (lewy skraj)
+    // Numer
     let num = document.createElement("div");
-    num.style.cssText = `position:absolute;left:4px;top:50%;transform:translateY(-50%);
-      font-family:'Cinzel',serif;font-size:10px;
-      color:${i===0?"#c9a84c":i===1?"#909090":i===2?"#c97c2a":"#4a5a4a"};
-      width:14px;text-align:center`;
+    num.style.cssText = "position:absolute;left:4px;top:50%;transform:translateY(-50%);font-family:'Cinzel',serif;font-size:10px;width:14px;text-align:center;color:" + (["#c9a84c","#909090","#c97c2a"][i] || "#4a5a4a");
     num.textContent = i + 1;
     lane.appendChild(num);
 
-    // Koń + nick (animowany)
-    // leftPct: 3%→91% ale koń SVG ma ~48px szerokości
-    // Przeliczamy: dostępna szerokość toru = 100% - 20px (numer) - 50px (flaga+nick)
-    // Używamy CSS calc żeby uwzględnić stałe offsety
-    let horseEl = document.createElement("div");
-    horseEl.dataset.tid  = tid;
-    horseEl.dataset.rank = i;
-    // left: od 22px (po numerze) do calc(100% - 90px) (przed flagą)
-    // leftPct 0→100 mapujemy na: 22px + leftPct% * (szerokość - 112px)
-    // Uproszczenie: używamy calc z przesunięciem
-    let cssLeft = `calc(22px + ${leftPct}% * (100% - 110px) / 100)`;
-    horseEl.style.cssText = `
-      position:absolute;
-      bottom:6px;
-      left:${cssLeft};
-      transition:left 0.3s linear;
-      display:flex;align-items:flex-end;gap:3px;
-      z-index:2;
-    `;
-
-    // SVG konia — pasuje do wysokości lane (54px → koń ~46px)
-    let svgWrap = document.createElement("div");
-    svgWrap.className = "race-track-horse";
-    svgWrap.style.cssText = `width:52px;height:46px;overflow:visible;flex-shrink:0`;
-    if (e.horse && typeof buildExpHorseSVG === "function") {
-      let h2  = e.horse;
-      let vis = (typeof getBreedVisual==="function")
-        ? getBreedVisual(h2.breedKey||h2.name)
-        : {coat:"#8B6914", mane:"#4a2e00"};
-      svgWrap.innerHTML = buildExpHorseSVG(vis.coat||"#8B6914", vis.mane||"#4a2e00");
-      let svgEl = svgWrap.querySelector("svg");
-      if (svgEl) { svgEl.setAttribute("width","52"); svgEl.setAttribute("height","46"); }
-    } else if (e.horse && typeof drawHorseSVG === "function") {
-      svgWrap.innerHTML = drawHorseSVG(e.horse.breedKey||e.horse.name, e.horse.rarity, 0);
-      let svgEl = svgWrap.querySelector("svg");
-      if (svgEl) { svgEl.setAttribute("width","40"); svgEl.setAttribute("height","32"); }
-    } else {
-      svgWrap.innerHTML = `<span style="font-size:22px;line-height:32px;display:block;text-align:center">🐴</span>`;
-    }
-    horseEl.appendChild(svgWrap);
-
-    // Nick pod koniem (absolute, nie pcha konia)
-    let nick = document.createElement("div");
-    nick.style.cssText = `
-      position:absolute;top:calc(50% + 22px);left:50%;
-      transform:translateX(-50%);
-      font-size:8px;color:${rc};white-space:nowrap;max-width:60px;
-      overflow:hidden;text-overflow:ellipsis;
-      text-shadow:0 0 4px #000,0 0 2px #000;
-      font-family:'Cinzel',serif;
-    `;
-    nick.textContent = (e.horse?.name||e.playerNick||"?").split(" ")[0];
-    horseEl.appendChild(nick);
-
-    // Pył za koniem (widoczny podczas wyścigu)
-    let dust = document.createElement("div");
-    dust.style.cssText = `position:absolute;top:65%;pointer-events:none`;
-    dust.innerHTML = `
-      <div style="width:6px;height:6px;border-radius:50%;background:rgba(139,105,20,0.35);display:inline-block;animation:raceDust 0.5s ease-out infinite 0s"></div>
-      <div style="width:4px;height:4px;border-radius:50%;background:rgba(139,105,20,0.25);display:inline-block;animation:raceDust 0.5s ease-out infinite 0.2s;margin-left:4px"></div>
-    `;
-    horseEl.appendChild(dust);
-
-    lane.appendChild(horseEl);
-
-    // Meta (flaga) — prawy skraj
+    // Flaga
     let flag = document.createElement("div");
-    flag.style.cssText = `position:absolute;right:4px;top:50%;transform:translateY(-50%);
-      font-size:16px;opacity:0.5;z-index:1`;
+    flag.style.cssText = "position:absolute;right:5px;top:50%;transform:translateY(-50%);font-size:14px;opacity:0.4";
     flag.textContent = "🏁";
     lane.appendChild(flag);
 
+    // Kontener konia - left = 20px + pct*0.88% żeby zostało miejsce na flagę
+    let hc = document.createElement("div");
+    hc.style.cssText = [
+      "position:absolute",
+      "bottom:3px",
+      "left:calc(20px + " + (pct * 0.88) + "%)",
+      "width:52px", "height:44px",
+      "transition:left 0.4s linear",
+      "overflow:visible"
+    ].join(";");
+
+    // SVG konia — tak samo jak ekspedycja
+    if (typeof buildExpHorseSVG === "function" && e.horse) {
+      let vis = (typeof getBreedVisual === "function")
+        ? getBreedVisual(e.horse.breedKey || e.horse.name)
+        : { coat:"#8B6914", mane:"#4a2e00" };
+      let tmp = document.createElement("div");
+      tmp.innerHTML = buildExpHorseSVG(vis.coat || "#8B6914", vis.mane || "#4a2e00");
+      let svg = tmp.querySelector("svg");
+      if (svg) {
+        svg.setAttribute("width", "52");
+        svg.setAttribute("height", "44");
+        // Animacje identyczne jak w ekspedycji
+        svg.querySelectorAll(".efl").forEach(function(el2, fi) {
+          el2.style.transformBox = "fill-box";
+          el2.style.transformOrigin = "top center";
+          el2.style.animation = "expLegFront 0.3s ease-in-out " + (["0s","0.15s"][fi]||"0s") + " infinite";
+        });
+        svg.querySelectorAll(".ebl").forEach(function(el2, bi) {
+          el2.style.transformBox = "fill-box";
+          el2.style.transformOrigin = "top center";
+          el2.style.animation = "expLegBack 0.3s ease-in-out " + (["0.08s","0.23s"][bi]||"0s") + " infinite";
+        });
+        var tail = svg.querySelector(".etail");
+        if (tail) { tail.style.transformBox="fill-box"; tail.style.transformOrigin="0% 50%"; tail.style.animation="expTailWave 0.25s ease-in-out infinite alternate"; }
+        var maneEl = svg.querySelector(".emane");
+        if (maneEl) { maneEl.style.transformBox="fill-box"; maneEl.style.transformOrigin="right top"; maneEl.style.animation="expManeWave 0.25s ease-in-out infinite alternate"; }
+        hc.appendChild(svg);
+      }
+    }
+
+    // Nick
+    let nick = document.createElement("div");
+    nick.style.cssText = "position:absolute;bottom:-11px;left:0;width:58px;font-size:8px;color:" + rc + ";text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 4px #000;font-family:'Cinzel',serif";
+    nick.textContent = ((e.horse && e.horse.name) || e.playerNick || "?").split(" ")[0];
+    hc.appendChild(nick);
+
+    // Pył
+    let dust = document.createElement("div");
+    dust.style.cssText = "position:absolute;bottom:2px;left:-8px;pointer-events:none";
+    dust.innerHTML = '<div style="width:5px;height:5px;border-radius:50%;background:rgba(139,105,20,0.45);position:absolute;animation:expDust 0.5s ease-out 0s infinite"></div><div style="width:4px;height:4px;border-radius:50%;background:rgba(139,105,20,0.3);position:absolute;left:8px;top:2px;animation:expDust 0.5s ease-out 0.2s infinite"></div>';
+    hc.appendChild(dust);
+
+    lane.appendChild(hc);
     track.appendChild(lane);
   });
 }
+
 
 function _renderFinishedPhase(el, t, myId, ct) {
   if (!el) return;
