@@ -388,10 +388,13 @@ function _renderRaceTrack(tid, ranked, myId) {
     // Kontener konia: pos 0→95 mapuje na left 2%→90%
     // Tor ma padding-left:20px i padding-right:50px w kontenerze
     let hc = document.createElement("div");
+    // calc(20px + pct/95*100% - pct/95*117px)
+    // pos=0 → 20px od lewej (za numerem); pos=95 → calc(100%-97px) (przed flagą)
+    var leftCalc = "calc(" + ((pct/95)*100).toFixed(2) + "% - " + ((pct/95)*97).toFixed(1) + "px + 20px)";
     hc.style.cssText = [
       "position:absolute",
       "bottom:3px",
-      "left:" + (pct * 0.91) + "%",
+      "left:" + leftCalc,
       "width:52px", "height:44px",
       "transition:left 0.35s linear",
       "overflow:visible"

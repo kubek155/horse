@@ -351,7 +351,7 @@ function renderRace(el) {
 
   results.forEach(function(entry, i) {
     var erc = RARITY_COLORS[entry.rarity] || "#8aab84";
-    var finalPct = (entry.score / maxScore) * 88; // koniec max 88%
+    var finalPct = (entry.score / maxScore) * 100; // 100 = do mety
 
     var lane = document.createElement("div");
     lane.style.cssText = "position:relative;height:" + laneH + "px;margin-bottom:5px;border-bottom:1px solid " + erc + "12";
@@ -364,7 +364,7 @@ function renderRace(el) {
 
     // Kontener konia
     var hc = document.createElement("div");
-    hc.style.cssText = "position:absolute;bottom:2px;left:0%;width:52px;height:" + (laneH - 6) + "px;overflow:visible;";
+    hc.style.cssText = "position:absolute;bottom:2px;left:20px;width:52px;height:" + (laneH - 6) + "px;overflow:visible;";
 
     // SVG konia - identycznie jak ekspedycja
     if (typeof buildExpHorseSVG === "function" && (entry.horse || entry.breedKey)) {
@@ -427,8 +427,9 @@ function renderRace(el) {
     horseContainers.forEach(function(obj) {
       // Quad-out: szybki start, płynne hamowanie
       var indivEase = 1 - Math.pow(1 - t, 2);
-      var cur = 5 + indivEase * (obj.finalPct - 5);
-      obj.hc.style.left = cur + "%";
+      // Mapuj 0..1 na calc(ratio*(100%-97px)+20px)
+      var ratio = indivEase * (obj.finalPct / 100);
+      obj.hc.style.left = "calc(" + (ratio * 100).toFixed(1) + "% - " + (ratio * 97).toFixed(1) + "px + 20px)";
     });
 
     if (t < 1) {
