@@ -372,12 +372,12 @@ function renderRace(el) {
 
     // Koń SVG — animowany
     let horseWrap = document.createElement("div");
-    horseWrap.className = "race-horse-wrap"; // CSS animacja biegania
+    horseWrap.className = "race-track-horse"; // CSS animacja bez transform-konfliktów
     horseWrap.style.cssText = `
       position:absolute;
       left:2%;
-      top:50%;transform:translateY(-50%);
-      width:52px;height:${laneH-8}px;
+      bottom:4px;
+      width:52px;height:${laneH-6}px;
       overflow:visible;
       z-index:4;
       transition:left 0.12s linear;

@@ -371,7 +371,7 @@ function _renderRaceTrack(tid, ranked, myId) {
     leftPct = Math.max(3, Math.min(91, leftPct));
 
     let lane  = document.createElement("div");
-    lane.style.cssText = `position:relative;height:54px;margin-bottom:6px;
+    lane.style.cssText = `position:relative;height:60px;margin-bottom:6px;
       background:${isMe?"rgba(201,168,76,0.05)":"rgba(0,0,0,0.1)"};
       border-radius:6px;border:1px solid ${isMe?"#c9a84c22":"#1a2a1a"};
       overflow:visible`;
@@ -391,28 +391,37 @@ function _renderRaceTrack(tid, ranked, myId) {
     lane.appendChild(num);
 
     // Koń + nick (animowany)
+    // leftPct: 3%→91% ale koń SVG ma ~48px szerokości
+    // Przeliczamy: dostępna szerokość toru = 100% - 20px (numer) - 50px (flaga+nick)
+    // Używamy CSS calc żeby uwzględnić stałe offsety
     let horseEl = document.createElement("div");
     horseEl.dataset.tid  = tid;
     horseEl.dataset.rank = i;
+    // left: od 22px (po numerze) do calc(100% - 90px) (przed flagą)
+    // leftPct 0→100 mapujemy na: 22px + leftPct% * (szerokość - 112px)
+    // Uproszczenie: używamy calc z przesunięciem
+    let cssLeft = `calc(22px + ${leftPct}% * (100% - 110px) / 100)`;
     horseEl.style.cssText = `
-      position:absolute;top:50%;left:${leftPct}%;
-      transform:translate(-50%,-50%);
+      position:absolute;
+      bottom:6px;
+      left:${cssLeft};
       transition:left 0.3s linear;
-      display:flex;align-items:center;gap:4px;
+      display:flex;align-items:flex-end;gap:3px;
       z-index:2;
     `;
 
-    // Mini SVG konia z animacją biegu
+    // SVG konia — pasuje do wysokości lane (54px → koń ~46px)
     let svgWrap = document.createElement("div");
-    svgWrap.className = "race-horse-wrap";
-    svgWrap.style.cssText = `width:40px;height:32px;overflow:visible;flex-shrink:0`;
+    svgWrap.className = "race-track-horse";
+    svgWrap.style.cssText = `width:52px;height:46px;overflow:visible;flex-shrink:0`;
     if (e.horse && typeof buildExpHorseSVG === "function") {
-      // Użyj SVG konia z ekspedycji - ma klasy .efl .ebl .etail .emane
-      let h2 = e.horse;
-      let vis = (typeof getBreedVisual==="function") ? getBreedVisual(h2.breedKey||h2.name) : {coat:"#8B6914",mane:"#4a2e00"};
+      let h2  = e.horse;
+      let vis = (typeof getBreedVisual==="function")
+        ? getBreedVisual(h2.breedKey||h2.name)
+        : {coat:"#8B6914", mane:"#4a2e00"};
       svgWrap.innerHTML = buildExpHorseSVG(vis.coat||"#8B6914", vis.mane||"#4a2e00");
       let svgEl = svgWrap.querySelector("svg");
-      if (svgEl) { svgEl.setAttribute("width","40"); svgEl.setAttribute("height","32"); }
+      if (svgEl) { svgEl.setAttribute("width","52"); svgEl.setAttribute("height","46"); }
     } else if (e.horse && typeof drawHorseSVG === "function") {
       svgWrap.innerHTML = drawHorseSVG(e.horse.breedKey||e.horse.name, e.horse.rarity, 0);
       let svgEl = svgWrap.querySelector("svg");
@@ -422,11 +431,16 @@ function _renderRaceTrack(tid, ranked, myId) {
     }
     horseEl.appendChild(svgWrap);
 
-    // Nick (tylko jeśli widoczny - nie nachodzi na inne)
+    // Nick pod koniem (absolute, nie pcha konia)
     let nick = document.createElement("div");
-    nick.style.cssText = `font-size:9px;color:${rc};white-space:nowrap;max-width:55px;
+    nick.style.cssText = `
+      position:absolute;top:calc(50% + 22px);left:50%;
+      transform:translateX(-50%);
+      font-size:8px;color:${rc};white-space:nowrap;max-width:60px;
       overflow:hidden;text-overflow:ellipsis;
-      text-shadow:0 0 6px #000,0 0 3px #000`;
+      text-shadow:0 0 4px #000,0 0 2px #000;
+      font-family:'Cinzel',serif;
+    `;
     nick.textContent = (e.horse?.name||e.playerNick||"?").split(" ")[0];
     horseEl.appendChild(nick);
 
